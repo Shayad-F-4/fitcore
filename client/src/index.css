@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-main: #080B0A;
+    --surface: #111613;
+    --elevated: #171E19;
+    --accent: #B7FF3C;
+    --border: #273129;
+  }
+
+  body {
+    background-color: #080B0A;
+    color: #F5F7F5;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Custom dark scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #080B0A;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #273129;
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #364439;
+  }
+}
+
+@layer utilities {
+  .bg-grid-pattern {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, rgba(39, 49, 41, 0.25) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(39, 49, 41, 0.25) 1px, transparent 1px);
+  }
+
+  .bg-radial-glow {
+    background: radial-gradient(circle at 50% 0%, rgba(183, 255, 60, 0.12) 0%, transparent 65%);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(183, 255, 60, 0.4);
+  }
+
+  .border-glass {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .surface-card {
+    background: #111613;
+    border: 1px solid #273129;
+    border-radius: 0.75rem;
+  }
+
+  .surface-elevated {
+    background: #171E19;
+    border: 1px solid #364439;
+  }
+}
+
+/* Print Styles for Printable Membership Cards & Receipts */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .print-card {
+    border: 1px solid #000 !important;
+    color: #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+}
