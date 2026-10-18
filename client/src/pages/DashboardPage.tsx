@@ -1,491 +1,817 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Users,
-  Activity,
-  DollarSign,
+  CheckCircle2,
   AlertCircle,
-  TrendingUp,
-  Clock,
-  QrCode,
   UserPlus,
-  CreditCard,
-  Building,
-  RefreshCw,
-  Flame,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle,
+  MessageCircle,
+  Clock,
+  UserCheck,
+  Search,
+  RotateCw,
+  Eye,
+  X,
+  Archive,
+  Check,
 } from 'lucide-react';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  BarChart,
-  Bar,
-  CartesianGrid,
-} from 'recharts';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { DashboardData, Membership } from '../types';
-import { RenewModal } from '../components/modals/RenewModal';
-import { MemberCardModal } from '../components/modals/MemberCardModal';
+import { formatINR, formatDateIN, formatDisplayPhoneIN } from '../utils/formatters';
+import { sendWhatsAppReminder, sendWhatsAppExpiredNotice } from '../utils/whatsapp';
+import { ArchiveMemberModal } from '../components/modals/ArchiveMemberModal';
+
+
+
 
 interface DashboardPageProps {
-  onOpenCheckIn: () => void;
-  onOpenRegister: () => void;
+  onOpenCheckIn?: () => void;
+  onOpenRegister?: () => void;
+  onSelectMember?: (memberId: string) => void;
+  onRenewMember?: (membership: any) => void;
+  onOpenCollectDue?: (dueItem: any) => void;
+  onOpenReceipt?: (payment: any) => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   onOpenCheckIn,
   onOpenRegister,
+  onSelectMember,
+  onRenewMember,
 }) => {
-  const { activeBranch } = useAuth();
+  const { user, activeBranch } = useAuth();
+  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'GYM_ADMIN';
+  const navigate = useNavigate();
+
+  // Dashboard summary stats
   const [data, setData] = useState<DashboardData | null>(null);
+  const [pendingDues, setPendingDues] = useState<{
+    duesCount: number;
+    totalDuesAmount: number;
+  }>({ duesCount: 0, totalDuesAmount: 0 });
   const [loading, setLoading] = useState(true);
-  const [selectedRenewSub, setSelectedRenewSub] = useState<Membership | null>(null);
-  const [selectedCardMember, setSelectedCardMember] = useState<any | null>(null);
-  const [liveOccupants, setLiveOccupants] = useState<any[]>([]);
 
-  const fetchDashboard = async () => {
+
+  // Archive Member state & success notice
+  const [archiveTargetMember, setArchiveTargetMember] = useState<{
+    _id: string;
+    memberId: string;
+    fullName: string;
+    phone?: string;
+    photoUrl?: string;
+  } | null>(null);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+
+  // Live Active Members state
+  const [activeMembers, setActiveMembers] = useState<any[]>([]);
+  const [activeMembersTotal, setActiveMembersTotal] = useState(0);
+  const [activeSearch, setActiveSearch] = useState('');
+  const [activeLoading, setActiveLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Fetch Dashboard summary statistics
+  const fetchDashboardStats = useCallback(async () => {
     try {
-      setLoading(true);
-      const [dashRes, liveRes] = await Promise.all([
+      const [statsRes, duesRes] = await Promise.all([
         api.getDashboardStats(activeBranch?._id),
-        api.getLiveOccupancy(activeBranch?._id),
+        api.getPendingDues().catch(() => ({ duesCount: 0, totalDuesAmount: 0, memberships: [] })),
       ]);
-      setData(dashRes);
-      setLiveOccupants(liveRes.occupants || []);
+      setData(statsRes);
+      setPendingDues({
+        duesCount: duesRes.duesCount || 0,
+        totalDuesAmount: duesRes.totalDuesAmount || 0,
+      });
     } catch (err) {
-      console.error('Failed to load dashboard:', err);
-    } finally {
-      setLoading(false);
+      console.error('Failed to load dashboard statistics:', err);
     }
-  };
-
-  useEffect(() => {
-    fetchDashboard();
   }, [activeBranch]);
 
-  const handleQuickCheckOut = async (attendanceId: string) => {
-    try {
-      await api.checkOut(attendanceId);
-      fetchDashboard();
-    } catch (err) {
-      console.error('Failed to check out:', err);
+  // Fetch Live Active Members list
+  const fetchActiveMembers = useCallback(
+    async (searchTerm = activeSearch) => {
+      try {
+        setActiveLoading(true);
+        const res = await api.getMembers({
+          status: 'ACTIVE',
+          branch: activeBranch?._id,
+          search: searchTerm.trim() || undefined,
+          limit: 50,
+        });
+
+        // Filter to ensure memberships are currently valid and active
+        const list = (res.data || []).filter((m: any) => {
+          if (m.status !== 'ACTIVE' || m.isArchived) return false;
+          if (m.currentMembership) {
+            return m.currentMembership.status === 'ACTIVE';
+          }
+          return true;
+        });
+
+        setActiveMembers(list);
+        setActiveMembersTotal(res.pagination?.total ?? list.length);
+      } catch (err) {
+        console.error('Failed to fetch active members:', err);
+      } finally {
+        setActiveLoading(false);
+      }
+    },
+    [activeBranch, activeSearch]
+  );
+
+  // Initial load
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([fetchDashboardStats(), fetchActiveMembers()]).finally(() => {
+      setLoading(false);
+    });
+  }, [fetchDashboardStats, fetchActiveMembers]);
+
+  // Real-time auto refresh without manual page reload
+  useEffect(() => {
+    const handleDataChanged = () => {
+      fetchDashboardStats();
+      fetchActiveMembers(activeSearch);
+    };
+    window.addEventListener('fitcore:data-changed', handleDataChanged);
+    return () => window.removeEventListener('fitcore:data-changed', handleDataChanged);
+  }, [activeSearch, fetchDashboardStats, fetchActiveMembers]);
+
+  // Trigger search on submit or input change
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchActiveMembers(activeSearch);
+  };
+
+  const handleClearSearch = () => {
+    setActiveSearch('');
+    fetchActiveMembers('');
+  };
+
+  // Manual refresh action
+  const handleRefreshAll = async () => {
+    setIsRefreshing(true);
+    await Promise.all([fetchDashboardStats(), fetchActiveMembers(activeSearch)]);
+    setIsRefreshing(false);
+  };
+
+  // Helper: calculate days remaining and badge (supports expired members)
+  const getDaysRemainingBadge = (expiryDate: string, isExpired?: boolean) => {
+    const now = new Date();
+    const exp = new Date(expiryDate);
+    const diffTime = exp.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (isExpired || diffDays < 0) {
+      const daysAgo = Math.abs(diffDays);
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
+          {daysAgo === 0 ? 'Expired Today' : `Expired ${daysAgo}d ago`}
+        </span>
+      );
     }
+    if (diffDays === 0) {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+          Expires Today
+        </span>
+      );
+    }
+    if (diffDays === 1) {
+      return (
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+          In 1 day
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+        In {diffDays} days
+      </span>
+    );
   };
 
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <span className="font-mono text-xs text-text-dim uppercase tracking-wider">
-            Loading FitCore Telemetry...
-          </span>
-        </div>
+      <div className="flex items-center justify-center py-28 text-gray-500 text-sm">
+        <RotateCw className="w-5 h-5 animate-spin mr-2 text-blue-600" />
+        Loading FitCore Dashboard...
       </div>
     );
   }
 
-  const metrics = data?.metrics || {
+  const metrics: any = data?.metrics || {
     totalMembers: 0,
     activeMembers: 0,
-    newMembersThisMonth: 0,
-    liveOccupancy: 0,
-    gymCapacity: 200,
-    occupancyPercentage: 0,
-    todayTotalCheckins: 0,
+    expiringMemberships: 0,
+    alreadyExpiredCount: 0,
+    todayRevenue: 0,
     monthlyRevenue: 0,
-    totalRevenue: 0,
+    todayTotalCheckins: 0,
+    liveOccupancy: 0,
   };
+
+  const expiringList = (data?.expiringMemberships || []).slice(0, 15);
+  const expiredList = (data?.expiredMemberships || []).slice(0, 15);
+
+  // Expired members listed at the top ("upaar"), followed by expiring soon
+  const combinedAlerts = [
+    ...expiredList.map((sub: any) => ({ ...sub, isExpired: true })),
+    ...expiringList.map((sub: any) => ({ ...sub, isExpired: false })),
+  ];
+
+  const displayedAlerts = combinedAlerts;
+
+  const totalExpiryAlerts = (metrics.expiringMemberships || 0) + (metrics.alreadyExpiredCount || 0);
 
   return (
     <div className="space-y-6">
-      {/* Top Banner & Quick Actions */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-[#273129]/60">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-display font-extrabold text-2xl md:text-3xl text-text-main tracking-tight">
-              Command Dashboard
-            </h1>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-bold uppercase">
-              {activeBranch ? activeBranch.name : 'All Facilities'}
-            </span>
-          </div>
-          <p className="text-xs text-text-muted mt-1">
-            Real-time biometric attendance, subscription health, and revenue telemetry.
+      {/* =========================================================================
+          GYM DASHBOARD BANNER (Clean, Minimal, Professional)
+          ========================================================================= */}
+      <div className="relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/80 text-white h-44 sm:h-52 flex flex-col sm:flex-row sm:items-end justify-between gap-4 p-6 sm:p-8 bg-slate-950">
+        {/* Background Image: Clean Photographic Gym Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url('/gym-hero.png')` }}
+        />
+        {/* Subtle Dark Blue-Black Overlay for natural contrast & readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-slate-950/45 to-slate-950/20" />
+
+        {/* Gym Name & Tagline */}
+        <div className="relative z-10">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            Sagar Fitness Gym
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-200 font-medium mt-1 drop-shadow-md">
+            Strength • Transformation • Health Center • Baner, Pune
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            onClick={onOpenRegister}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#171E19] hover:bg-[#273129] border border-[#273129] text-xs font-semibold text-text-main transition-colors shadow-sm"
-          >
-            <UserPlus className="w-4 h-4 text-primary" />
-            <span>+ Athlete</span>
-          </button>
-          <button
-            onClick={onOpenCheckIn}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-[#080B0A] font-bold text-xs tracking-wider uppercase transition-all shadow-glow-sm"
-          >
-            <QrCode className="w-4 h-4 stroke-[2.5]" />
-            <span>⚡ Check-In</span>
-          </button>
-          <button
-            onClick={fetchDashboard}
-            title="Refresh Metrics"
-            className="p-2 rounded-xl bg-[#111613] hover:bg-[#171E19] border border-[#273129] text-text-dim hover:text-text-main transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-        </div>
+        {/* Action Button: Add Member */}
+        {onOpenRegister && (
+          <div className="relative z-10 self-start sm:self-end shrink-0">
+            <button
+              id="hero-add-member-btn"
+              onClick={onOpenRegister}
+              className="inline-flex items-center gap-2.5 h-11 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold shadow-lg shadow-blue-900/30 hover:shadow-xl hover:shadow-blue-600/35 transition-all transform hover:-translate-y-0.5 active:scale-95 shrink-0 whitespace-nowrap"
+            >
+              <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <UserPlus className="w-3.5 h-3.5 text-white shrink-0" />
+              </div>
+              <span>Add Member</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Active Athletes */}
-        <div className="p-5 rounded-2xl bg-[#111613] border border-[#273129] hover:border-[#364439] transition-all shadow-card group">
-          <div className="flex items-center justify-between text-text-dim mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider">Active Athletes</span>
-            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+      {/* =========================================================================
+          SECTION B: Exactly 5 Summary Cards
+          1. Today's Revenue | 2. Active Athletes | 3. Expiry Alerts | 4. Pending Dues | 5. Total Revenue
+          ========================================================================= */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        {/* Card 1: Today's Revenue */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+              Today's Revenue
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-sm shadow-xs">
+              ₹
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-emerald-600 tracking-tight">
+            {formatINR(metrics.todayRevenue || 0)}
+          </div>
+          <p className="text-[11px] text-[#6B7280] mt-1 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            Counter & digital receipts today
+          </p>
+        </div>
+
+        {/* Card 2: Active Athletes */}
+        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs hover:border-slate-300 transition-all">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+              Active Athletes
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shadow-xs">
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="font-display font-extrabold text-3xl text-text-main">
-              {metrics.activeMembers}
-            </span>
-            <span className="text-xs text-text-dim font-mono">/ {metrics.totalMembers} total</span>
+          <div className="mt-2 text-2xl font-black text-[#202124] tracking-tight">
+            {(metrics.activeMembers || activeMembersTotal).toLocaleString('en-IN')}
           </div>
-          <div className="mt-3 flex items-center gap-1.5 text-xs text-status-success font-medium">
-            <TrendingUp className="w-3.5 h-3.5" />
-            <span>+{metrics.newMembersThisMonth} new athletes this month</span>
+          <p className="text-[11px] text-[#6B7280] mt-1 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+            Valid active gym memberships
+          </p>
+        </div>
+
+        {/* Card 3: Expiry Alerts */}
+        <div
+          onClick={() => {
+            const el = document.getElementById('expiry-warning-section');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs hover:border-slate-300 cursor-pointer active:scale-[0.98] transition-all"
+          title="Click to view all membership expiry warnings"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+              Expiry Alerts
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shadow-xs">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-2xl font-black text-[#202124] tracking-tight">
+              {totalExpiryAlerts.toLocaleString('en-IN')}
+            </span>
+            <span className="text-[11px] text-gray-500 font-medium">pending renewal</span>
+          </div>
+          <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+            {(metrics.alreadyExpiredCount || 0) > 0 && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                🔴 {metrics.alreadyExpiredCount} Expired
+              </span>
+            )}
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+              ⚠️ {metrics.expiringMemberships || 0} Soon
+            </span>
           </div>
         </div>
 
-        {/* Card 2: Live Gym Occupancy */}
-        <div className="p-5 rounded-2xl bg-[#111613] border border-[#273129] hover:border-[#364439] transition-all shadow-card group">
-          <div className="flex items-center justify-between text-text-dim mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider">Live Occupancy</span>
-            <div className="w-8 h-8 rounded-lg bg-status-info/10 text-status-info flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Activity className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="font-display font-extrabold text-3xl text-text-main">
-              {metrics.liveOccupancy}
+        {/* Card 4: Pending Dues */}
+        <div
+          onClick={() => navigate('/billing')}
+          className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs hover:border-slate-300 cursor-pointer active:scale-[0.98] transition-all"
+          title="Click to view pending dues ledger"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+              Pending Dues
             </span>
-            <span className="text-xs text-text-dim font-mono">
-              / {metrics.gymCapacity} max capacity
-            </span>
-          </div>
-          {/* Progress bar towards capacity */}
-          <div className="mt-3">
-            <div className="flex justify-between text-[10px] font-mono text-text-dim mb-1">
-              <span>Floor Density</span>
-              <span className="text-primary font-semibold">{metrics.occupancyPercentage}%</span>
-            </div>
-            <div className="h-1.5 w-full bg-[#171E19] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary rounded-full transition-all duration-500 shadow-glow-sm"
-                style={{ width: `${Math.min(100, metrics.occupancyPercentage)}%` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Monthly Revenue */}
-        <div className="p-5 rounded-2xl bg-[#111613] border border-[#273129] hover:border-[#364439] transition-all shadow-card group">
-          <div className="flex items-center justify-between text-text-dim mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider">Monthly Revenue</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <DollarSign className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="font-display font-extrabold text-3xl text-text-main">
-              ${metrics.monthlyRevenue.toLocaleString()}
-            </span>
-          </div>
-          <div className="mt-3 text-xs text-text-dim flex items-center justify-between font-mono">
-            <span>Cumulative:</span>
-            <strong className="text-text-muted font-bold">${metrics.totalRevenue.toLocaleString()}</strong>
-          </div>
-        </div>
-
-        {/* Card 4: Expiring Subscriptions Warning */}
-        <div className="p-5 rounded-2xl bg-[#111613] border border-[#273129] hover:border-[#364439] transition-all shadow-card group">
-          <div className="flex items-center justify-between text-text-dim mb-3">
-            <span className="text-xs font-mono uppercase tracking-wider">Renewal Watch</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-400/10 text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center shadow-xs">
               <AlertCircle className="w-4 h-4" />
             </div>
           </div>
-          <div className="flex items-baseline gap-2">
-            <span className="font-display font-extrabold text-3xl text-amber-400">
-              {data?.expiringMemberships?.length || 0}
+          <div className="mt-2 text-2xl font-black text-rose-600 tracking-tight">
+            {formatINR(pendingDues.totalDuesAmount)}
+          </div>
+          <p className="text-[11px] text-[#6B7280] mt-1 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+            {pendingDues.duesCount} members with balance
+          </p>
+        </div>
+
+        {/* Card 5: Total Revenue */}
+        <div
+          onClick={() => navigate('/billing')}
+          className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs hover:border-slate-300 cursor-pointer active:scale-[0.98] transition-all"
+          title="Click to view monthly billing"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+              Total Revenue
             </span>
-            <span className="text-xs text-text-dim font-mono">within 7 days</span>
+            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-sm shadow-xs">
+              ₹
+            </div>
           </div>
-          <div className="mt-3 text-xs text-amber-400/80 font-medium">
-            High priority renewals requiring follow-up
+          <div className="mt-2 text-2xl font-black text-purple-700 tracking-tight">
+            {formatINR(metrics.monthlyRevenue || 0)}
           </div>
+          <p className="text-[11px] text-[#6B7280] mt-1 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+            Total collections this calendar month
+          </p>
         </div>
       </div>
 
-      {/* Main Charts & Live Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Revenue Trajectory & Peak Analysis */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Revenue Chart */}
-          <div className="p-5 rounded-2xl bg-[#111613] border border-[#273129] shadow-card">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="font-display font-bold text-base text-text-main">
-                  Monthly Revenue Trajectory
-                </h3>
-                <p className="text-xs text-text-dim">Gross membership dues collected (Past 6 Months)</p>
-              </div>
-              <span className="text-xs font-mono px-2.5 py-1 rounded-lg bg-[#171E19] text-primary border border-[#273129]">
-                USD ($)
-              </span>
-            </div>
 
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data?.monthlyRevenueData || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#B7FF3C" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#B7FF3C" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#273129" vertical={false} />
-                  <XAxis dataKey="month" stroke="#657369" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#657369" fontSize={11} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#111613',
-                      borderColor: '#273129',
-                      borderRadius: '0.75rem',
-                      color: '#F5F7F5',
-                      fontSize: '12px',
-                    }}
-                    formatter={(value: any) => [`$${value.toLocaleString()}`, 'Revenue']}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#B7FF3C"
-                    strokeWidth={2.5}
-                    fillOpacity={1}
-                    fill="url(#revenueGrad)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+
+
+      {/* Action Notification Banner */}
+      {actionNotice && (
+        <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium rounded-lg">
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span>{actionNotice}</span>
+          </div>
+          <button onClick={() => setActionNotice(null)} className="text-emerald-600 hover:text-emerald-800">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* =========================================================================
+          SECTION A: MEMBERSHIP EXPIRY & OVERDUE WARNINGS
+          (Expired Members displayed at the top with clear warning badges + Expiring Soon)
+          ========================================================================= */}
+      <div id="expiry-warning-section" className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/60">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Membership Expiry & Overdue Warnings ({combinedAlerts.length})
+              </h3>
             </div>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Expired members requiring renewal and passes expiring within 7 days.
+            </p>
           </div>
 
-          {/* Expiring Memberships Quick Renewal Table */}
-          <div className="p-5 rounded-2xl bg-[#111613] border border-[#273129] shadow-card">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-400" />
-                <h3 className="font-display font-bold text-base text-text-main">
-                  Expiring Subscriptions (Next 7 Days)
-                </h3>
-              </div>
-              <span className="text-xs text-text-dim font-mono">
-                {data?.expiringMemberships?.length || 0} athletes expiring
-              </span>
-            </div>
-
-            {(!data?.expiringMemberships || data.expiringMemberships.length === 0) ? (
-              <div className="py-8 text-center text-xs text-text-dim">
-                No memberships expiring in the next 7 days. All athletes are up to date!
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-[#273129] text-text-dim text-[11px] font-mono uppercase">
-                      <th className="text-left pb-2 font-medium">Athlete</th>
-                      <th className="text-left pb-2 font-medium">Plan Tier</th>
-                      <th className="text-left pb-2 font-medium">Expiry Date</th>
-                      <th className="text-right pb-2 font-medium">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#273129]/60">
-                    {data.expiringMemberships.map((sub: any) => {
-                      const member = sub.member;
-                      const expiry = new Date(sub.expiryDate);
-                      const daysLeft = Math.ceil((expiry.getTime() - Date.now()) / (1000 * 3600 * 24));
-                      return (
-                        <tr key={sub._id} className="hover:bg-[#171E19]/40 transition-colors">
-                          <td className="py-2.5">
-                            <div className="flex items-center gap-2.5">
-                              <img
-                                src={member?.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                                alt={member?.fullName}
-                                className="w-7 h-7 rounded-full object-cover border border-[#273129]"
-                              />
-                              <div>
-                                <p className="font-semibold text-text-main">{member?.fullName}</p>
-                                <p className="text-[10px] font-mono text-text-dim">{member?.memberId}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-2.5 text-text-muted">{sub.plan?.name}</td>
-                          <td className="py-2.5">
-                            <span className="inline-flex items-center gap-1 font-mono text-amber-400 font-semibold">
-                              {expiry.toLocaleDateString()}
-                              <span className="text-[10px] text-amber-400/80">({daysLeft}d left)</span>
-                            </span>
-                          </td>
-                          <td className="py-2.5 text-right">
-                            <button
-                              onClick={() => setSelectedRenewSub(sub)}
-                              className="px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary text-primary hover:text-[#080B0A] font-semibold text-[11px] transition-colors"
-                            >
-                              Renew Now
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
         </div>
 
-        {/* Right 1 Col: Live Gym Floor & Recent Activity Stream */}
-        <div className="space-y-6">
-          {/* Live In-Gym Athletes Card */}
-          <div className="p-5 rounded-2xl bg-[#111613] border border-[#273129] shadow-card">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
-                </span>
-                <h3 className="font-display font-bold text-base text-text-main">
-                  Live on Gym Floor
-                </h3>
-              </div>
-              <span className="text-xs font-mono font-bold text-primary">
-                {liveOccupants.length} Inside
-              </span>
-            </div>
+        {displayedAlerts.length === 0 ? (
+          <div className="p-8 text-center text-xs text-slate-500">
+            All member passes are currently valid and active. No expired or expiring memberships.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                <tr>
+                  <th className="px-6 py-3">Member Name</th>
+                  <th className="px-6 py-3">Phone Number</th>
+                  <th className="px-6 py-3">Membership Plan</th>
+                  <th className="px-6 py-3">Expiry Date</th>
+                  <th className="px-6 py-3">Status / Alert</th>
+                  <th className="px-6 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {displayedAlerts.map((sub: any) => {
+                  const memberObj: any = sub.member || {};
+                  const planObj: any = sub.plan || {};
+                  const isExp = sub.isExpired;
 
-            {liveOccupants.length === 0 ? (
-              <div className="py-10 text-center text-xs text-text-dim">
-                Gym is currently empty. Use Fast Check-In above to log an athlete!
-              </div>
-            ) : (
-              <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
-                {liveOccupants.map((occ) => {
-                  const checkIn = new Date(occ.checkInTime);
-                  const durationMins = Math.round((Date.now() - checkIn.getTime()) / 60000);
-                  const member = occ.member;
                   return (
-                    <div
-                      key={occ._id}
-                      className="p-2.5 rounded-xl bg-[#080B0A] border border-[#273129] flex items-center justify-between hover:border-[#364439] transition-colors"
+                    <tr
+                      key={sub._id}
+                      className={`transition-colors ${
+                        isExp
+                          ? 'bg-rose-50/40 hover:bg-rose-50/70'
+                          : 'hover:bg-slate-50/70'
+                      }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <img
-                          src={member?.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                          alt={member?.fullName}
-                          className="w-8 h-8 rounded-full object-cover border border-primary/30 shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-text-main truncate">
-                            {member?.fullName}
-                          </p>
-                          <p className="text-[10px] text-text-dim font-mono flex items-center gap-1">
-                            <Clock className="w-2.5 h-2.5 text-primary" />
-                            {durationMins < 60 ? `${durationMins}m in-gym` : `${Math.floor(durationMins / 60)}h ${durationMins % 60}m`}
-                          </p>
-                        </div>
-                      </div>
+                      {/* Member Photo and Name */}
+                      <td className="px-6 py-3.5">
+                        <button
+                          onClick={() => {
+                            if (memberObj._id && onSelectMember) {
+                              onSelectMember(memberObj._id);
+                            }
+                          }}
+                          className="flex items-center gap-3 text-left group"
+                        >
+                          {memberObj.photoUrl ? (
+                            <img
+                              src={memberObj.photoUrl}
+                              alt={memberObj.fullName}
+                              className={`w-9 h-9 rounded-xl object-cover shrink-0 border ${
+                                isExp ? 'border-rose-300' : 'border-slate-200'
+                              } shadow-xs`}
+                            />
+                          ) : (
+                            <div
+                              className={`w-9 h-9 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 border ${
+                                isExp
+                                  ? 'bg-rose-100 text-rose-700 border-rose-200'
+                                  : 'bg-blue-50 text-blue-700 border-blue-100'
+                              } shadow-xs`}
+                            >
+                              {memberObj.fullName ? memberObj.fullName.charAt(0) : 'M'}
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                              <span>{memberObj.fullName || 'Member'}</span>
+                              {isExp && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-700 border border-rose-200">
+                                  EXPIRED
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                              ID: {memberObj.memberId || '—'}
+                            </div>
+                          </div>
+                        </button>
+                      </td>
 
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          onClick={() => setSelectedCardMember(member)}
-                          title="View Digital Pass"
-                          className="p-1 rounded-lg text-text-dim hover:text-text-main hover:bg-[#171E19]"
-                        >
-                          <QrCode className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleQuickCheckOut(occ._id)}
-                          className="px-2 py-1 rounded-md bg-[#171E19] hover:bg-status-error/20 hover:text-status-error text-[10px] font-mono text-text-dim transition-colors"
-                          title="Check athlete out"
-                        >
-                          Out
-                        </button>
-                      </div>
-                    </div>
+                      {/* Phone Number */}
+                      <td className="px-6 py-3.5 font-mono font-medium text-slate-700">
+                        {formatDisplayPhoneIN(memberObj.phone)}
+                      </td>
+
+                      {/* Membership Plan */}
+                      <td className="px-6 py-3.5 text-slate-800 font-semibold">
+                        {planObj.name || 'Standard Pass'}
+                      </td>
+
+                      {/* Expiry Date (DD/MM/YYYY) */}
+                      <td
+                        className={`px-6 py-3.5 font-semibold font-mono ${
+                          isExp ? 'text-rose-700 font-bold' : 'text-slate-800'
+                        }`}
+                      >
+                        {formatDateIN(sub.expiryDate)}
+                      </td>
+
+                      {/* Days Remaining / Status Badge */}
+                      <td className="px-6 py-3.5">
+                        {getDaysRemainingBadge(sub.expiryDate, isExp)}
+                      </td>
+
+                      {/* Actions: Aesthetic Buttons */}
+                      <td className="px-6 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {memberObj.phone && (
+                            <button
+                              onClick={() => {
+                                if (isExp) {
+                                  sendWhatsAppExpiredNotice({
+                                    name: memberObj.fullName || 'Member',
+                                    phone: memberObj.phone,
+                                    planName: planObj.name,
+                                    expiryDate: sub.expiryDate,
+                                  });
+                                } else {
+                                  sendWhatsAppReminder({
+                                    name: memberObj.fullName || 'Member',
+                                    phone: memberObj.phone,
+                                    planName: planObj.name,
+                                    expiryDate: sub.expiryDate,
+                                  });
+                                }
+                              }}
+                              className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 hover:border-emerald-300 hover:text-emerald-800 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                              title={
+                                isExp
+                                  ? 'Send WhatsApp Expired Renewal Notice'
+                                  : 'Send WhatsApp Expiry Reminder'
+                              }
+                            >
+                              <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
+                                <MessageCircle className="w-3 h-3 shrink-0" />
+                              </div>
+                              <span>WhatsApp</span>
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => {
+                              if (onRenewMember) onRenewMember(sub);
+                            }}
+                            className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-3 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all shadow-xs hover:shadow-md hover:shadow-blue-500/20 active:scale-95"
+                          >
+                            <div className="w-5.5 h-5.5 rounded-md bg-white/20 flex items-center justify-center shrink-0">
+                              <RotateCw className="w-3 h-3 text-white shrink-0" />
+                            </div>
+                            <span>Renew</span>
+                          </button>
+
+                          {/* Archive Option (for expired members who left the gym) */}
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setArchiveTargetMember({
+                                  _id: memberObj._id,
+                                  memberId: memberObj.memberId,
+                                  fullName: memberObj.fullName || 'Member',
+                                  phone: memberObj.phone,
+                                  photoUrl: memberObj.photoUrl,
+                                });
+                              }}
+                              className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-rose-700 bg-white hover:bg-rose-50/50 border border-slate-200 hover:border-rose-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                              title="Member left the gym? Safely archive to remove from active alerts while preserving all records"
+                            >
+                              <div className="w-5.5 h-5.5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100 transition-colors group-hover:bg-rose-100">
+                                <Archive className="w-3 h-3 shrink-0" />
+                              </div>
+                              <span>Archive</span>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })}
-              </div>
-            )}
+              </tbody>
+            </table>
           </div>
-
-          {/* Recent Audit Activities Feed */}
-          <div className="p-5 rounded-2xl bg-[#111613] border border-[#273129] shadow-card">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-text-dim" />
-                <h3 className="font-display font-bold text-base text-text-main">
-                  Audit Telemetry Feed
-                </h3>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              {(data?.recentActivity || []).map((act: any) => {
-                const timeAgo = new Date(act.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                return (
-                  <div key={act._id} className="flex items-start gap-2.5 text-xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-text-main truncate">
-                        {act.action.replace(/_/g, ' ')}
-                      </p>
-                      <p className="text-[10px] text-text-dim">
-                        by {act.userName || 'System'} • {timeAgo}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Modals */}
-      <RenewModal
-        membership={selectedRenewSub}
-        isOpen={Boolean(selectedRenewSub)}
-        onClose={() => setSelectedRenewSub(null)}
-        onSuccess={fetchDashboard}
-      />
+      {/* =========================================================================
+          SECTION B: LIVE ACTIVE MEMBERS
+          (Member Photo, Member ID, Name, Phone Number, Membership Plan, Expiry Date, View Profile)
+          ========================================================================= */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+        {/* Section Header with Search and Refresh */}
+        <div className="px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/60">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                LIVE ACTIVE MEMBERS ({activeMembersTotal})
+              </h3>
+            </div>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Members with currently active memberships.
+            </p>
+          </div>
 
-      <MemberCardModal
-        member={selectedCardMember}
-        isOpen={Boolean(selectedCardMember)}
-        onClose={() => setSelectedCardMember(null)}
-      />
+          {/* Search Box and Refresh Action */}
+          <div className="flex items-center gap-2.5 self-start md:self-auto w-full md:w-auto">
+            <form onSubmit={handleSearchSubmit} className="relative flex-1 md:w-64">
+              <div className="w-full h-9 pl-2.5 pr-2 flex items-center bg-white border border-slate-200 rounded-xl shadow-2xs focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
+                <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <input
+                  type="text"
+                  value={activeSearch}
+                  onChange={(e) => {
+                    setActiveSearch(e.target.value);
+                    if (e.target.value === '') {
+                      fetchActiveMembers('');
+                    }
+                  }}
+                  placeholder="Search by name, ID, or phone..."
+                  className="w-full h-full pl-2 text-xs bg-transparent border-none focus:outline-none text-slate-900 placeholder-slate-400"
+                />
+                {activeSearch && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="p-1 text-slate-400 hover:text-slate-600 shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </form>
+
+            <button
+              type="button"
+              onClick={handleRefreshAll}
+              disabled={isRefreshing || activeLoading}
+              title="Refresh live active members"
+              className="h-9 w-9 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 text-slate-600 flex items-center justify-center transition-all shrink-0 disabled:opacity-50 shadow-2xs hover:shadow-xs"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${isRefreshing || activeLoading ? 'animate-spin text-blue-600' : ''}`} />
+            </button>
+          </div>
+        </div>
+
+        {/* Active Members Table */}
+        {activeLoading ? (
+          <div className="p-8 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+            <RotateCw className="w-4 h-4 animate-spin text-blue-600" />
+            <span>Loading active members...</span>
+          </div>
+        ) : activeMembers.length === 0 ? (
+          <div className="p-8 text-center text-sm text-slate-500">
+            {activeSearch ? (
+              <div>
+                <p className="font-semibold text-slate-700">No active members found</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  No members matching &ldquo;{activeSearch}&rdquo; have an active membership.
+                </p>
+                <button
+                  onClick={handleClearSearch}
+                  className="mt-3 text-xs text-blue-600 hover:underline font-semibold"
+                >
+                  Clear search
+                </button>
+              </div>
+            ) : (
+              'No active members found for this branch.'
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                <tr>
+                  <th className="px-6 py-3.5">Member</th>
+                  <th className="px-6 py-3.5">Member ID</th>
+                  <th className="px-6 py-3.5">Phone Number</th>
+                  <th className="px-6 py-3.5">Membership Plan</th>
+                  <th className="px-6 py-3.5">Expiry Date</th>
+                  <th className="px-6 py-3.5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {activeMembers.map((member: any) => {
+                  const currentSub = member.currentMembership;
+                  const planName = currentSub?.plan?.name || 'Active Membership Pass';
+                  const expiryDate = currentSub?.expiryDate;
+
+                  return (
+                    <tr key={member._id} className="hover:bg-slate-50/75 transition-colors">
+                      {/* 1. Member Photo & Name */}
+                      <td className="px-6 py-3.5">
+                        <button
+                          onClick={() => {
+                            if (member._id && onSelectMember) {
+                              onSelectMember(member._id);
+                            }
+                          }}
+                          className="flex items-center gap-3 text-left group"
+                        >
+                          {member.photoUrl ? (
+                            <img
+                              src={member.photoUrl}
+                              alt={member.fullName}
+                              className="w-9 h-9 rounded-xl object-cover border border-slate-200 shadow-xs shrink-0"
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100 shadow-xs">
+                              {member.fullName ? member.fullName.charAt(0) : 'M'}
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                              {member.fullName || 'Member'}
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-medium">
+                              {member.email || 'No email registered'}
+                            </div>
+                          </div>
+                        </button>
+                      </td>
+
+                      {/* 2. Member ID */}
+                      <td className="px-6 py-3.5">
+                        <span className="inline-flex px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200/80 font-mono font-bold text-slate-800 text-xs shadow-2xs">
+                          {member.memberId || '—'}
+                        </span>
+                      </td>
+
+                      {/* 3. Phone Number */}
+                      <td className="px-6 py-3.5 font-mono text-slate-700 font-medium">
+                        {formatDisplayPhoneIN(member.phone)}
+                      </td>
+
+                      {/* 4. Membership Plan */}
+                      <td className="px-6 py-3.5 text-slate-800 font-semibold">
+                        {planName}
+                      </td>
+
+                      {/* 5. Expiry Date (DD/MM/YYYY) */}
+                      <td className="px-6 py-3.5 font-mono text-slate-800 font-medium">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50/70 border border-emerald-100 font-mono text-xs font-semibold text-emerald-800">
+                          {expiryDate ? formatDateIN(expiryDate) : 'Ongoing'}
+                        </span>
+                      </td>
+
+                      {/* 6. Quick Action to View Profile: Aesthetic Micro-Card Button */}
+                      <td className="px-6 py-3.5 text-right">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (member._id && onSelectMember) {
+                              onSelectMember(member._id);
+                            }
+                          }}
+                          className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-3 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                          title="View Member Profile"
+                        >
+                          <div className="w-5.5 h-5.5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 transition-colors group-hover:bg-blue-100 group-hover:text-blue-700">
+                            <Eye className="w-3 h-3 shrink-0" />
+                          </div>
+                          <span>View Profile</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Archive Member Confirmation Modal */}
+      {archiveTargetMember && (
+        <ArchiveMemberModal
+          isOpen={Boolean(archiveTargetMember)}
+          member={archiveTargetMember}
+          onClose={() => setArchiveTargetMember(null)}
+          onSuccess={(msg) => {
+            setActionNotice(msg);
+            fetchDashboardStats();
+            setTimeout(() => setActionNotice(null), 6000);
+          }}
+        />
+      )}
     </div>
   );
 };

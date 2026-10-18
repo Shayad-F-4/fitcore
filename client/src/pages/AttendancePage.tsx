@@ -1,53 +1,46 @@
 import React, { useState, useEffect } from 'react';
 import {
-  QrCode,
-  Users,
-  Activity,
-  Clock,
-  ArrowRightLeft,
-  CheckCircle2,
-  AlertTriangle,
-  RefreshCw,
+  UserCheck,
   Search,
-  Check,
+  CheckCircle,
+  AlertTriangle,
+  Clock,
+  LogOut,
+  X,
+  AlertCircle,
+  RefreshCw,
+  Printer,
+  Download,
+  Calendar,
 } from 'lucide-react';
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from 'recharts';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { Attendance } from '../types';
+import { AttendanceRegisterModal } from '../components/modals/AttendanceRegisterModal';
+import { exportToCSV } from '../utils/csvExport';
 
 export const AttendancePage: React.FC = () => {
   const { activeBranch } = useAuth();
-  const [activeTab, setActiveTab] = useState<'live' | 'today'>('live');
-  const [liveOccupants, setLiveOccupants] = useState<Attendance[]>([]);
-  const [todayLogs, setTodayLogs] = useState<Attendance[]>([]);
-  const [hourlyData, setHourlyData] = useState<any[]>([]);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [attendanceLogs, setAttendanceLogs] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Scan input
-  const [identifier, setIdentifier] = useState('');
-  const [scanResult, setScanResult] = useState<any>(null);
-  const [scanError, setScanError] = useState<string | null>(null);
+  // Print modal state
+  const [showPrintRegister, setShowPrintRegister] = useState(false);
 
-  const fetchData = async () => {
+  // Member search / lookup state
+  const [identifier, setIdentifier] = useState('');
+  const [lookingUp, setLookingUp] = useState(false);
+  const [identifiedMember, setIdentifiedMember] = useState<any | null>(null);
+  const [identifiedSub, setIdentifiedSub] = useState<any | null>(null);
+  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
+
+  const fetchAttendance = async (date = selectedDate) => {
     try {
       setLoading(true);
-      const [liveRes, todayRes, statsRes] = await Promise.all([
-        api.getLiveOccupancy(activeBranch?._id),
-        api.getTodayAttendance(activeBranch?._id),
-        api.getAttendanceStats(activeBranch?._id),
-      ]);
-      setLiveOccupants(liveRes.occupants || []);
-      setTodayLogs(todayRes || []);
-      setHourlyData(statsRes.hourlyChartData || []);
+      const res = await api.getTodayAttendance(activeBranch?._id, date);
+      setAttendanceLogs(res || []);
     } catch (err) {
       console.error('Failed to load attendance:', err);
     } finally {
@@ -56,326 +49,482 @@ export const AttendancePage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 15000); // 15s auto-refresh for live kiosk
-    return () => clearInterval(interval);
-  }, [activeBranch]);
+    fetchAttendance(selectedDate);
+    // If viewing today, auto-refresh every 15s
+    if (selectedDate === todayStr) {
+      const interval = setInterval(() => fetchAttendance(todayStr), 15000);
+      return () => clearInterval(interval);
+    }
+  }, [activeBranch, selectedDate]);
 
-  const handleScanSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Handle member lookup
+  const handleLookup = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!identifier.trim()) return;
 
-    setScanError(null);
-    setScanResult(null);
+    setLookingUp(true);
+    setStatusMessage(null);
+    setIdentifiedMember(null);
+    setIdentifiedSub(null);
 
     try {
-      const res = await api.checkIn({
-        identifier: identifier.trim(),
-        branchId: activeBranch?._id,
-        method: 'QR_CODE',
-      });
-      setScanResult(res);
-      setIdentifier('');
-      fetchData();
+      // First search for the member
+      const searchRes = await api.getMembers({ search: identifier.trim(), limit: 1 });
+      const found = searchRes.data?.[0];
+
+      if (!found) {
+        setStatusMessage({
+          type: 'error',
+          text: `No member found matching "${identifier.trim()}". Check ID or phone number.`,
+        });
+        return;
+      }
+
+      // Fetch full profile for membership status check
+      const profileRes = await api.getMember(found._id);
+      setIdentifiedMember(profileRes.member);
+      setIdentifiedSub(profileRes.currentMembership || null);
+
+      if (profileRes.member.status === 'EXPIRED') {
+        setStatusMessage({
+          type: 'warning',
+          text: 'Warning: Member subscription has expired. Please renew membership before check-in.',
+        });
+      } else if (profileRes.member.status === 'FROZEN') {
+        setStatusMessage({
+          type: 'warning',
+          text: 'Warning: Membership is currently frozen. Unfreeze or renew to allow check-in.',
+        });
+      }
     } catch (err: any) {
-      setScanError(err.message || 'Scan rejected. Athlete not found or membership issue.');
+      setStatusMessage({
+        type: 'error',
+        text: err.message || 'Lookup failed.',
+      });
+    } finally {
+      setLookingUp(false);
     }
   };
 
+  // Perform Check-In
+  const handleCheckIn = async () => {
+    const searchTarget = identifiedMember?.memberId || identifier.trim();
+    if (!searchTarget) return;
+
+    try {
+      setLookingUp(true);
+      const res = await api.checkIn({
+        identifier: searchTarget,
+        branchId: activeBranch?._id,
+        method: 'MANUAL',
+      });
+
+      setStatusMessage({
+        type: 'success',
+        text: `Checked in successfully: ${res.member?.fullName || 'Member'} at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+      });
+
+      setIdentifier('');
+      setIdentifiedMember(null);
+      setIdentifiedSub(null);
+      fetchAttendance(selectedDate);
+    } catch (err: any) {
+      setStatusMessage({
+        type: 'error',
+        text: err.message || 'Check-in failed.',
+      });
+    } finally {
+      setLookingUp(false);
+    }
+  };
+
+  // Perform Check-Out
   const handleCheckOut = async (attendanceId: string) => {
     try {
       await api.checkOut(attendanceId);
-      fetchData();
-    } catch (err) {
-      console.error('Failed to check out:', err);
+      fetchAttendance(selectedDate);
+    } catch (err: any) {
+      alert(err.message || 'Check-out failed');
     }
   };
 
+  // Export Daily Attendance to CSV
+  const handleExportCSV = () => {
+    const headers = [
+      'Record ID',
+      'Member Name',
+      'Member ID',
+      'Phone',
+      'Check-In Time',
+      'Check-Out Time',
+      'Duration (Minutes)',
+      'Status',
+      'Method',
+    ];
+
+    const rows = attendanceLogs.map((log) => {
+      const m = log.member || ({} as any);
+      return [
+        log._id,
+        m.fullName || '',
+        m.memberId || '',
+        m.phone || '',
+        new Date(log.checkInTime).toLocaleString(),
+        log.checkOutTime ? new Date(log.checkOutTime).toLocaleString() : 'Inside',
+        log.durationMinutes ?? '',
+        m.status || 'ACTIVE',
+        log.method || 'MANUAL',
+      ];
+    });
+
+    exportToCSV(`fitcore_attendance_${selectedDate}`, headers, rows);
+  };
+
+  // Count active occupants (no check-out time)
+  const activeOccupants = attendanceLogs.filter((log) => !log.checkOutTime);
+  const isViewingToday = selectedDate === todayStr;
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-[#273129]/60">
+      {/* Top Header */}
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-display font-extrabold text-2xl md:text-3xl text-text-main tracking-tight">
-              Reception Attendance Kiosk
-            </h1>
-            <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30 font-bold uppercase">
-              Live Terminal
-            </span>
-          </div>
-          <p className="text-xs text-text-muted mt-1">
-            Real-time biometric turnstile simulation, QR pass scanner & facility capacity monitor.
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Attendance</h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Member check-in, daily visit logs, and official attendance sheets.
           </p>
         </div>
 
-        <button
-          onClick={fetchData}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#111613] hover:bg-[#171E19] border border-[#273129] text-xs font-mono text-text-dim hover:text-text-main transition-colors"
-        >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Refresh Floor</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:self-auto">
+          {/* Active now pill */}
+          {isViewingToday && (
+            <div className="inline-flex items-center gap-2 h-10 px-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 shadow-2xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>Active Now: {activeOccupants.length} members</span>
+            </div>
+          )}
+
+          {/* Export CSV button */}
+          <button
+            onClick={handleExportCSV}
+            disabled={attendanceLogs.length === 0}
+            className="inline-flex items-center gap-2 h-10 px-3.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-700 text-xs font-semibold transition-all shadow-2xs hover:shadow-xs disabled:opacity-50"
+            title="Download CSV report of attendance"
+          >
+            <div className="w-5.5 h-5.5 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 border border-slate-200">
+              <Download className="w-3.5 h-3.5" />
+            </div>
+            <span>Export CSV</span>
+          </button>
+
+          {/* Print Register Sheet button */}
+          <button
+            onClick={() => setShowPrintRegister(true)}
+            className="inline-flex items-center gap-2.5 h-10 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md hover:shadow-blue-500/20"
+            title="Open printable daily attendance register sheet"
+          >
+            <div className="w-5.5 h-5.5 rounded-md bg-white/20 flex items-center justify-center shrink-0">
+              <Printer className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span>Print Daily Sheet</span>
+          </button>
+
+          <button
+            onClick={() => fetchAttendance(selectedDate)}
+            className="h-10 w-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+            title="Refresh Attendance"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Top Scanner Terminal Box */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-[#111613] via-[#141C16] to-[#111613] border-2 border-primary/40 shadow-glow-primary">
-        <div className="max-w-2xl mx-auto space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
-              </span>
-              <span className="font-mono text-xs uppercase tracking-wider text-primary font-bold">
-                Kiosk Scanner Gun Armed & Ready
-              </span>
-            </div>
-            <span className="text-xs font-mono text-text-dim">Auto-toggles Entry & Exit</span>
-          </div>
+      {/* Member Search & Identification Card */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-emerald-500" />
+          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+            Fast Member Check-In
+          </h3>
+        </div>
 
-          <form onSubmit={handleScanSubmit} className="relative">
+        <form onSubmit={handleLookup} className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="Scan Barcode / QR token or input Member ID (e.g. FC-1001, FC-1002)..."
-              autoFocus
-              className="w-full px-5 py-3.5 rounded-2xl bg-[#080B0A] border-2 border-[#273129] focus:border-primary text-text-main font-mono text-base placeholder:text-text-dim/60 focus:outline-none focus:ring-2 focus:ring-primary shadow-inner"
+              placeholder="Enter Member ID (e.g. FC-1001) or phone number..."
+              className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:outline-none transition-colors text-slate-900 placeholder-slate-400"
             />
-            <button
-              type="submit"
-              disabled={!identifier.trim()}
-              className="absolute right-2.5 top-2.5 bottom-2.5 px-5 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-40 text-[#080B0A] font-bold text-xs tracking-wider uppercase transition-colors"
-            >
-              Scan Pass
-            </button>
-          </form>
+          </div>
 
-          {/* Quick Click Shortcuts */}
-          <div className="flex items-center gap-2 flex-wrap text-xs">
-            <span className="text-text-dim font-mono text-[11px]">Quick click test:</span>
-            {['FC-1001', 'FC-1002', 'FC-1003', 'FC-1004', 'FC-1006'].map((id) => (
+          <button
+            type="submit"
+            disabled={lookingUp || !identifier.trim()}
+            className="group inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all active:scale-95 shadow-2xs hover:shadow-xs disabled:opacity-50"
+          >
+            <div className="w-5.5 h-5.5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+              <Search className="w-3.5 h-3.5" />
+            </div>
+            <span>{lookingUp ? 'Searching...' : 'Look Up'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCheckIn}
+            disabled={lookingUp || !identifier.trim()}
+            className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md hover:shadow-emerald-500/20 disabled:opacity-50"
+          >
+            <div className="w-5.5 h-5.5 rounded-md bg-white/20 flex items-center justify-center shrink-0">
+              <UserCheck className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span>Direct Check-In</span>
+          </button>
+        </form>
+
+        {/* Status Notification Banner */}
+        {statusMessage && (
+          <div
+            className={`p-3.5 rounded-xl text-xs flex items-center justify-between gap-2 border ${
+              statusMessage.type === 'success'
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                : statusMessage.type === 'warning'
+                ? 'bg-amber-50 text-amber-800 border-amber-200'
+                : 'bg-rose-50 text-rose-800 border-rose-200'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {statusMessage.type === 'success' ? (
+                <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              )}
+              <span className="font-medium">{statusMessage.text}</span>
+            </div>
+            <button
+              onClick={() => setStatusMessage(null)}
+              className="text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Identified Member Card Preview */}
+        {identifiedMember && (
+          <div className="p-4 bg-slate-50/75 border border-slate-200 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 mt-3">
+            <div className="flex items-center gap-3.5">
+              {identifiedMember.photoUrl ? (
+                <img
+                  src={identifiedMember.photoUrl}
+                  alt={identifiedMember.fullName}
+                  className="w-14 h-14 rounded-full object-cover border border-slate-200 shrink-0 shadow-2xs"
+                />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-700 font-bold text-lg flex items-center justify-center shrink-0">
+                  {identifiedMember.fullName.charAt(0)}
+                </div>
+              )}
+
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-bold text-base text-slate-900">
+                    {identifiedMember.fullName}
+                  </h4>
+                  <span
+                    className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                      identifiedMember.status === 'ACTIVE'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : identifiedMember.status === 'FROZEN'
+                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                        : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}
+                  >
+                    {identifiedMember.status}
+                  </span>
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5">
+                  ID: <span className="font-mono font-semibold text-slate-700">{identifiedMember.memberId}</span> • Phone: {identifiedMember.phone}
+                </div>
+                <div className="text-xs text-slate-500">
+                  Plan: <span className="font-semibold text-slate-800">{identifiedSub?.plan?.name || 'No active plan'}</span>
+                  {identifiedSub && ` • Expires: ${new Date(identifiedSub.expiryDate).toLocaleDateString()}`}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-start md:self-auto">
               <button
-                key={id}
-                type="button"
                 onClick={() => {
-                  setIdentifier(id);
+                  setIdentifiedMember(null);
+                  setIdentifiedSub(null);
                 }}
-                className="px-2.5 py-1 rounded-lg bg-[#171E19] hover:bg-primary/20 hover:text-primary text-text-muted font-mono text-[11px] border border-[#273129] transition-colors"
+                className="group inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
               >
-                {id}
+                Clear
               </button>
-            ))}
+              <button
+                onClick={handleCheckIn}
+                className="inline-flex items-center gap-1.5 h-8 px-4 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md hover:shadow-emerald-500/20"
+              >
+                <UserCheck className="w-3.5 h-3.5 text-white" />
+                Confirm Check-In
+              </button>
+            </div>
           </div>
-
-          {/* Feedback banner */}
-          {scanResult && (
-            <div className="p-4 rounded-2xl bg-status-success/15 border border-status-success/40 flex items-center gap-3 text-status-success animate-in zoom-in-95 duration-150">
-              <CheckCircle2 className="w-5 h-5 shrink-0" />
-              <div className="text-xs">
-                <span className="font-bold">
-                  {scanResult.type === 'CHECK_IN' ? 'Athlete Verified & Admitted:' : 'Athlete Exited Facility:'}
-                </span>{' '}
-                {scanResult.member.fullName} ({scanResult.member.memberId})
-              </div>
-            </div>
-          )}
-
-          {scanError && (
-            <div className="p-4 rounded-2xl bg-status-error/15 border border-status-error/40 flex items-center gap-3 text-status-error text-xs">
-              <AlertTriangle className="w-5 h-5 shrink-0" />
-              <span>{scanError}</span>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
-      {/* Analytics: Rush Hours Hourly Chart */}
-      <div className="p-5 rounded-2xl bg-[#111613] border border-[#273129] shadow-card">
-        <div className="flex items-center justify-between mb-4">
+      {/* Attendance Log Table */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+        {/* Table Controls: Date Filter */}
+        <div className="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h3 className="font-display font-bold text-base text-text-main">
-              Today's Facility Peak Hours Curve
+            <h3 className="text-base font-bold text-slate-900">
+              {isViewingToday ? "Today's Attendance" : `Attendance Log for ${selectedDate}`}
             </h3>
-            <p className="text-xs text-text-dim">Hourly athlete check-in distribution (6 AM – 10 PM)</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Check-ins, check-outs, and duration for the selected date.
+            </p>
           </div>
-          <span className="text-xs font-mono text-primary font-bold">
-            Total Today: {todayLogs.length} Check-ins
-          </span>
-        </div>
 
-        <div className="h-52 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={hourlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#273129" vertical={false} />
-              <XAxis dataKey="hour" stroke="#657369" fontSize={10} tickLine={false} />
-              <YAxis stroke="#657369" fontSize={10} tickLine={false} allowDecimals={false} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#111613',
-                  borderColor: '#273129',
-                  borderRadius: '0.75rem',
-                  color: '#F5F7F5',
-                  fontSize: '12px',
-                }}
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs shadow-2xs">
+              <Calendar className="w-3.5 h-3.5 text-slate-500" />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="bg-transparent border-none focus:outline-none text-xs font-semibold text-slate-800"
               />
-              <Bar dataKey="count" fill="#B7FF3C" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+            </div>
 
-      {/* Tabs: Currently on Floor vs Today's History */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between border-b border-[#273129] pb-2">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setActiveTab('live')}
-              className={`text-sm font-display font-bold pb-2 -mb-2.5 transition-colors border-b-2 flex items-center gap-2 ${
-                activeTab === 'live'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-text-dim hover:text-text-main'
-              }`}
-            >
-              <span>Currently on Floor</span>
-              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-primary/20 text-primary">
-                {liveOccupants.length}
-              </span>
-            </button>
+            {!isViewingToday && (
+              <button
+                onClick={() => setSelectedDate(todayStr)}
+                className="group inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-blue-700 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+              >
+                Reset to Today
+              </button>
+            )}
 
-            <button
-              onClick={() => setActiveTab('today')}
-              className={`text-sm font-display font-bold pb-2 -mb-2.5 transition-colors border-b-2 flex items-center gap-2 ${
-                activeTab === 'today'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-text-dim hover:text-text-main'
-              }`}
-            >
-              <span>Today's Total Visits</span>
-              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-[#171E19] text-text-muted">
-                {todayLogs.length}
-              </span>
-            </button>
+            <div className="h-7 px-2.5 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-600 font-semibold flex items-center">
+              Visits: <strong className="text-slate-900 ml-1">{attendanceLogs.length}</strong>
+            </div>
           </div>
         </div>
 
-        {/* Tab 1: Live In Gym */}
-        {activeTab === 'live' ? (
-          <div className="p-4 rounded-2xl bg-[#111613] border border-[#273129] shadow-card overflow-x-auto">
-            {liveOccupants.length === 0 ? (
-              <div className="py-12 text-center text-xs text-text-dim">
-                No athletes currently on the gym floor. Scan an athlete above to admit them!
-              </div>
-            ) : (
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-[#273129] text-text-dim text-[11px] font-mono uppercase">
-                    <th className="text-left pb-3 font-medium">Athlete</th>
-                    <th className="text-left pb-3 font-medium">Member ID</th>
-                    <th className="text-left pb-3 font-medium">Entry Timestamp</th>
-                    <th className="text-left pb-3 font-medium">Floor Time</th>
-                    <th className="text-left pb-3 font-medium">Verification</th>
-                    <th className="text-right pb-3 font-medium">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#273129]/60">
-                  {liveOccupants.map((occ) => {
-                    const member = occ.member;
-                    const checkIn = new Date(occ.checkInTime);
-                    const durationMins = Math.round((Date.now() - checkIn.getTime()) / 60000);
-                    return (
-                      <tr key={occ._id} className="hover:bg-[#171E19]/40 transition-colors">
-                        <td className="py-3">
-                          <div className="flex items-center gap-2.5">
-                            <img
-                              src={member?.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                              alt={member?.fullName}
-                              className="w-8 h-8 rounded-full object-cover border border-primary/30"
-                            />
-                            <span className="font-semibold text-text-main">{member?.fullName}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 font-mono text-primary font-bold">{member?.memberId}</td>
-                        <td className="py-3 text-text-muted font-mono">
-                          {checkIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </td>
-                        <td className="py-3">
-                          <span className="text-[11px] font-mono text-text-main font-semibold">
-                            {durationMins < 60 ? `${durationMins}m` : `${Math.floor(durationMins / 60)}h ${durationMins % 60}m`}
-                          </span>
-                        </td>
-                        <td className="py-3">
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#171E19] text-text-dim border border-[#273129]">
-                            {occ.method}
-                          </span>
-                        </td>
-                        <td className="py-3 text-right">
-                          <button
-                            onClick={() => handleCheckOut(occ._id)}
-                            className="px-3 py-1 rounded-lg bg-status-info/10 hover:bg-status-info text-status-info hover:text-[#080B0A] font-semibold text-xs transition-colors"
-                          >
-                            Check Out
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
+        {loading && attendanceLogs.length === 0 ? (
+          <div className="p-12 text-center text-sm text-slate-500">
+            Loading attendance records...
+          </div>
+        ) : attendanceLogs.length === 0 ? (
+          <div className="p-12 text-center text-sm text-slate-500">
+            No attendance visits recorded on {selectedDate}.
           </div>
         ) : (
-          /* Tab 2: Today's Full Log */
-          <div className="p-4 rounded-2xl bg-[#111613] border border-[#273129] shadow-card overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-[#273129] text-text-dim text-[11px] font-mono uppercase">
-                  <th className="text-left pb-3 font-medium">Athlete</th>
-                  <th className="text-left pb-3 font-medium">Check-In</th>
-                  <th className="text-left pb-3 font-medium">Check-Out</th>
-                  <th className="text-left pb-3 font-medium">Method</th>
-                  <th className="text-left pb-3 font-medium">Branch</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50/75 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                <tr>
+                  <th className="px-5 py-3">Member</th>
+                  <th className="px-5 py-3">Member ID</th>
+                  <th className="px-5 py-3">Check-In Time</th>
+                  <th className="px-5 py-3">Check-Out Time</th>
+                  <th className="px-5 py-3">Duration</th>
+                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#273129]/60">
-                {todayLogs.map((log) => {
-                  const member = log.member;
+              <tbody className="divide-y divide-slate-100">
+                {attendanceLogs.map((log) => {
+                  const memberObj = log.member || {};
+                  const isCheckedIn = !log.checkOutTime;
+
+                  const checkInDate = new Date(log.checkInTime);
+                  const checkInTimeFormatted = checkInDate.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  });
+
+                  const checkOutTimeFormatted = log.checkOutTime
+                    ? new Date(log.checkOutTime).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : '—';
+
                   return (
-                    <tr key={log._id} className="hover:bg-[#171E19]/40 transition-colors">
-                      <td className="py-3">
-                        <div className="flex items-center gap-2.5">
-                          <img
-                            src={member?.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                            alt={member?.fullName}
-                            className="w-7 h-7 rounded-full object-cover border border-[#273129]"
-                          />
-                          <div>
-                            <p className="font-semibold text-text-main">{member?.fullName}</p>
-                            <p className="text-[10px] font-mono text-text-dim">{member?.memberId}</p>
-                          </div>
+                    <tr key={log._id} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          {memberObj.photoUrl ? (
+                            <img
+                              src={memberObj.photoUrl}
+                              alt={memberObj.fullName}
+                              className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-700 font-semibold text-xs flex items-center justify-center shrink-0">
+                              {memberObj.fullName ? memberObj.fullName.charAt(0) : 'M'}
+                            </div>
+                          )}
+                          <span className="font-semibold text-slate-900">
+                            {memberObj.fullName || 'Member'}
+                          </span>
                         </div>
                       </td>
-                      <td className="py-3 font-mono text-text-muted">
-                        {new Date(log.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
+                      <td className="px-5 py-3.5 font-mono text-xs font-medium text-slate-500">
+                        {memberObj.memberId || '—'}
                       </td>
-                      <td className="py-3 font-mono">
-                        {log.checkOutTime ? (
-                          <span className="text-text-muted">
-                            {new Date(log.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+
+                      <td className="px-5 py-3.5 text-sm text-slate-900 font-medium">
+                        {checkInTimeFormatted}
+                      </td>
+
+                      <td className="px-5 py-3.5 text-sm text-slate-500 font-medium">
+                        {checkOutTimeFormatted}
+                      </td>
+
+                      <td className="px-5 py-3.5 text-sm text-slate-600">
+                        {log.durationMinutes ? `${log.durationMinutes} mins` : isCheckedIn ? 'Active' : '—'}
+                      </td>
+
+                      <td className="px-5 py-3.5">
+                        {isCheckedIn ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Inside Gym
                           </span>
                         ) : (
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary/20 text-primary font-bold">
-                            Active In Gym
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                            <CheckCircle className="w-3 h-3 text-slate-500" />
+                            Completed
                           </span>
                         )}
                       </td>
-                      <td className="py-3">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#171E19] text-text-dim border border-[#273129]">
-                          {log.method}
-                        </span>
+
+                      <td className="px-5 py-3.5 text-right">
+                        {isCheckedIn && (
+                          <button
+                            onClick={() => handleCheckOut(log._id)}
+                            className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-rose-700 hover:text-rose-800 bg-white hover:bg-rose-50/50 border border-slate-200 hover:border-rose-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                            title="Check Out Member"
+                          >
+                            <div className="w-5.5 h-5.5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100 transition-colors group-hover:bg-rose-100">
+                              <LogOut className="w-3 h-3" />
+                            </div>
+                            <span>Check Out</span>
+                          </button>
+                        )}
                       </td>
-                      <td className="py-3 text-text-dim">{log.branch?.name}</td>
                     </tr>
                   );
                 })}
@@ -384,6 +533,15 @@ export const AttendancePage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Printable Register Sheet Modal */}
+      <AttendanceRegisterModal
+        isOpen={showPrintRegister}
+        onClose={() => setShowPrintRegister(false)}
+        date={selectedDate}
+        attendanceLogs={attendanceLogs}
+        branch={activeBranch}
+      />
     </div>
   );
 };

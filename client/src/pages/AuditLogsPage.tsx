@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Clock, User, FileText, RefreshCw } from 'lucide-react';
+import { ShieldCheck, Clock, User, FileText, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { api } from '../api/client';
 
 export const AuditLogsPage: React.FC = () => {
@@ -27,78 +27,112 @@ export const AuditLogsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-[#273129]/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-display font-extrabold text-2xl md:text-3xl text-text-main tracking-tight">
+          <div className="flex items-center gap-2.5">
+            <h1 className="font-bold text-2xl text-slate-900 tracking-tight">
               Security & Activity Audit Logs
             </h1>
-            <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-[#111613] text-primary border border-[#273129] font-bold">
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
               {pagination.total} Records
             </span>
           </div>
-          <p className="text-xs text-text-muted mt-1">
+          <p className="text-sm text-slate-500 mt-0.5">
             Immutable log of all staff actions, payments, membership status transitions & check-in events.
           </p>
         </div>
 
         <button
           onClick={() => fetchLogs(pagination.page)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#111613] hover:bg-[#171E19] border border-[#273129] text-xs font-mono text-text-dim hover:text-text-main transition-colors"
+          className="group inline-flex items-center gap-1.5 h-9 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-all active:scale-95 shadow-2xs hover:shadow-xs self-start sm:self-auto"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <div className="w-5 h-5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+          </div>
           <span>Refresh</span>
         </button>
       </div>
 
       {/* Logs Table */}
-      <div className="p-4 rounded-2xl bg-[#111613] border border-[#273129] shadow-card overflow-x-auto">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
         {loading ? (
-          <div className="py-12 text-center text-xs text-text-dim font-mono">
+          <div className="py-12 text-center text-sm text-slate-500">
             Loading System Audit Stream...
           </div>
         ) : logs.length === 0 ? (
-          <div className="py-12 text-center text-xs text-text-dim">
+          <div className="py-12 text-center text-sm text-slate-500">
             No audit records found.
           </div>
         ) : (
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-[#273129] text-text-dim text-[11px] font-mono uppercase">
-                <th className="text-left pb-3 font-medium">Timestamp</th>
-                <th className="text-left pb-3 font-medium">Action Event</th>
-                <th className="text-left pb-3 font-medium">Staff Member</th>
-                <th className="text-left pb-3 font-medium">Entity Type</th>
-                <th className="text-left pb-3 font-medium">Metadata / Details</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#273129]/60 font-mono">
-              {logs.map((log) => {
-                return (
-                  <tr key={log._id} className="hover:bg-[#171E19]/40 transition-colors">
-                    <td className="py-3 text-text-dim text-[11px]">
-                      {new Date(log.createdAt).toLocaleString()}
-                    </td>
-                    <td className="py-3">
-                      <span className="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 text-[11px] font-semibold">
-                        {log.action}
-                      </span>
-                    </td>
-                    <td className="py-3 text-text-muted">
-                      {log.userName || 'System'}
-                      {log.userRole && (
-                        <span className="text-[10px] text-text-dim block">{log.userRole}</span>
-                      )}
-                    </td>
-                    <td className="py-3 text-text-main">{log.entity}</td>
-                    <td className="py-3 text-[11px] text-text-dim max-w-xs truncate">
-                      {log.details ? JSON.stringify(log.details) : '—'}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-slate-50/75 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                <tr>
+                  <th className="px-5 py-3">Timestamp</th>
+                  <th className="px-5 py-3">Action Event</th>
+                  <th className="px-5 py-3">Staff Member</th>
+                  <th className="px-5 py-3">Entity Type</th>
+                  <th className="px-5 py-3">Metadata / Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-mono text-xs">
+                {logs.map((log) => {
+                  return (
+                    <tr key={log._id} className="hover:bg-slate-50/60 transition-colors">
+                      <td className="px-5 py-3.5 text-slate-500 whitespace-nowrap">
+                        {new Date(log.createdAt).toLocaleString()}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 font-sans">
+                        <div className="font-semibold text-slate-900">{log.userName || 'System'}</div>
+                        {log.userRole && (
+                          <div className="text-[11px] text-slate-400 font-mono">{log.userRole}</div>
+                        )}
+                      </td>
+                      <td className="px-5 py-3.5 text-slate-800 font-sans font-medium">{log.entity}</td>
+                      <td className="px-5 py-3.5 text-slate-500 max-w-xs truncate" title={log.details ? JSON.stringify(log.details) : ''}>
+                        {log.details ? JSON.stringify(log.details) : '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {pagination.totalPages > 1 && (
+          <div className="px-5 py-3 border-t border-slate-200 bg-slate-50/75 flex items-center justify-between text-xs text-slate-500">
+            <div>
+              Showing <span className="font-semibold text-slate-900">{(pagination.page - 1) * pagination.limit + 1}</span> to{' '}
+              <span className="font-semibold text-slate-900">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of{' '}
+              <span className="font-semibold text-slate-900">{pagination.total}</span> records
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                disabled={pagination.page <= 1}
+                onClick={() => fetchLogs(pagination.page - 1)}
+                className="h-8 w-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 shadow-2xs hover:shadow-xs flex items-center justify-center"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="font-semibold text-slate-700 px-1">
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
+              <button
+                disabled={pagination.page >= pagination.totalPages}
+                onClick={() => fetchLogs(pagination.page + 1)}
+                className="h-8 w-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 shadow-2xs hover:shadow-xs flex items-center justify-center"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>

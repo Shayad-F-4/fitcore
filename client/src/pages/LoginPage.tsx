@@ -1,153 +1,209 @@
-import React, { useState } from 'react';
-import { Dumbbell, ShieldCheck, UserCheck, Building2, Flame, Sparkles, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const LoginPage: React.FC = () => {
-  const { login, demoLogin } = useAuth();
-  const [email, setEmail] = useState('admin@fitcore.com');
-  const [password, setPassword] = useState('password123');
+  const { login } = useAuth();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showForgotNotice, setShowForgotNotice] = useState(false);
+
+  // Restore remembered email on initial load if present
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('fitcore_remember_email');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || !password) {
+      setError('Please enter both your email and password.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setShowForgotNotice(false);
+
     try {
-      await login({ email, password });
+      if (rememberMe) {
+        localStorage.setItem('fitcore_remember_email', email.trim());
+      } else {
+        localStorage.removeItem('fitcore_remember_email');
+      }
+
+      await login({
+        email: email.trim(),
+        password,
+      });
     } catch (err: any) {
-      setError(err.message || 'Login failed. Check email and password.');
+      setError(
+        err.message || 'Invalid email or password. Please check your credentials and try again.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const demoPresets = [
-    {
-      role: 'SUPER_ADMIN',
-      name: 'Alex Vance',
-      title: 'Super Admin',
-      icon: ShieldCheck,
-      desc: 'Full administrative rights & global telemetry',
-      color: 'border-primary/40 bg-primary/5',
-    },
-    {
-      role: 'RECEPTIONIST',
-      name: 'Sarah Jenkins',
-      title: 'Front Desk / Kiosk',
-      icon: UserCheck,
-      desc: 'Fast QR check-ins, registrations & renewals',
-      color: 'border-status-info/40 bg-status-info/5',
-    },
-    {
-      role: 'GYM_ADMIN',
-      name: 'Marcus Sterling',
-      title: 'Gym Manager',
-      icon: Building2,
-      desc: 'Branch operations, revenue & equipment control',
-      color: 'border-amber-400/40 bg-amber-400/5',
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-[#080B0A] text-[#F5F7F5] flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden bg-grid-pattern">
-      {/* Background glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
-
-      <div className="w-full max-w-md relative z-10 space-y-6">
-        {/* Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/15 border border-primary/30 text-primary shadow-glow-primary mb-2">
-            <Flame className="w-7 h-7 fill-primary text-primary" />
+    <div className="min-h-screen bg-[#F5F7FA] text-slate-900 flex flex-col justify-center items-center px-4 py-8 sm:py-12">
+      <div className="w-full max-w-md">
+        {/* Main Login Card */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xl shadow-slate-200/60 p-6 sm:p-9 space-y-6">
+          {/* Gym Branding Header */}
+          <div className="text-center space-y-2">
+            <div className="flex items-center justify-center">
+              <img
+                src="/logo.png"
+                alt="Sagar Fitness Gym"
+                className="h-12 sm:h-14 w-auto max-w-[220px] object-contain"
+              />
+            </div>
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Gym Management System
+            </p>
           </div>
-          <h1 className="font-display font-black text-3xl tracking-tight">
-            FIT<span className="text-primary text-glow">CORE</span>
-          </h1>
-          <p className="text-xs text-text-dim uppercase font-mono tracking-widest">
-            Next-Gen Gym Operating System
-          </p>
-        </div>
 
-        {/* Login Box */}
-        <div className="p-6 rounded-3xl bg-[#111613] border border-[#273129] shadow-2xl space-y-5">
+          {/* Heading */}
+          <div className="text-center pt-1 border-t border-slate-100">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              Welcome Back
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              Sign in to manage your gym
+            </p>
+          </div>
+
+          {/* Error Message */}
           {error && (
-            <div className="p-3 rounded-xl bg-status-error/15 border border-status-error/30 text-status-error text-xs">
-              {error}
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs font-medium text-rose-700 flex items-start gap-2.5 animate-in fade-in duration-200">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
+              <span className="leading-snug">{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Forgot Password Inline Notice */}
+          {showForgotNotice && (
+            <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 flex items-start gap-2.5 animate-in fade-in duration-200">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-blue-600 mt-0.5" />
+              <span className="leading-snug">
+                For password resets or account recovery, please contact your gym super-administrator or IT support.
+              </span>
+            </div>
+          )}
+
+          {/* Login Form */}
+          <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+            {/* Email Field */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-1">
-                Staff Email
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Email Address
               </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#080B0A] border border-[#273129] focus:border-primary text-text-main text-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-              />
+              <div className="relative flex items-center">
+                <div className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center">
+                  <Mail className="w-4.5 h-4.5" />
+                </div>
+                <input
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@sagarfitness.com"
+                  className="w-full h-11 pl-11 pr-4 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
+                />
+              </div>
             </div>
 
+            {/* Password Field */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-text-muted mb-1">
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 Password
               </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#080B0A] border border-[#273129] focus:border-primary text-text-main text-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-              />
+              <div className="relative flex items-center">
+                <div className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center">
+                  <Lock className="w-4.5 h-4.5" />
+                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full h-11 pl-11 pr-11 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 text-slate-400 hover:text-slate-600 p-1 rounded-md transition-colors"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4.5 h-4.5" />
+                  ) : (
+                    <Eye className="w-4.5 h-4.5" />
+                  )}
+                </button>
+              </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-[#080B0A] font-extrabold text-xs uppercase tracking-wider transition-all shadow-glow-sm transform active:scale-95"
-            >
-              {loading ? 'Authenticating...' : 'Sign In to Terminal'}
-            </button>
+            {/* Remember Me & Forgot Password Row */}
+            <div className="flex items-center justify-between text-xs pt-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                />
+                <span className="font-medium text-slate-600 hover:text-slate-800 transition-colors">
+                  Remember me
+                </span>
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setShowForgotNotice((prev) => !prev)}
+                className="font-semibold text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white font-bold text-sm shadow-sm hover:shadow-md hover:shadow-blue-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4.5 h-4.5 animate-spin" />
+                    <span>Signing In...</span>
+                  </>
+                ) : (
+                  <span>Sign In</span>
+                )}
+              </button>
+            </div>
           </form>
-
-          {/* Divider */}
-          <div className="relative flex py-2 items-center">
-            <div className="flex-grow border-t border-[#273129]" />
-            <span className="flex-shrink mx-3 text-[10px] font-mono uppercase tracking-widest text-text-dim">
-              Instant One-Click Demo
-            </span>
-            <div className="flex-grow border-t border-[#273129]" />
-          </div>
-
-          {/* Quick Demo Logins */}
-          <div className="space-y-2">
-            {demoPresets.map((d) => {
-              const Icon = d.icon;
-              return (
-                <button
-                  key={d.role}
-                  onClick={() => demoLogin(d.role)}
-                  className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between hover:scale-[1.01] transition-all group ${d.color}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className="w-4 h-4 text-primary" />
-                    <div>
-                      <p className="font-semibold text-text-main text-xs">{d.name}</p>
-                      <p className="text-[10px] text-text-dim">{d.title}</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-primary transition-colors" />
-                </button>
-              );
-            })}
-          </div>
         </div>
 
-        <p className="text-center text-[11px] text-text-dim font-mono">
-          Default seed credentials: admin@fitcore.com / password123
-        </p>
+        {/* Subtle Footer */}
+        <div className="text-center text-xs text-slate-400 mt-6 font-medium">
+          Sagar Fitness Gym • Official Gym Management System
+        </div>
       </div>
     </div>
   );
