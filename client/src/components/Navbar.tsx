@@ -1,205 +1,607 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../api/client';
 import {
-  Dumbbell,
-  Building2,
-  Users,
-  QrCode,
+  Bell,
+  Search,
   LogOut,
   ChevronDown,
-  Sparkles,
-  ShieldCheck,
-  UserCheck,
+  Building2,
+  Menu,
+  Check,
+  User as UserIcon,
+  X,
+  ExternalLink,
+  RefreshCw,
+  Zap,
+  MessageCircle,
 } from 'lucide-react';
+import { sendWhatsAppReminder, openWhatsApp, getWelcomeMessage } from '../utils/whatsapp';
 
 interface NavbarProps {
-  onOpenCheckIn: () => void;
-  liveOccupancyCount: number;
+  onToggleSidebar?: () => void;
+  onSelectMember?: (memberId: string) => void;
+  onRenewMember?: (membership: any) => void;
+  onOpenQuickPunch?: () => void;
+  onOpenRegister?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenCheckIn, liveOccupancyCount }) => {
-  const { user, activeBranch, branches, setActiveBranch, demoLogin, logout } = useAuth();
-  const [showBranchMenu, setShowBranchMenu] = useState(false);
-  const [showDemoMenu, setShowDemoMenu] = useState(false);
+export const Navbar: React.FC<NavbarProps> = ({
+  onToggleSidebar,
+  onSelectMember,
+  onRenewMember,
+  onOpenQuickPunch,
+  onOpenRegister,
+}) => {
+  const { user, activeBranch, logout } = useAuth();
+  const location = useLocation();
 
-  const demoRoles = [
-    { role: 'SUPER_ADMIN', label: 'Alex Vance', sub: 'Super Admin', icon: ShieldCheck, color: 'text-primary' },
-    { role: 'RECEPTIONIST', label: 'Sarah Jenkins', sub: 'Front Desk / Kiosk', icon: UserCheck, color: 'text-status-info' },
-    { role: 'GYM_ADMIN', label: 'Marcus Sterling', sub: 'Gym Manager', icon: Building2, color: 'text-amber-400' },
-    { role: 'TRAINER', label: 'Elena Rostova', sub: 'Head Coach', icon: Dumbbell, color: 'text-purple-400' },
-  ];
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  // Expiring memberships for alerts
+  const [expiringList, setExpiringList] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Global search & Quick Check-In state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [isPunching, setIsPunching] = useState(false);
+
+  // Live gym occupancy count
+  const [liveOccupancy, setLiveOccupancy] = useState<number>(0);
+
+  // Toast feedback message
+  const [toast, setToast] = useState<{
+    type: 'success' | 'warning' | 'error';
+    title: string;
+    desc: string;
+  } | null>(null);
+
+  const searchRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const userRef = useRef<HTMLDivElement>(null);
+
+  const showToast = (type: 'success' | 'warning' | 'error', title: string, desc: string) => {
+    setToast({ type, title, desc });
+    setTimeout(() => {
+      setToast(null);
+    }, 4500);
+  };
+
+  const fetchLiveOccupancy = async () => {
+    try {
+      const res = await api.getLiveOccupancy(activeBranch?._id);
+      setLiveOccupancy(res.count || 0);
+    } catch {
+      // Ignore background error
+    }
+  };
+
+  // Current page title mapping
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path === '/') return 'Dashboard';
+    if (path.startsWith('/members')) return 'Members';
+    if (path.startsWith('/plans')) return 'Membership Plans';
+    if (path.startsWith('/attendance')) return 'Attendance';
+    if (path.startsWith('/payments') || path.startsWith('/billing')) return 'Payments';
+    if (path.startsWith('/settings')) return 'Settings';
+    return 'FitCore';
+  };
+
+  const fetchExpiryAlerts = async () => {
+    try {
+      const data = await api.getExpiringMemberships(7);
+      setExpiringList(data || []);
+      setUnreadCount(data ? data.length : 0);
+    } catch {
+      // Ignore background error
+    }
+  };
+
+  useEffect(() => {
+    fetchExpiryAlerts();
+    fetchLiveOccupancy();
+    const interval = setInterval(() => {
+      fetchExpiryAlerts();
+      fetchLiveOccupancy();
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [activeBranch]);
+
+  // Quick Punch / Check-in Handler
+  const handleQuickPunch = async (identifierOverride?: string) => {
+    const target = identifierOverride || searchQuery.trim();
+    if (!target) return;
+
+    setIsPunching(true);
+    try {
+      const res = await api.checkIn({
+        identifier: target,
+        branchId: activeBranch?._id,
+        method: 'MANUAL',
+      });
+
+      await fetchLiveOccupancy();
+
+      if (res.type === 'CHECK_OUT') {
+        showToast(
+          'success',
+          `👋 Checked Out: ${res.member?.fullName || 'Member'}`,
+          `Session complete (${res.durationMinutes || 0} mins inside gym)`
+        );
+      } else {
+        if (res.membershipValid) {
+          showToast(
+            'success',
+            `✅ Checked In: ${res.member?.fullName || 'Member'}`,
+            `Welcome to FitCore! Active membership confirmed.`
+          );
+        } else {
+          showToast(
+            'warning',
+            `⚠️ Alert: ${res.member?.fullName || 'Member'}`,
+            `Checked in, but membership is expired or pending renewal!`
+          );
+        }
+      }
+      setSearchQuery('');
+      setShowSearchResults(false);
+    } catch (err: any) {
+      showToast(
+        'error',
+        'Check-In Failed',
+        err.message || 'No member found matching this ID or phone number.'
+      );
+    } finally {
+      setIsPunching(false);
+    }
+  };
+
+  // Global search handler
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearching(true);
+        const res = await api.getMembers({ search: searchQuery.trim(), limit: 5 });
+        setSearchResults(res.data || []);
+        setShowSearchResults(true);
+      } catch (err) {
+        console.error('Search error:', err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSearchResults(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+      if (userRef.current && !userRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const getDaysRemainingLabel = (expiryDate: string) => {
+    const now = new Date();
+    const exp = new Date(expiryDate);
+    const diffTime = exp.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return { text: `Expired ${Math.abs(diffDays)}d ago`, isExpired: true };
+    }
+    if (diffDays === 0) {
+      return { text: 'Expires today', isToday: true };
+    }
+    return { text: `${diffDays} days remaining`, isSoon: true };
+  };
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-[#080B0A]/90 backdrop-blur-md border-b border-[#273129] px-4 md:px-6 flex items-center justify-between">
-      {/* Left: Mobile Brand / Active Branch */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2.5 lg:hidden">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary shadow-glow-sm">
-            <Dumbbell className="w-4 h-4" />
-          </div>
-          <span className="font-display font-extrabold text-lg tracking-wider text-text-main">
-            FIT<span className="text-primary">CORE</span>
-          </span>
-        </div>
-
-        {/* Branch Selector Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              setShowBranchMenu(!showBranchMenu);
-              setShowDemoMenu(false);
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#111613] hover:bg-[#171E19] border border-[#273129] text-xs md:text-sm text-text-muted hover:text-text-main transition-colors"
-          >
-            <Building2 className="w-3.5 h-3.5 text-primary" />
-            <span className="font-medium max-w-[140px] md:max-w-[200px] truncate">
-              {activeBranch ? activeBranch.name : 'All Facilities'}
-            </span>
-            <ChevronDown className="w-3 h-3 text-text-dim" />
-          </button>
-
-          {showBranchMenu && (
-            <div className="absolute left-0 mt-2 w-64 rounded-xl bg-[#111613] border border-[#273129] shadow-2xl py-1 z-50">
-              <div className="px-3 py-2 border-b border-[#273129]/60 text-[11px] font-semibold text-text-dim uppercase tracking-wider">
-                Select Active Branch
-              </div>
-              <button
-                onClick={() => {
-                  setActiveBranch(null);
-                  setShowBranchMenu(false);
-                }}
-                className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-[#171E19] transition-colors ${
-                  !activeBranch ? 'text-primary font-semibold' : 'text-text-muted'
-                }`}
-              >
-                <span>All Locations (Global View)</span>
-                {!activeBranch && <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-glow-sm" />}
-              </button>
-              {branches.map((b) => (
-                <button
-                  key={b._id}
-                  onClick={() => {
-                    setActiveBranch(b);
-                    setShowBranchMenu(false);
-                  }}
-                  className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-[#171E19] transition-colors ${
-                    activeBranch?._id === b._id ? 'text-primary font-semibold' : 'text-text-muted'
-                  }`}
-                >
-                  <div className="truncate pr-2">
-                    <p className="font-medium text-text-main">{b.name}</p>
-                    <p className="text-[10px] text-text-dim">{b.city} • Code: {b.code}</p>
-                  </div>
-                  {activeBranch?._id === b._id && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-glow-sm shrink-0" />
-                  )}
-                </button>
-              ))}
+    <>
+      {/* Floating Toast Feedback for Quick Check-In */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 max-w-sm w-full bg-white border border-[#E5E7EB] rounded-xl shadow-modal p-4 animate-in fade-in slide-in-from-top-3 duration-200">
+          <div className="flex items-start gap-3">
+            <div
+              className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                toast.type === 'success'
+                  ? 'bg-emerald-100 text-emerald-700'
+                  : toast.type === 'warning'
+                  ? 'bg-amber-100 text-amber-700'
+                  : 'bg-red-100 text-red-700'
+              }`}
+            >
+              <Zap className="w-4 h-4" />
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Right Controls */}
-      <div className="flex items-center gap-2 md:gap-4">
-        {/* Live Gym Occupancy Pill */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#111613] border border-[#273129]">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-          </span>
-          <span className="text-xs font-mono text-text-muted">
-            <strong className="text-text-main font-semibold">{liveOccupancyCount}</strong> In-Gym
-          </span>
-        </div>
-
-        {/* Quick Check-In Button */}
-        <button
-          onClick={onOpenCheckIn}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-[#080B0A] font-semibold text-xs md:text-sm shadow-glow-sm transition-all transform active:scale-95"
-          title="Receptionist check-in terminal"
-        >
-          <QrCode className="w-3.5 h-3.5 md:w-4 md:h-4 stroke-[2.5]" />
-          <span>⚡ Check-In</span>
-        </button>
-
-        {/* Demo Switcher Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              setShowDemoMenu(!showDemoMenu);
-              setShowBranchMenu(false);
-            }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#111613] hover:bg-[#171E19] border border-[#273129] text-xs text-text-muted hover:text-text-main transition-colors"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-primary animate-pulse" />
-            <span className="hidden md:inline font-mono text-[11px] uppercase tracking-wider text-primary">Demo</span>
-            <ChevronDown className="w-3 h-3 text-text-dim" />
-          </button>
-
-          {showDemoMenu && (
-            <div className="absolute right-0 mt-2 w-60 rounded-xl bg-[#111613] border border-[#273129] shadow-2xl py-1 z-50">
-              <div className="px-3 py-2 border-b border-[#273129]/60 text-[11px] font-semibold text-text-dim uppercase tracking-wider">
-                Quick Switch Demo Role
-              </div>
-              {demoRoles.map((dr) => {
-                const Icon = dr.icon;
-                const isActive = user?.role === dr.role;
-                return (
-                  <button
-                    key={dr.role}
-                    onClick={async () => {
-                      await demoLogin(dr.role);
-                      setShowDemoMenu(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 text-xs flex items-center gap-2.5 hover:bg-[#171E19] transition-colors ${
-                      isActive ? 'bg-primary/5 text-primary' : 'text-text-muted'
-                    }`}
-                  >
-                    <Icon className={`w-4 h-4 ${dr.color}`} />
-                    <div className="flex-1">
-                      <p className="font-semibold text-text-main">{dr.label}</p>
-                      <p className="text-[10px] text-text-dim">{dr.sub}</p>
-                    </div>
-                    {isActive && <span className="text-[10px] text-primary font-mono font-bold">ACTIVE</span>}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* User Profile & Logout */}
-        {user ? (
-          <div className="flex items-center gap-2 pl-1 border-l border-[#273129]/60">
-            <img
-              src={user.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-              alt={user.fullName}
-              className="w-8 h-8 rounded-full object-cover border border-[#364439]"
-            />
-            <div className="hidden lg:block text-left">
-              <p className="text-xs font-semibold text-text-main leading-tight truncate max-w-[110px]">
-                {user.fullName}
-              </p>
-              <p className="text-[10px] font-mono text-primary leading-tight">{user.role}</p>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-bold text-[#202124]">{toast.title}</div>
+              <div className="text-xs text-[#6B7280] mt-0.5 leading-snug">{toast.desc}</div>
             </div>
             <button
-              onClick={logout}
-              title="Logout"
-              className="p-1.5 rounded-lg text-text-dim hover:text-status-error hover:bg-[#171E19] transition-colors"
+              onClick={() => setToast(null)}
+              className="text-gray-400 hover:text-gray-600 p-0.5"
             >
-              <LogOut className="w-4 h-4" />
+              <X className="w-4 h-4" />
             </button>
           </div>
-        ) : (
+        </div>
+      )}
+
+      <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
+        <div className="h-16 sm:h-20 px-4 md:px-8 flex items-center justify-between gap-4">
+        {/* Left: Mobile hamburger & Page Title */}
+        <div className="flex items-center gap-3 min-w-0">
           <button
-            onClick={() => demoLogin('SUPER_ADMIN')}
-            className="text-xs px-3 py-1.5 rounded-lg bg-[#171E19] text-primary font-semibold hover:bg-primary hover:text-[#080B0A] transition-colors"
+            onClick={onToggleSidebar}
+            className="lg:hidden h-10 w-10 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 active:scale-95 transition-all flex items-center justify-center shrink-0 border border-slate-200"
+            aria-label="Toggle Navigation"
           >
-            Sign In
+            <Menu className="w-5 h-5" />
           </button>
-        )}
-      </div>
-    </header>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight truncate">
+              {getPageTitle()}
+            </h1>
+          </div>
+        </div>
+
+        {/* Center: Global Member Search & Quick Punch */}
+        <div ref={searchRef} className="relative flex-1 max-w-xl lg:max-w-2xl mx-2 sm:mx-6 hidden sm:block">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleQuickPunch();
+            }}
+            className="relative flex items-center w-full"
+          >
+            <div className="w-full h-12 flex items-center bg-slate-50/80 hover:bg-slate-50 focus-within:bg-white border border-slate-200 focus-within:border-slate-400 focus-within:ring-2 focus-within:ring-slate-100 rounded-xl transition-all overflow-hidden pl-3.5 pr-2 gap-2.5 shadow-2xs">
+              <Search className="w-4 h-4 text-slate-400 shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  if (searchResults.length > 0) setShowSearchResults(true);
+                }}
+                placeholder="Quick Check-In: Enter Phone or Member ID..."
+                className="w-full h-full text-sm bg-transparent border-none focus:outline-none text-slate-900 placeholder:text-slate-400 font-medium px-1"
+              />
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                {searchQuery ? (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSearchResults([]);
+                        setShowSearchResults(false);
+                      }}
+                      className="p-1.5 text-slate-400 hover:text-slate-600 active:scale-90 rounded-lg shrink-0 transition-transform"
+                      title="Clear search"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isPunching}
+                      className="h-8 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1"
+                    >
+                      <Zap className="w-3.5 h-3.5 fill-current" />
+                      <span>Punch</span>
+                    </button>
+                  </div>
+                ) : (
+                  <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-semibold text-slate-500 font-mono shadow-2xs">
+                    <span>Enter</span>
+                    <span className="text-xs">↵</span>
+                  </span>
+                )}
+              </div>
+            </div>
+          </form>
+
+          {/* Global Search & Action Dropdown */}
+          {showSearchResults && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200/90 rounded-2xl shadow-2xl overflow-hidden z-50">
+              <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-semibold">
+                <span>Matching Members ({searchResults.length})</span>
+                <span>Press Enter to Punch or click to view</span>
+              </div>
+
+              {isSearching ? (
+                <div className="p-4 text-center text-xs text-slate-500">Searching members...</div>
+              ) : searchResults.length === 0 ? (
+                <div className="p-5 text-center text-xs text-slate-500">
+                  No member found matching &quot;{searchQuery}&quot;
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+                  {searchResults.map((member) => (
+                    <div
+                      key={member._id}
+                      className="p-3 hover:bg-slate-50 flex items-center justify-between gap-3 transition-colors"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onSelectMember) onSelectMember(member._id);
+                          setShowSearchResults(false);
+                          setSearchQuery('');
+                        }}
+                        className="flex items-center gap-3 min-w-0 text-left flex-1"
+                      >
+                        {member.photoUrl ? (
+                          <img
+                            src={member.photoUrl}
+                            alt={member.fullName}
+                            className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-xs shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                            {member.fullName.charAt(0)}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-slate-900 truncate">
+                            {member.fullName}
+                          </div>
+                          <div className="text-[11px] text-slate-500 font-medium">
+                            ID: <span className="font-mono text-blue-700 font-bold">{member.memberId}</span> • {member.phone}
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Instant Actions */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleQuickPunch(member.memberId || member.phone)}
+                          className="h-8 px-3 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs border border-amber-300 transition-colors flex items-center gap-1 shadow-xs"
+                          title="Quick Punch Check-In"
+                        >
+                          <Zap className="w-3.5 h-3.5 text-amber-600 fill-current" />
+                          <span>Punch</span>
+                        </button>
+                        {member.phone && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              openWhatsApp(member.phone, getWelcomeMessage(member.fullName, member.memberId));
+                            }}
+                            className="h-8 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold transition-colors border border-emerald-200 flex items-center gap-1"
+                            title="Chat on WhatsApp"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>WhatsApp</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right Actions: Notifications & Staff Profile */}
+        <div className="flex items-center gap-2.5 md:gap-3 shrink-0">
+          {/* Expiration Alerts Bell */}
+          <div ref={notifRef} className="relative shrink-0">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative h-11 w-11 sm:h-12 sm:w-12 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 active:scale-95 transition-all flex items-center justify-center shrink-0 shadow-2xs"
+              title="Membership Expiry Alerts"
+              aria-label="Membership Expiry Alerts"
+            >
+              <Bell className="w-5 h-5 text-slate-600" />
+              {unreadCount > 0 && (
+                <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
+              )}
+            </button>
+
+            {/* Notification Panel */}
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden z-50">
+                <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Expiry Alerts
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium">
+                      {unreadCount} {unreadCount === 1 ? 'membership' : 'memberships'} expiring or expired
+                    </p>
+                  </div>
+                  <button
+                    onClick={fetchExpiryAlerts}
+                    className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-white transition-colors"
+                    title="Refresh alerts"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+                  {expiringList.length === 0 ? (
+                    <div className="p-6 text-center text-xs text-slate-500">
+                      No memberships expiring within the next 7 days.
+                    </div>
+                  ) : (
+                    expiringList.map((item) => {
+                      const memberObj = item.member || {};
+                      const planObj = item.plan || {};
+                      const daysInfo = getDaysRemainingLabel(item.expiryDate);
+
+                      return (
+                        <div key={item._id} className="p-3.5 hover:bg-slate-50 transition-colors">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="text-sm font-bold text-slate-900">
+                                {memberObj.fullName || 'Member'}
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                {planObj.name || 'Membership'} • Expires:{' '}
+                                {new Date(item.expiryDate).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <span
+                              className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full shrink-0 ${
+                                daysInfo.isExpired
+                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  : daysInfo.isToday
+                                  ? 'bg-amber-100 text-amber-800 font-bold'
+                                  : 'bg-amber-50 text-amber-700 border border-amber-200'
+                              }`}
+                            >
+                              {daysInfo.text}
+                            </span>
+                          </div>
+
+                          <div className="mt-2.5 flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (memberObj._id && onSelectMember) {
+                                  onSelectMember(memberObj._id);
+                                }
+                                setShowNotifications(false);
+                              }}
+                              className="group inline-flex items-center gap-1.5 h-7.5 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                            >
+                              <div className="w-5 h-5 rounded bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 transition-colors group-hover:bg-blue-100">
+                                <ExternalLink className="w-3 h-3" />
+                              </div>
+                              <span>View</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (onRenewMember) {
+                                  onRenewMember(item);
+                                }
+                                setShowNotifications(false);
+                              }}
+                              className="inline-flex items-center gap-1.5 h-7.5 px-3 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 transition-all shadow-xs"
+                            >
+                              Renew
+                            </button>
+
+                            {memberObj.phone && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const diffDays = Math.ceil(
+                                    (new Date(item.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+                                  );
+                                  sendWhatsAppReminder({
+                                    name: memberObj.fullName || 'Member',
+                                    phone: memberObj.phone,
+                                    planName: planObj.name,
+                                    expiryDate: item.expiryDate,
+                                    daysRemaining: diffDays,
+                                  });
+                                  setShowNotifications(false);
+                                }}
+                                className="group inline-flex items-center gap-1.5 h-7.5 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-700 hover:text-emerald-700 bg-white hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                                title="Send WhatsApp Reminder"
+                              >
+                                <div className="w-5 h-5 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
+                                  <MessageCircle className="w-3 h-3" />
+                                </div>
+                                <span>WhatsApp</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Logged-in Staff Profile & Logout */}
+          <div ref={userRef} className="relative shrink-0">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="h-11 sm:h-12 flex items-center gap-3 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-left shrink-0 whitespace-nowrap shadow-2xs"
+            >
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.fullName}
+                  className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                  {user?.fullName?.charAt(0) || 'U'}
+                </div>
+              )}
+              <div className="hidden lg:block shrink-0">
+                <div className="text-sm font-semibold text-slate-900 leading-tight whitespace-nowrap">
+                  {user?.fullName || 'Staff User'}
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5 whitespace-nowrap">
+                  {user?.role === 'SUPER_ADMIN' ? 'Super Admin' : user?.role?.replace('_', ' ').toLowerCase() || 'Staff'}
+                </div>
+              </div>
+              <ChevronDown className="w-4 h-4 text-slate-400 hidden lg:block shrink-0" />
+            </button>
+
+            {/* User Menu Dropdown */}
+            {showUserMenu && (
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50">
+                <div className="px-4 py-2.5 border-b border-slate-100">
+                  <div className="text-xs font-bold text-slate-900 truncate">
+                    {user?.fullName}
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate mt-0.5">
+                    {user?.email}
+                  </div>
+                </div>
+
+                <div className="p-1.5">
+                  <button
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      logout();
+                    }}
+                    className="w-full text-left h-9 px-3 rounded-xl text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors font-semibold"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        </div>
+      </header>
+    </>
   );
 };
