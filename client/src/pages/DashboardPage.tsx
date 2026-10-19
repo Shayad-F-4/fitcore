@@ -14,6 +14,7 @@ import {
   X,
   Archive,
   Check,
+  CreditCard,
 } from 'lucide-react';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -267,71 +268,154 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         )}
       </div>
 
+      {/* Front Desk Tasks Toolbar (Prominently displayed for Desk Staff) */}
+      {!isAdmin && (
+        <div className="bg-white border border-emerald-200/90 rounded-2xl p-4 shadow-sm space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                🏢 Front Desk Counter Tasks
+              </span>
+              <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+                Quick actions for front desk operations
+              </span>
+            </div>
+            <span className="text-xs font-semibold text-slate-600">
+              Logged in: <strong className="text-slate-900">{user?.fullName || 'Front Desk Staff'}</strong>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <button
+              onClick={() => navigate('/attendance')}
+              className="p-3 rounded-xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-300 text-left transition-all active:scale-[0.98] group cursor-pointer"
+            >
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-emerald-800">
+                <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                  <UserCheck className="w-3.5 h-3.5" />
+                </div>
+                <span>Attendance Punch</span>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-1">Check-in / out athletes</p>
+            </button>
+
+            {onOpenRegister && (
+              <button
+                onClick={onOpenRegister}
+                className="p-3 rounded-xl bg-slate-50 hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 text-left transition-all active:scale-[0.98] group cursor-pointer"
+              >
+                <div className="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-blue-800">
+                  <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                    <UserPlus className="w-3.5 h-3.5" />
+                  </div>
+                  <span>New Member</span>
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">Register new admission</p>
+              </button>
+            )}
+
+            <button
+              onClick={() => navigate('/billing')}
+              className="p-3 rounded-xl bg-slate-50 hover:bg-rose-50/70 border border-slate-200 hover:border-rose-300 text-left transition-all active:scale-[0.98] group cursor-pointer"
+            >
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-rose-800">
+                <div className="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                  <CreditCard className="w-3.5 h-3.5" />
+                </div>
+                <span>Collect Due & Bill</span>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-1">Receipts & fees payment</p>
+            </button>
+
+            <button
+              onClick={() => {
+                const el = document.getElementById('expiry-warning-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="p-3 rounded-xl bg-slate-50 hover:bg-amber-50/70 border border-slate-200 hover:border-amber-300 text-left transition-all active:scale-[0.98] group cursor-pointer"
+            >
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-amber-800">
+                <div className="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                  <MessageCircle className="w-3.5 h-3.5" />
+                </div>
+                <span>WhatsApp Alerts</span>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-1">Send expiry reminders</p>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* =========================================================================
           SECTION B: Exactly 5 Summary Cards
           1. Today's Revenue | 2. Active Athletes | 3. Expiry Alerts | 4. Pending Dues | 5. Total Revenue
           ========================================================================= */}
+      {/* =========================================================================
+          SECTION B: Exactly 5 Summary Cards (Side Nav Bar Color Themed Inside Cards)
+          1. Today's Revenue (Emerald) | 2. Active Athletes (Blue) | 3. Expiry Alerts (Amber) | 4. Pending Dues (Rose) | 5. Total Revenue (Purple)
+          ========================================================================= */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
-        {/* Card 1: Today's Revenue */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs hover:border-slate-300 transition-all">
+        {/* Card 1: Today's Revenue (Emerald - Matching Members/Revenue) */}
+        <div className="bg-emerald-50/40 border border-emerald-200/80 border-l-4 border-l-emerald-500 rounded-xl p-4 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+            <span className="text-xs font-bold text-emerald-800/80 uppercase tracking-wider">
               Today's Revenue
             </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-sm shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100/90 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-sm shadow-2xs">
               ₹
             </div>
           </div>
-          <div className="mt-2 text-2xl font-black text-emerald-600 tracking-tight">
+          <div className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
             {formatINR(metrics.todayRevenue || 0)}
           </div>
-          <p className="text-[11px] text-[#6B7280] mt-1 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <p className="text-[11px] text-emerald-800/70 mt-1 flex items-center gap-1.5 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
             Counter & digital receipts today
           </p>
         </div>
 
-        {/* Card 2: Active Athletes */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs hover:border-slate-300 transition-all">
+        {/* Card 2: Active Athletes (Blue - Matching Dashboard) */}
+        <div className="bg-blue-50/40 border border-blue-200/80 border-l-4 border-l-blue-500 rounded-xl p-4 shadow-2xs hover:border-blue-300 hover:shadow-xs transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+            <span className="text-xs font-bold text-blue-800/80 uppercase tracking-wider">
               Active Athletes
             </span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-blue-100/90 text-blue-700 border border-blue-200 flex items-center justify-center shadow-2xs">
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2 text-2xl font-black text-[#202124] tracking-tight">
+          <div className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
             {(metrics.activeMembers || activeMembersTotal).toLocaleString('en-IN')}
           </div>
-          <p className="text-[11px] text-[#6B7280] mt-1 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+          <p className="text-[11px] text-blue-800/70 mt-1 flex items-center gap-1.5 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
             Valid active gym memberships
           </p>
         </div>
 
-        {/* Card 3: Expiry Alerts */}
+        {/* Card 3: Expiry Alerts (Amber - Matching Attendance/Expiry) */}
         <div
           onClick={() => {
             const el = document.getElementById('expiry-warning-section');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
           }}
-          className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs hover:border-slate-300 cursor-pointer active:scale-[0.98] transition-all"
+          className="bg-amber-50/40 border border-amber-200/80 border-l-4 border-l-amber-500 rounded-xl p-4 shadow-2xs hover:border-amber-300 hover:shadow-xs cursor-pointer active:scale-[0.98] transition-all"
           title="Click to view all membership expiry warnings"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+            <span className="text-xs font-bold text-amber-800/80 uppercase tracking-wider">
               Expiry Alerts
             </span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-amber-100/90 text-amber-700 border border-amber-200 flex items-center justify-center shadow-2xs">
               <Clock className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-[#202124] tracking-tight">
+            <span className="text-2xl font-black text-slate-900 tracking-tight">
               {totalExpiryAlerts.toLocaleString('en-IN')}
             </span>
-            <span className="text-[11px] text-gray-500 font-medium">pending renewal</span>
+            <span className="text-[11px] text-amber-800/70 font-medium">pending renewal</span>
           </div>
           <div className="mt-1 flex items-center gap-1.5 flex-wrap">
             {(metrics.alreadyExpiredCount || 0) > 0 && (
@@ -339,54 +423,54 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 🔴 {metrics.alreadyExpiredCount} Expired
               </span>
             )}
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-900 border border-amber-200">
               ⚠️ {metrics.expiringMemberships || 0} Soon
             </span>
           </div>
         </div>
 
-        {/* Card 4: Pending Dues */}
+        {/* Card 4: Pending Dues (Rose - Matching Billing/Dues) */}
         <div
           onClick={() => navigate('/billing')}
-          className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs hover:border-slate-300 cursor-pointer active:scale-[0.98] transition-all"
+          className="bg-rose-50/40 border border-rose-200/80 border-l-4 border-l-rose-500 rounded-xl p-4 shadow-2xs hover:border-rose-300 hover:shadow-xs cursor-pointer active:scale-[0.98] transition-all"
           title="Click to view pending dues ledger"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+            <span className="text-xs font-bold text-rose-800/80 uppercase tracking-wider">
               Pending Dues
             </span>
-            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-rose-100/90 text-rose-700 border border-rose-200 flex items-center justify-center shadow-2xs">
               <AlertCircle className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2 text-2xl font-black text-rose-600 tracking-tight">
+          <div className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
             {formatINR(pendingDues.totalDuesAmount)}
           </div>
-          <p className="text-[11px] text-[#6B7280] mt-1 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+          <p className="text-[11px] text-rose-800/70 mt-1 flex items-center gap-1.5 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
             {pendingDues.duesCount} members with balance
           </p>
         </div>
 
-        {/* Card 5: Total Revenue */}
+        {/* Card 5: Total Revenue (Purple - Matching Plans/Revenue) */}
         <div
           onClick={() => navigate('/billing')}
-          className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs hover:border-slate-300 cursor-pointer active:scale-[0.98] transition-all"
+          className="bg-purple-50/40 border border-purple-200/80 border-l-4 border-l-purple-500 rounded-xl p-4 shadow-2xs hover:border-purple-300 hover:shadow-xs cursor-pointer active:scale-[0.98] transition-all"
           title="Click to view monthly billing"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+            <span className="text-xs font-bold text-purple-800/80 uppercase tracking-wider">
               Total Revenue
             </span>
-            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-sm shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-purple-100/90 text-purple-700 border border-purple-200 flex items-center justify-center font-bold text-sm shadow-2xs">
               ₹
             </div>
           </div>
-          <div className="mt-2 text-2xl font-black text-purple-700 tracking-tight">
+          <div className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
             {formatINR(metrics.monthlyRevenue || 0)}
           </div>
-          <p className="text-[11px] text-[#6B7280] mt-1 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+          <p className="text-[11px] text-purple-800/70 mt-1 flex items-center gap-1.5 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-600" />
             Total collections this calendar month
           </p>
         </div>

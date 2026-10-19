@@ -6,8 +6,123 @@ import { Payment } from '../models/Payment.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 import { authenticate, AuthenticatedRequest } from '../middlewares/auth.js';
 import { recordAuditLog } from '../utils/audit.js';
+import { generateReceiptNumber } from '../utils/receipt.js';
 
 const router = Router();
+
+// Expiration Center with summary cards and filtered member lists
+router.get('/expiration-center', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const filterType = (req.query.filter as string) || 'ALL';
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [expiringIn7Days, expiringToday, alreadyExpired, renewalsThisMonth] = await Promise.all([
+      Membership.countDocuments({
+        status: 'ACTIVE',
+        expiryDate: { $gte: todayStart, $lte: in7Days },
+      }),
+      Membership.countDocuments({
+        status: 'ACTIVE',
+        expiryDate: { $gte: todayStart, $lte: todayEnd },
+      }),
+      Membership.countDocuments({
+        $or: [
+          { status: 'EXPIRED' },
+          { status: 'ACTIVE', expiryDate: { $lt: todayStart } },
+        ],
+      }),
+      Membership.countDocuments({
+        'renewalHistory.renewedAt': { $gte: startOfMonth },
+      }),
+    ]);
+
+    let matchQuery: any = {};
+    if (filterType === '7_DAYS') {
+      matchQuery = { status: 'ACTIVE', expiryDate: { $gt: todayEnd, $lte: in7Days } };
+    } else if (filterType === 'TODAY') {
+      matchQuery = { status: 'ACTIVE', expiryDate: { $gte: todayStart, $lte: todayEnd } };
+    } else if (filterType === 'EXPIRED') {
+      matchQuery = { $or: [{ status: 'EXPIRED' }, { status: 'ACTIVE', expiryDate: { $lt: todayStart } }] };
+    } else {
+      matchQuery = {
+        $or: [
+          { status: 'ACTIVE', expiryDate: { $lte: in7Days } },
+          { status: 'EXPIRED' },
+        ],
+      };
+    }
+
+    const memberships = await Membership.find(matchQuery)
+      .populate('member')
+      .populate('plan')
+      .sort({ expiryDate: 1 })
+      .limit(60);
+
+    const formattedList = memberships
+      .filter((m) => m.member)
+      .map((sub) => {
+        const mem = sub.member as any;
+        const expiry = new Date(sub.expiryDate);
+        const diffMs = expiry.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+        let urgencyStatus = 'ACTIVE';
+        let displayMessage = '';
+
+        if (sub.status === 'FROZEN') {
+          urgencyStatus = 'FROZEN';
+          displayMessage = 'Membership is currently frozen';
+        } else if (diffDays < 0) {
+          urgencyStatus = 'EXPIRED';
+          displayMessage = `Membership expired ${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? '' : 's'} ago`;
+        } else if (diffDays === 0) {
+          urgencyStatus = 'EXPIRING_TODAY';
+          displayMessage = 'Membership expires today';
+        } else if (diffDays === 1) {
+          urgencyStatus = 'EXPIRING_SOON';
+          displayMessage = 'Membership expires tomorrow';
+        } else {
+          urgencyStatus = 'EXPIRING_SOON';
+          displayMessage = `Membership expires in ${diffDays} days`;
+        }
+
+        return {
+          membershipId: sub._id,
+          memberId: mem._id,
+          memberCode: mem.memberId,
+          fullName: mem.fullName,
+          email: mem.email,
+          phone: mem.phone,
+          photoUrl: mem.photoUrl,
+          branch: mem.branch,
+          planName: (sub.plan as any)?.name || 'Custom Plan',
+          planPrice: (sub.plan as any)?.price || 0,
+          startDate: sub.startDate,
+          expiryDate: sub.expiryDate,
+          daysRemaining: diffDays,
+          status: sub.status,
+          urgencyStatus,
+          displayMessage,
+        };
+      });
+
+    sendSuccess(res, 'Membership expiration center data', {
+      summary: {
+        expiringIn7Days,
+        expiringToday,
+        alreadyExpired,
+        renewalsThisMonth,
+      },
+      members: formattedList,
+    });
+  } catch (error: any) {
+    sendError(res, error.message || 'Failed to fetch expiration center data', 500);
+  }
+});
 
 // Expiring memberships alert (next 7 days)
 router.get('/expiring', authenticate, async (req: AuthenticatedRequest, res: Response) => {
@@ -77,8 +192,7 @@ router.post('/assign', authenticate, async (req: AuthenticatedRequest, res: Resp
     await member.save();
 
     // Create payment receipt
-    const paymentCount = await Payment.countDocuments();
-    const receiptNumber = `RCP-${new Date().getFullYear()}-${(paymentCount + 5001).toString()}`;
+    const receiptNumber = await generateReceiptNumber();
 
     const payment = await Payment.create({
       receiptNumber,
@@ -151,8 +265,7 @@ router.post('/:id/renew', authenticate, async (req: AuthenticatedRequest, res: R
     await Member.findByIdAndUpdate(membership.member, { status: 'ACTIVE' });
 
     // Payment receipt for renewal
-    const paymentCount = await Payment.countDocuments();
-    const receiptNumber = `RCP-${new Date().getFullYear()}-${(paymentCount + 5001).toString()}`;
+    const receiptNumber = await generateReceiptNumber();
 
     const payment = await Payment.create({
       receiptNumber,
@@ -178,7 +291,12 @@ router.post('/:id/renew', authenticate, async (req: AuthenticatedRequest, res: R
       details: { newExpiryDate, amountPaid: paid },
     });
 
-    sendSuccess(res, 'Membership renewed successfully', { membership, payment });
+    const populatedPayment = await Payment.findById(payment._id)
+      .populate('member')
+      .populate('recordedBy', 'fullName email role')
+      .populate({ path: 'membership', populate: { path: 'plan' } });
+
+    sendSuccess(res, 'Membership renewed successfully', { membership, payment: populatedPayment || payment });
   } catch (error: any) {
     sendError(res, error.message || 'Failed to renew membership', 500);
   }

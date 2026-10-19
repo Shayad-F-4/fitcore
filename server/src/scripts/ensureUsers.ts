@@ -1,0 +1,110 @@
+import mongoose from 'mongoose';
+import { User } from '../models/User.js';
+import { Branch } from '../models/Branch.js';
+import { ENV } from '../config/env.js';
+
+export async function ensureCoreUsers() {
+  const branch = await Branch.findOne();
+  const branchId = branch?._id;
+
+  const usersToEnsure = [
+    {
+      email: 'shayadfakir2006@gmail.com',
+      username: 'shayad',
+      password: 'password123',
+      fullName: 'Shayad Fakir (Gym Owner & Admin)',
+      role: 'SUPER_ADMIN' as const,
+      phone: '+91 98220 10001',
+      branch: branchId,
+      status: 'ACTIVE' as const,
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    },
+    {
+      email: 'shayadfakir7@gmail.com',
+      username: 'shayad7',
+      password: 'password123',
+      fullName: 'Shayad Fakir (Gym Admin)',
+      role: 'SUPER_ADMIN' as const,
+      phone: '+91 98220 10001',
+      branch: branchId,
+      status: 'ACTIVE' as const,
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    },
+    {
+      email: 'admin@sagarfitness.com',
+      username: 'admin',
+      password: 'password123',
+      fullName: 'Rajesh Deshmukh (Gym Admin / Owner)',
+      role: 'SUPER_ADMIN' as const,
+      phone: '+91 98220 10001',
+      branch: branchId,
+      status: 'ACTIVE' as const,
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    },
+    {
+      email: 'desk@sagarfitness.com',
+      username: 'desk',
+      password: 'password123',
+      fullName: 'Pooja Kulkarni (Front Desk)',
+      role: 'RECEPTIONIST' as const,
+      phone: '+91 98220 10003',
+      branch: branchId,
+      status: 'ACTIVE' as const,
+      avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    },
+    {
+      email: 'reception@sagarfitness.com',
+      username: 'reception',
+      password: 'password123',
+      fullName: 'Pooja Kulkarni (Front Desk)',
+      role: 'RECEPTIONIST' as const,
+      phone: '+91 98220 10003',
+      branch: branchId,
+      status: 'ACTIVE' as const,
+      avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    },
+    {
+      email: 'manager@sagarfitness.com',
+      username: 'manager',
+      password: 'password123',
+      fullName: 'Amit Shinde (Gym Manager)',
+      role: 'GYM_ADMIN' as const,
+      phone: '+91 98220 10002',
+      branch: branchId,
+      status: 'ACTIVE' as const,
+      avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    },
+  ];
+
+  for (const u of usersToEnsure) {
+    let existing = await User.findOne({ email: u.email });
+    if (!existing) {
+      await User.create(u);
+      console.log(`[Auth Setup] Created user account: ${u.email} / username: ${u.username} (${u.role})`);
+    } else {
+      // Ensure password, username, and role are active
+      existing.password = u.password;
+      existing.username = u.username;
+      existing.role = u.role;
+      existing.status = 'ACTIVE';
+      if (!existing.branch && branchId) existing.branch = branchId;
+      await existing.save();
+      console.log(`[Auth Setup] Updated/verified user account: ${u.email} / username: ${u.username} (${u.role})`);
+    }
+  }
+}
+
+// If run directly
+if (process.argv[1]?.endsWith('ensureUsers.ts') || process.argv[1]?.endsWith('ensureUsers.js')) {
+  mongoose.connect(ENV.MONGODB_URI)
+    .then(async () => {
+      console.log('Connected to DB for ensureUsers...');
+      await ensureCoreUsers();
+      console.log('Core users verified successfully.');
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error('Failed to ensure core users:', err);
+      process.exit(1);
+    });
+}

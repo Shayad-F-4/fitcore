@@ -41,7 +41,7 @@ import { formatDateIN } from '../utils/formatters';
 export const SettingsPage: React.FC = () => {
   const { user, branches, activeBranch, setActiveBranch, updateCurrentUser } = useAuth();
   const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'GYM_ADMIN';
-  const [activeTab, setActiveTab] = useState<'general' | 'whatsapp' | 'branches' | 'staff' | 'security' | 'activity' | 'backup'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'whatsapp' | 'staff' | 'security' | 'activity' | 'backup'>('general');
 
   // General & WhatsApp Settings State (Persisted in DB)
   const [gymSettings, setGymSettings] = useState<any>({
@@ -545,7 +545,7 @@ export const SettingsPage: React.FC = () => {
       <div>
         <h2 className="text-2xl font-bold text-[#202124] tracking-tight">Settings & Administration</h2>
         <p className="text-sm text-[#6B7280] mt-0.5">
-          Configure gym defaults, manage branches, staff accounts, profile photo, and view desk activity logs.
+          Configure Sagar Fitness Gym defaults, staff accounts, security profile, and system audit logs.
         </p>
       </div>
 
@@ -560,7 +560,7 @@ export const SettingsPage: React.FC = () => {
           }`}
         >
           <Building2 className="w-4 h-4" />
-          Gym Profile & GST
+          Gym Profile
         </button>
 
         <button
@@ -578,17 +578,6 @@ export const SettingsPage: React.FC = () => {
           ) : (
             <span className="px-1.5 py-0.2 text-[10px] font-bold rounded bg-amber-100 text-amber-800">Setup Req</span>
           )}
-        </button>
-
-        <button
-          onClick={() => setActiveTab('branches')}
-          className={`pb-3 px-3 font-semibold transition-colors border-b-2 whitespace-nowrap ${
-            activeTab === 'branches'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
-          }`}
-        >
-          Branch Configuration
         </button>
 
         <button
@@ -646,10 +635,10 @@ export const SettingsPage: React.FC = () => {
           <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
             <div>
               <h3 className="text-base font-bold text-[#202124]">
-                Indian Gym Business Profile & Tax Defaults
+                Sagar Fitness Gym Business Profile
               </h3>
               <p className="text-xs text-[#6B7280] mt-0.5">
-                Details appear on member receipts, A4 invoices, and official communication.
+                Details appear on member receipts, printable receipts, and official communication.
               </p>
             </div>
             <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-blue-50 text-blue-700 border border-blue-200">
@@ -776,63 +765,17 @@ export const SettingsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Indian GST Section */}
-            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-bold text-[#202124]">Goods & Services Tax (GST)</div>
-                  <div className="text-[11px] text-[#6B7280]">
-                    Only enable if the gym is registered under GST.
-                  </div>
-                </div>
-                <label className="inline-flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={gymSettings.isTaxEnabled || false}
-                    onChange={(e) =>
-                      setGymSettings({ ...gymSettings, isTaxEnabled: e.target.checked })
-                    }
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-xs font-semibold text-[#202124]">Enable GST</span>
-                </label>
+            {/* Tax-Free Billing Policy */}
+            <div className="p-4 bg-emerald-50/60 border border-emerald-200/80 rounded-lg space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-emerald-900">Tax-Free Billing Policy</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  Flat Rates • 0% Tax
+                </span>
               </div>
-
-              {gymSettings.isTaxEnabled && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-gray-200">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                      Gym GSTIN (15 Digits)
-                    </label>
-                    <input
-                      type="text"
-                      maxLength={15}
-                      value={gymSettings.gstin || ''}
-                      onChange={(e) =>
-                        setGymSettings({ ...gymSettings, gstin: e.target.value.toUpperCase() })
-                      }
-                      placeholder="e.g. 07AAAAA0000A1Z5"
-                      className="w-full px-3 py-1.5 text-xs font-mono uppercase border border-gray-300 rounded-md focus:border-blue-600 focus:outline-none bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                      GST Tax Rate (%)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={gymSettings.taxRatePercent ?? 18}
-                      onChange={(e) =>
-                        setGymSettings({ ...gymSettings, taxRatePercent: Number(e.target.value) })
-                      }
-                      className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded-md focus:border-blue-600 focus:outline-none bg-white"
-                    />
-                  </div>
-                </div>
-              )}
+              <p className="text-[11px] text-emerald-700 leading-relaxed">
+                Sagar Fitness Gym operates on a direct, tax-free billing structure. No GST or tax surcharges are added to transactions. Remaining Balance is strictly calculated as Total Membership Fee minus Total Valid Payments.
+              </p>
             </div>
 
             {/* Indian Operational Standards (Read-Only) */}
@@ -1119,65 +1062,6 @@ export const SettingsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Tab 2: Branches */}
-      {activeTab === 'branches' && (
-        <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-subtle overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-[#202124]">Configured Gym Branches</h3>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                Active gym centers in the FitCore multi-branch network.
-              </p>
-            </div>
-          </div>
-
-          <div className="divide-y divide-[#E5E7EB]">
-            {branches.map((b) => {
-              const isSelected = activeBranch?._id === b._id;
-              return (
-                <div
-                  key={b._id}
-                  className={`p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
-                    isSelected ? 'bg-blue-50/40' : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-[#202124]">{b.name}</span>
-                      <span className="font-mono text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">
-                        {b.code}
-                      </span>
-                      {isSelected && (
-                        <span className="text-[11px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
-                          Active Context
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-[#6B7280]">
-                      {b.address}, {b.city} • Capacity: {b.capacity} members
-                    </div>
-                    <div className="text-xs text-[#6B7280]">
-                      Hours: {b.openingHours} • Phone: {b.phone}
-                    </div>
-                  </div>
-
-                  <div>
-                    {!isSelected && (
-                      <button
-                        onClick={() => setActiveBranch(b)}
-                        className="px-3 py-1.5 rounded border border-gray-300 hover:bg-gray-100 text-xs font-semibold text-[#202124] transition-colors"
-                      >
-                        Switch to this Branch
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Tab 3: Staff Accounts */}
       {activeTab === 'staff' && (
         <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-subtle overflow-hidden">
@@ -1223,7 +1107,6 @@ export const SettingsPage: React.FC = () => {
                     <th className="px-5 py-3">Staff Member</th>
                     <th className="px-5 py-3">Email</th>
                     <th className="px-5 py-3">Role</th>
-                    <th className="px-5 py-3">Branch</th>
                     <th className="px-5 py-3">Status</th>
                     <th className="px-5 py-3 text-right">Action</th>
                   </tr>
@@ -1267,9 +1150,6 @@ export const SettingsPage: React.FC = () => {
                             ? '🛡️ Manager'
                             : st.role?.replace('_', ' ')}
                         </span>
-                      </td>
-                      <td className="px-5 py-3.5 text-xs text-[#6B7280]">
-                        {st.branch?.name || 'All Branches'}
                       </td>
                       <td className="px-5 py-3.5">
                         <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">

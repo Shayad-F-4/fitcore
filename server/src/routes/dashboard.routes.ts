@@ -26,11 +26,17 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
       newMembersThisMonth,
       liveOccupancy,
       todayTotalCheckins,
+      todayRevenueAgg,
       monthRevenueAgg,
       totalRevenueAgg,
+      pendingDuesAgg,
       expiringMemberships,
+      recentMembersRaw,
+      expiringMembershipsCount,
       recentActivity,
       branchInfo,
+      expiredMemberships,
+      expiredMembershipsCount,
     ] = await Promise.all([
       Member.countDocuments({ isArchived: false, ...branchFilter }),
       Member.countDocuments({ status: 'ACTIVE', isArchived: false, ...branchFilter }),
@@ -45,24 +51,66 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
         ...branchFilter,
       }),
       Payment.aggregate([
-        { $match: { status: 'PAID', paymentDate: { $gte: startOfMonth } } },
+        { $match: { status: { $in: ['PAID', 'PARTIAL'] }, paymentDate: { $gte: startOfToday } } },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
       Payment.aggregate([
-        { $match: { status: 'PAID' } },
+        { $match: { status: { $in: ['PAID', 'PARTIAL'] }, paymentDate: { $gte: startOfMonth } } },
         { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      Payment.aggregate([
+        { $match: { status: { $in: ['PAID', 'PARTIAL'] } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      Membership.aggregate([
+        { $match: { status: 'ACTIVE', $expr: { $gt: ['$amountDue', '$amountPaid'] } } },
+        { $group: { _id: null, total: { $sum: { $subtract: ['$amountDue', '$amountPaid'] } }, count: { $sum: 1 } } },
       ]),
       Membership.find({
         status: 'ACTIVE',
         expiryDate: { $gte: now, $lte: in7Days },
       })
-        .populate('member', 'fullName memberId phone photoUrl')
-        .populate('plan', 'name price')
+        .populate('member', 'fullName memberId phone photoUrl isArchived')
+        .populate('plan', 'name price durationDays')
         .sort({ expiryDate: 1 })
-        .limit(6),
+        .limit(20),
+      Member.find({ isArchived: false, ...branchFilter })
+        .sort({ createdAt: -1 })
+        .limit(5),
+      Membership.countDocuments({
+        status: 'ACTIVE',
+        expiryDate: { $gte: now, $lte: in7Days },
+      }),
       AuditLog.find().sort({ createdAt: -1 }).limit(8),
       branchId ? Branch.findById(branchId) : null,
+      Membership.find({
+        $or: [
+          { status: 'EXPIRED' },
+          { status: 'ACTIVE', expiryDate: { $lt: now } },
+        ],
+      })
+        .populate('member', 'fullName memberId phone photoUrl isArchived')
+        .populate('plan', 'name price durationDays')
+        .sort({ expiryDate: -1 })
+        .limit(20),
+      Membership.countDocuments({
+        $or: [
+          { status: 'EXPIRED' },
+          { status: 'ACTIVE', expiryDate: { $lt: now } },
+        ],
+      }),
     ]);
+
+    // Attach active membership plan to each recent member
+    const recentMembers = await Promise.all(
+      recentMembersRaw.map(async (m) => {
+        const activeSub = await Membership.findOne({ member: m._id, status: 'ACTIVE' }).populate('plan');
+        return {
+          ...m.toObject(),
+          membershipPlanName: activeSub?.plan ? (activeSub.plan as any).name : 'Standard Pass',
+        };
+      })
+    );
 
     // Monthly revenue trend (past 6 months)
     const monthLabels: string[] = [];
@@ -90,19 +138,34 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
     const gymCapacity = branchInfo?.capacity || 150;
     const occupancyPercentage = Math.min(100, Math.round((liveOccupancy / gymCapacity) * 100));
 
+    const visibleExpiring = (expiringMemberships as any[])
+      .filter((sub) => sub.member && !sub.member.isArchived)
+      .slice(0, 15);
+
+    const visibleExpired = (expiredMemberships as any[])
+      .filter((sub) => sub.member && !sub.member.isArchived)
+      .slice(0, 15);
+
     sendSuccess(res, 'Dashboard metrics', {
       metrics: {
         totalMembers,
         activeMembers,
+        expiringMemberships: expiringMembershipsCount,
+        alreadyExpiredCount: expiredMembershipsCount,
         newMembersThisMonth,
         liveOccupancy,
         gymCapacity,
         occupancyPercentage,
         todayTotalCheckins,
+        todayRevenue: todayRevenueAgg[0]?.total || 0,
         monthlyRevenue: monthRevenueAgg[0]?.total || 0,
         totalRevenue: totalRevenueAgg[0]?.total || 0,
+        pendingDuesTotal: pendingDuesAgg[0]?.total || 0,
+        pendingDuesCount: pendingDuesAgg[0]?.count || 0,
       },
-      expiringMemberships,
+      expiringMemberships: visibleExpiring,
+      expiredMemberships: visibleExpired,
+      recentMembers,
       monthlyRevenueData,
       recentActivity,
     });

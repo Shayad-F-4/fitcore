@@ -1,145 +1,248 @@
-# ⚡ FitCore — Premium Gym Management Ecosystem
+# Sagar Fitness Gym — Gym Management System
 
-> **"Train Smarter. Manage Better."**
+> **Official Production Application for Sagar Fitness Gym (Single Location, Baner, Pune)**
 
-FitCore is a modern, high-performance gym management web application engineered for elite gyms, trainers, front-desk staff, and members. Combining a dark-mode visual aesthetic (neon lime `#B7FF3C`, deep charcoal `#080B0A`) with a production-grade modular backend, FitCore manages athletic memberships, check-ins, multi-branch operations, and financial auditing.
+A stable, secure, and production-ready gym management system engineered with React 18, TypeScript, Vite, Tailwind CSS, Node.js, Express, MongoDB, and Mongoose. Specifically tailored for single-gym operations with tax-free billing, real-time member check-ins, automated subscription tracking, and role-based operational access.
 
 ---
 
-## 🛠️ Technology Stack
+## 🏛️ 1. Architecture Overview
+
+### Single-Gym Architecture
+- **Single Physical Location**: Sagar Fitness Gym, Baner, Pune.
+- **No Multi-Branch Overhead**: All branch switchers, multi-branch dropdowns, branch comparison analytics, and branch routing have been eliminated.
+- **Data Model**: All database records (Members, Memberships, Attendance, Payments, Audit Logs) operate under the single Sagar Fitness Gym configuration (`SAGAR-01`).
+- **Reporting & Timezone**: Configured for Indian Rupee (`₹` / `INR`) and `Asia/Kolkata` (IST, UTC+5:30) date formatting (`DD/MM/YYYY`).
+
+### Tax-Free Billing Engine
+- **Tax-Free Operations**: Sagar Fitness Gym does not charge GST or tax percentages.
+- **Direct Calculation**:
+  $$\text{Remaining Balance} = \text{Membership Fee} - \text{Total Valid Payments}$$
+- **Duplicate Prevention**: Backend idempotency validation prevents double submissions on payments and registrations.
+
+---
+
+## 👥 2. User Roles & Permission Matrix
+
+The application strictly implements two operational roles:
+
+| Module / Feature | 👑 Gym Admin (`SUPER_ADMIN` / `GYM_ADMIN`) | 🏢 Front Desk (`RECEPTIONIST`) |
+| :--- | :---: | :---: |
+| **Member Registration & Directory** | Full Access | Create & View Only |
+| **Attendance Check-In & Quick Punch** | Full Access | Full Access |
+| **Membership Plans Management** | Create / Edit / Delete Plans | View Only |
+| **Membership Renewals** | Full Access | Full Access |
+| **Record Payments & Print Receipts** | Full Access | Full Access |
+| **Financial Summaries & Collections** | Full Access | Operational Dues Only |
+| **Audit Logs Inspection** | Full Access | ❌ Restricted (403) |
+| **Staff Accounts & Credentials** | Full Access | ❌ Restricted (403) |
+| **Gym Settings & Business Profile** | Full Access | ❌ Restricted (403) |
+| **Database Backups & Maintenance** | Full Access | ❌ Restricted (403) |
+
+---
+
+## 🔒 3. Authentication & Security
+
+- **Server-Side Credential Validation**: Password verification strictly executes on the backend using `bcryptjs` with salt rounds.
+- **No Client-Side Mock Fallback**: All mock login buttons, instant demo cards, and hardcoded client credentials have been removed.
+- **Login Rate Limiting**: Secured via `express-rate-limit` (maximum 50 attempts per 15-minute window per IP) on `/api/auth/login` and `/api/auth/forgot-password`.
+- **CORS Protection**: Restricted to the validated `CLIENT_URL` with credentials allowed.
+- **Password Recovery Workflow**:
+  - Cryptographically secure 32-byte tokens generated via `crypto.randomBytes(32)`.
+  - Only the SHA-256 hash of the token is stored in MongoDB.
+  - Strict 15-minute expiration window.
+  - Tokens are invalidated immediately upon single use.
+  - Safe generic responses prevent user email enumeration.
+- **Graceful Shutdown**: Intercepts `SIGINT` and `SIGTERM` signals to cleanly drain active connections and close the MongoDB connection before process termination.
+
+---
+
+## 🛠️ 4. Technology Stack
 
 - **Frontend**:
-  - React 18 & TypeScript
-  - Vite 6
-  - Tailwind CSS (Curated Dark & Neon Lime Design System)
-  - Framer Motion (Transitions, modals, micro-interactions)
+  - React 18 & TypeScript (Vite 6 bundler)
+  - Tailwind CSS with custom light theme tokens (`#F5F7FA` page background, `#2563EB` primary blue, `#FFFFFF` cards)
   - Lucide React (Icons)
-  - Recharts (Analytics and hourly peak charts)
-  - QRCode.react (Instant digital pass generation)
-  - Canvas-Confetti (Celebrations on renewals and enrollments)
+  - html2canvas & jsPDF (High-resolution receipt PDF generation)
 - **Backend**:
-  - Node.js & Express.js
+  - Node.js (v18+) & Express 4
   - TypeScript & TSX
-  - MongoDB & Mongoose
-  - JWT & bcryptjs Password Hashing
-  - Helmet & CORS Security
-  - Vitest & Supertest Integration Suite
+  - MongoDB 6+ & Mongoose 8
+  - JWT (`jsonwebtoken`) & bcryptjs
+  - Helmet security headers & Morgan logging
+- **Testing**:
+  - Vitest 3 & Supertest integration suite (33 automated test scenarios)
 
 ---
 
-## 🚀 Key Modules & Capabilities
+## 🚀 5. Getting Started (Local Development)
 
-1. **Role-Based Access Control (RBAC)**
-   - `SUPER_ADMIN`: Full multi-branch control, staff management, audit log inspection.
-   - `GYM_ADMIN`: Local branch operations, trainer oversight, financial analytics.
-   - `RECEPTIONIST`: Fast athlete lookup, QR pass scanning, renewal processing, manual check-in/out.
-   - `TRAINER`: Assigned athlete roster and class schedules.
-   - `MEMBER`: Personal workout log, membership status, attendance history, receipts.
+### Prerequisites
+- **Node.js**: v18.0.0 or higher
+- **MongoDB**: Local MongoDB instance (`mongodb://127.0.0.1:27017/fitcore`) or MongoDB Atlas URI
 
-2. **Digital Member Pass & QR Attendance Terminal**
-   - High-speed check-in terminal supporting instant QR code scan, Member ID (e.g. `FC-1001`), or Mongo ID.
-   - Automatic toggle check-out with duration tracking.
-   - Live real-time gym occupancy counter with automatic 12-second polling.
-
-3. **Membership Lifecycle & Financial Tracking**
-   - Tiered plans: Annual VIP, Quarterly Athlete, Monthly Classic, Functional Box Pass, 10-Day Flex Pass.
-   - Active, expiring-soon, and frozen status calculations.
-   - Membership freeze/thaw history with reason auditing.
-   - Invoicing, receipt numbers (`RCP-2026-XXXX`), cash/card/UPI tracking, and printable receipts.
-
-4. **Multi-Branch Ready**
-   - Flagship Downtown, Uptown Performance Lab, and Westside Athlete Club with separate capacities and contact points.
-
-5. **Security & Accountability**
-   - In-depth `AuditLog` records for every administrative action, check-in, freeze, and financial transaction.
-
----
-
-## 🔑 Demo Access & Seed Accounts
-
-The system includes pre-seeded demo accounts with password `password123`:
-
-| Role | Email | Password | Access Level |
-| :--- | :--- | :--- | :--- |
-| **👑 Super Admin** | `admin@fitcore.com` | `password123` | Global Platform & Branches |
-| **🏢 Gym Manager** | `manager@fitcore.com` | `password123` | Downtown Branch Management |
-| **🎫 Reception Desk** | `reception@fitcore.com` | `password123` | Fast Check-In & Receipts |
-| **💪 Head Coach** | `trainer@fitcore.com` | `password123` | Trainer & Member Schedules |
-
-*Note: The login screen also features 1-click quick switch buttons for instant evaluation.*
-
----
-
-## 💻 Prerequisites & Setup
-
-### 1. Prerequisites
-- **Node.js**: v18+ (tested on Node v24.5)
-- **MongoDB**: Local MongoDB instance running on `mongodb://127.0.0.1:27017` or MongoDB Atlas URI.
-
-### 2. Installation
-Clone or navigate to the project root and install all dependencies:
+### Installation
+Clone or navigate to the repository root:
 ```bash
+# Install root, server, and client dependencies
 npm install
 npm install --prefix server
 npm install --prefix client
 ```
 
-### 3. Database Initialization & Seeding
-To populate realistic members, membership tiers, active check-ins, and financial records:
+### Environment Configuration
+Copy `.env.example` files to `.env`:
+```bash
+# Root / Server
+cp server/.env.example server/.env
+
+# Client
+cp client/.env.example client/.env
+```
+
+### Database Seeding & Admin Setup
+To initialize the single gym configuration and seed starter members, plans, and administrative accounts:
 ```bash
 npm run seed --prefix server
 ```
 
-### 4. Running the Application
-To run both backend API and frontend concurrently:
+The initial seeded accounts are:
+- **Gym Admin**: `admin@sagarfitness.com` (Username: `admin`, Password: `password123`)
+- **Front Desk**: `desk@sagarfitness.com` (Username: `desk`, Password: `password123`)
+
+*Note: For production deployments, change these passwords immediately via Settings > Profile & Security or during the initial seed.*
+
+### Starting Development Servers
 ```bash
-# Terminal 1 - Backend Server (Port 5000)
+# Terminal 1: Backend Server (Port 5000)
 npm run dev --prefix server
 
-# Terminal 2 - Frontend Client (Port 5173)
+# Terminal 2: Frontend Client (Port 5173)
 npm run dev --prefix client
 ```
-Access the application at: **[http://localhost:5173](http://localhost:5173)**
-API Health & Status at: **[http://localhost:5000/api/health](http://localhost:5000/api/health)**
+- Frontend UI: `http://localhost:5173`
+- API Health Check: `http://localhost:5000/api/health`
 
 ---
 
-## 🧪 Testing
+## 🧪 6. Automated Testing
 
-FitCore features a comprehensive automated integration test suite covering auth, RBAC, member queries, QR lookups, attendance, and KPI metrics:
+Run the full end-to-end integration test suite (33 test scenarios covering health, authentication, RBAC, member registration, duplicate prevention, payment calculations, receipt generation, and single gym settings):
 
 ```bash
-npm run test --prefix server
+npm test --prefix server
+```
+
+Expected output:
+```
+✓ tests/api.test.ts (33 tests)
+Test Files  1 passed (1)
+Tests       33 passed (33)
 ```
 
 ---
 
-## 📁 Project Architecture
+## 📦 7. Production Build & Deployment
 
+### Step 1: Build the Client
+```bash
+cd client
+npm run build
 ```
-fitcore/
-├── package.json               # Root monorepo orchestrator
-├── .env.example               # Environment variables template
-├── README.md                  # Project documentation
-├── server/
-│   ├── src/
-│   │   ├── config/            # Database and environment configurations
-│   │   ├── middlewares/       # JWT auth and RBAC guards
-│   │   ├── models/            # Mongoose schemas (User, Member, Membership, Attendance, Payment, Branch, AuditLog)
-│   │   ├── routes/            # REST API route controllers
-│   │   ├── utils/             # JWT, response helpers, structured logger, audit logger
-│   │   ├── scripts/           # Realistic database seeding engine
-│   │   └── server.ts          # Express application entrypoint
-│   └── tests/
-│       └── api.test.ts        # Vitest & Supertest integration tests
-└── client/
-    ├── src/
-    │   ├── api/client.ts      # Axios/Fetch typed client with token injection
-    │   ├── components/        # Sidebar, Navbar, and interactive modals (Check-in, Member Card, Freeze, Renew, Receipt)
-    │   ├── context/           # React AuthContext with session persistence
-    │   ├── pages/             # Dashboard, Members, Plans, Attendance, Billing, Branches, Audit Logs, Login
-    │   └── types/             # Shared TypeScript entity models
-    ├── index.html
-    ├── tailwind.config.js     # FitCore custom theme tokens
-    └── vite.config.ts         # Vite bundler with /api reverse proxy
+This produces an optimized, code-split production bundle in `client/dist`.
+
+### Step 2: Build the Server
+```bash
+cd server
+npm run build
 ```
+This compiles TypeScript to vanilla ES modules in `server/dist`.
+
+### Step 3: Configure Production Environment Variables
+In your production hosting environment (e.g., Ubuntu VPS, Render, Railway, AWS EC2):
+```ini
+NODE_ENV=production
+PORT=5000
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/sagar_fitness?retryWrites=true&w=majority
+JWT_SECRET=generate_with_crypto_randomBytes_64_characters_minimum
+JWT_EXPIRES_IN=7d
+CLIENT_URL=https://gym.sagarfitness.com
+```
+
+### Step 4: Run the Production Server
+```bash
+cd server
+npm start
+```
+Or with PM2 process manager:
+```bash
+pm2 start dist/server.js --name "sagar-fitness-api"
+```
+
+### Step 5: Nginx Reverse Proxy Configuration (SPA Fallback)
+Sample Nginx block serving `client/dist` and proxying `/api` to the backend:
+```nginx
+server {
+    listen 80;
+    server_name gym.sagarfitness.com;
+
+    # Frontend Static Files
+    root /var/www/sagarfitness/client/dist;
+    index index.html;
+
+    # SPA routing fallback
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Backend API Proxy
+    location /api/ {
+        proxy_pass http://127.0.0.1:5000/api/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Uploads (Photo storage)
+    location /uploads/ {
+        proxy_pass http://127.0.0.1:5000/uploads/;
+    }
+}
+```
+
+---
+
+## 💾 8. Database Backup & Restore
+
+### Automated JSON Backups
+The system includes built-in automated daily backups stored in `server/backups/`. Authorized administrators can trigger manual snapshots and download JSON backups directly from **Settings > Database Backup & Restore**.
+
+### Production MongoDump & MongoRestore
+
+#### Backup:
+```bash
+mongodump --uri="mongodb+srv://<username>:<password>@cluster0.mongodb.net/sagar_fitness" --out=/var/backups/sagar_fitness_$(date +%F)
+```
+
+#### Restore:
+```bash
+mongorestore --uri="mongodb+srv://<username>:<password>@cluster0.mongodb.net/sagar_fitness" --drop /var/backups/sagar_fitness_<date>/sagar_fitness
+```
+
+---
+
+## 📋 9. Required Environment Variables Reference
+
+| Variable Name | Required | Default / Example | Purpose |
+| :--- | :---: | :--- | :--- |
+| `NODE_ENV` | Yes | `production` | Enables strict security checks and suppresses debug stacks |
+| `PORT` | Yes | `5000` | Port for Express backend server |
+| `MONGODB_URI` | Yes | `mongodb+srv://...` | MongoDB database connection URI |
+| `JWT_SECRET` | Yes | `32+ char random hex` | Secret key used to sign and verify JWT tokens |
+| `JWT_EXPIRES_IN` | No | `7d` | Active token duration before re-login required |
+| `CLIENT_URL` | Yes | `https://gym.sagarfitness.com` | Allowed frontend origin for CORS |
+| `VITE_API_URL` | Optional | `/api` | Base path for frontend API calls |

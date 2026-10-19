@@ -565,8 +565,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="text-sm font-semibold text-slate-900 leading-tight whitespace-nowrap">
                   {user?.fullName || 'Staff User'}
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5 whitespace-nowrap">
-                  {user?.role === 'SUPER_ADMIN' ? 'Super Admin' : user?.role?.replace('_', ' ').toLowerCase() || 'Staff'}
+                <div className="text-xs text-slate-500 mt-0.5 whitespace-nowrap font-medium">
+                  {user?.role === 'SUPER_ADMIN' || user?.role === 'GYM_ADMIN'
+                    ? '👑 Gym Admin'
+                    : user?.role === 'RECEPTIONIST'
+                    ? '🏢 Front Desk'
+                    : 'Staff'}
                 </div>
               </div>
               <ChevronDown className="w-4 h-4 text-slate-400 hidden lg:block shrink-0" />
@@ -574,15 +578,29 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* User Menu Dropdown */}
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50">
+              <div className="absolute right-0 mt-2 w-60 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-50">
                 <div className="px-4 py-2.5 border-b border-slate-100">
                   <div className="text-xs font-bold text-slate-900 truncate">
                     {user?.fullName}
                   </div>
-                  <div className="text-[11px] text-slate-500 truncate mt-0.5">
+                  <div className="text-[11px] text-slate-500 truncate mt-0.5 font-mono">
                     {user?.email}
                   </div>
+                  <div className="mt-1.5">
+                    <span
+                      className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        user?.role === 'SUPER_ADMIN' || user?.role === 'GYM_ADMIN'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      }`}
+                    >
+                      {user?.role === 'SUPER_ADMIN' || user?.role === 'GYM_ADMIN'
+                        ? '👑 Gym Admin / Owner'
+                        : '🏢 Front Desk Staff'}
+                    </span>
+                  </div>
                 </div>
+
 
                 <div className="p-1.5">
                   <button
@@ -590,7 +608,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       setShowUserMenu(false);
                       logout();
                     }}
-                    className="w-full text-left h-9 px-3 rounded-xl text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors font-semibold"
+                    className="w-full text-left h-9 px-3 rounded-xl text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors font-semibold cursor-pointer"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     Logout

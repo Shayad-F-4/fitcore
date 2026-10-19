@@ -35,15 +35,16 @@ router.get('/live', authenticate, async (req: AuthenticatedRequest, res: Respons
   }
 });
 
-// Get today's check-in log
+// Get today's or specific date's check-in log
 router.get('/today', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { branchId } = req.query;
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
+    const { branchId, date } = req.query;
+    const targetDate = date ? new Date(date as string) : new Date();
+    const startOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59, 999);
 
     const filter: any = {
-      checkInTime: { $gte: startOfToday },
+      checkInTime: { $gte: startOfDay, $lte: endOfDay },
     };
     if (branchId) filter.branch = branchId;
 
@@ -52,7 +53,7 @@ router.get('/today', authenticate, async (req: AuthenticatedRequest, res: Respon
       .populate('branch', 'name code')
       .sort({ checkInTime: -1 });
 
-    sendSuccess(res, "Today's attendance log", logs);
+    sendSuccess(res, "Daily attendance log", logs);
   } catch (error: any) {
     sendError(res, error.message || 'Failed to fetch attendance log', 500);
   }
@@ -111,12 +112,20 @@ router.post('/check-in', authenticate, async (req: AuthenticatedRequest, res: Re
       return;
     }
 
-    // Lookup member by QR token, Member ID, or _id
+    const rawId = identifier.trim();
+    const cleanDigits = rawId.replace(/[\s\-\(\)\+]/g, '');
+    const phoneFilter = cleanDigits.length >= 7 ? [
+      { phone: rawId },
+      { phone: new RegExp(cleanDigits.slice(-10), 'i') },
+    ] : [];
+
+    // Lookup member by QR token, Member ID, Phone number, or Mongo _id
     const member = await Member.findOne({
       $or: [
-        { qrCodeToken: identifier.trim() },
-        { memberId: identifier.trim().toUpperCase() },
-        ...(identifier.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: identifier }] : []),
+        { qrCodeToken: rawId },
+        { memberId: rawId.toUpperCase() },
+        ...phoneFilter,
+        ...(rawId.match(/^[0-9a-fA-F]{24}$/) ? [{ _id: rawId }] : []),
       ],
       isArchived: false,
     }).populate('branch');
@@ -146,8 +155,21 @@ router.post('/check-in', authenticate, async (req: AuthenticatedRequest, res: Re
     });
 
     if (existingCheckIn) {
-      // Auto check-out if already checked in!
-      existingCheckIn.checkOutTime = new Date();
+      const now = new Date();
+      const secondsSinceCheckIn = Math.round((now.getTime() - existingCheckIn.checkInTime.getTime()) / 1000);
+
+      // Duplicate scan prevention: Debounce accidental double scans within 60 seconds
+      if (secondsSinceCheckIn < 60) {
+        sendError(
+          res,
+          `Duplicate scan detected: ${member.fullName} was already checked in ${secondsSinceCheckIn}s ago. Please wait at least 1 minute before checking out.`,
+          429
+        );
+        return;
+      }
+
+      // Auto check-out after workout session
+      existingCheckIn.checkOutTime = now;
       await existingCheckIn.save();
 
       await recordAuditLog({
@@ -162,11 +184,27 @@ router.post('/check-in', authenticate, async (req: AuthenticatedRequest, res: Re
       sendSuccess(res, `Checked out: ${member.fullName}`, {
         type: 'CHECK_OUT',
         member,
+        membershipValid: Boolean(membership),
         attendance: existingCheckIn,
         durationMinutes: Math.round(
           (existingCheckIn.checkOutTime.getTime() - existingCheckIn.checkInTime.getTime()) / 60000
         ),
       });
+      return;
+    }
+
+    // Prevent accidental re-check-in within 30 seconds of checking out
+    const recentCheckOut = await Attendance.findOne({
+      member: member._id,
+      checkOutTime: { $gte: new Date(Date.now() - 30 * 1000) },
+    }).sort({ checkOutTime: -1 });
+
+    if (recentCheckOut) {
+      sendError(
+        res,
+        `Duplicate scan detected: ${member.fullName} just checked out moments ago. Please wait before re-checking in.`,
+        429
+      );
       return;
     }
 

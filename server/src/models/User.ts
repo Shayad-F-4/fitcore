@@ -5,6 +5,7 @@ export type UserRole = 'SUPER_ADMIN' | 'GYM_ADMIN' | 'RECEPTIONIST' | 'TRAINER' 
 
 export interface IUser extends Document {
   email: string;
+  username?: string;
   password?: string;
   fullName: string;
   phone?: string;
@@ -13,6 +14,8 @@ export interface IUser extends Document {
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   avatarUrl?: string;
   lastLogin?: Date;
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
   createdAt: Date;
   updatedAt: Date;
@@ -26,6 +29,12 @@ const UserSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
+      index: true,
+    },
+    username: {
+      type: String,
+      trim: true,
+      lowercase: true,
       index: true,
     },
     password: {
@@ -63,6 +72,14 @@ const UserSchema = new Schema<IUser>(
     },
     lastLogin: {
       type: Date,
+    },
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+    passwordResetExpires: {
+      type: Date,
+      select: false,
     },
   },
   { timestamps: true }

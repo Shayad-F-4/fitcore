@@ -6,7 +6,9 @@ export interface AuthenticatedRequest extends Request {
   user?: TokenPayload;
 }
 
-export const authenticate = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+import { User } from '../models/User.js';
+
+export const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -18,7 +20,18 @@ export const authenticate = (req: AuthenticatedRequest, res: Response, next: Nex
 
   try {
     const decoded = verifyToken(token);
+    // Verify that user exists in database and is active
+    const activeUser = await User.findById(decoded.userId).select('status role');
+    if (!activeUser) {
+      sendError(res, 'Account no longer exists', 401);
+      return;
+    }
+    if (activeUser.status !== 'ACTIVE') {
+      sendError(res, 'Account has been deactivated. Please contact gym administrator.', 403);
+      return;
+    }
     req.user = decoded;
+    req.user.role = activeUser.role;
     next();
   } catch (err) {
     sendError(res, 'Invalid or expired session token', 401);

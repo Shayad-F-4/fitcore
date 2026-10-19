@@ -49,10 +49,10 @@ const MemberSchema = new Schema<IMember>(
     },
     email: {
       type: String,
-      required: true,
+      required: false,
       lowercase: true,
       trim: true,
-      index: true,
+      default: '',
     },
     phone: {
       type: String,

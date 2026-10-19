@@ -108,6 +108,7 @@ export interface Attendance {
   branch: Branch;
   checkInTime: string;
   checkOutTime?: string;
+  durationMinutes?: number | null;
   method: 'QR_CODE' | 'MANUAL';
   checkedInBy?: {
     _id: string;
@@ -140,18 +141,63 @@ export interface Payment {
 export interface DashboardMetrics {
   totalMembers: number;
   activeMembers: number;
+  expiringMemberships: number;
+  alreadyExpiredCount?: number;
   newMembersThisMonth: number;
   liveOccupancy: number;
   gymCapacity: number;
   occupancyPercentage: number;
   todayTotalCheckins: number;
+  todayRevenue?: number;
   monthlyRevenue: number;
   totalRevenue: number;
+  pendingDuesTotal?: number;
+  pendingDuesCount?: number;
 }
 
 export interface DashboardData {
   metrics: DashboardMetrics;
   expiringMemberships: Membership[];
+  expiredMemberships?: Membership[];
+  recentMembers?: any[];
   monthlyRevenueData: { month: string; revenue: number }[];
   recentActivity: any[];
 }
+
+export interface NotificationItem {
+  _id: string;
+  title: string;
+  message: string;
+  type: 'EXPIRING_SOON' | 'EXPIRING_TODAY' | 'EXPIRED' | 'RENEWAL_SUCCESS' | 'PAYMENT_PENDING' | 'SYSTEM';
+  member?: {
+    _id: string;
+    fullName: string;
+    memberId: string;
+    photoUrl?: string;
+  };
+  membership?: {
+    _id: string;
+    status: string;
+    expiryDate: string;
+  };
+  read: boolean;
+  dismissed: boolean;
+  createdAt: string;
+}
+
+export interface FollowUpItem {
+  _id: string;
+  member: string;
+  type: 'CALL' | 'SMS' | 'WHATSAPP' | 'IN_PERSON' | 'STAFF_NOTE';
+  status: 'PENDING' | 'CONTACTED' | 'RENEWAL_COMPLETED' | 'CANCELLED';
+  notes: string;
+  followUpDate?: string;
+  contactOutcome?: string;
+  recordedBy: {
+    _id: string;
+    fullName: string;
+    role?: string;
+  };
+  createdAt: string;
+}
+

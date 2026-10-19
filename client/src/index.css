@@ -1,93 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --bg-main: #080B0A;
-    --surface: #111613;
-    --elevated: #171E19;
-    --accent: #B7FF3C;
-    --border: #273129;
+    --bg-main: #F7F8FA;
+    --surface: #FFFFFF;
+    --text-primary: #202124;
+    --text-secondary: #6B7280;
+    --border: #E5E7EB;
+    --primary: #2563EB;
+    --success: #15803D;
+    --warning: #B45309;
+    --error: #B91C1C;
+  }
+
+  * {
+    border-color: #E5E7EB;
   }
 
   body {
-    background-color: #080B0A;
-    color: #F5F7F5;
+    background-color: #F7F8FA;
+    color: #202124;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  /* Custom dark scrollbar */
+  /* Clean subtle scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #080B0A;
+    background: #F1F3F5;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #273129;
-    border-radius: 9999px;
+    background: #D1D5DB;
+    border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #364439;
+    background: #9CA3AF;
   }
 }
 
 @layer utilities {
-  .bg-grid-pattern {
-    background-size: 40px 40px;
-    background-image: 
-      linear-gradient(to right, rgba(39, 49, 41, 0.25) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(39, 49, 41, 0.25) 1px, transparent 1px);
+  .text-text-main {
+    color: #202124 !important;
   }
-
-  .bg-radial-glow {
-    background: radial-gradient(circle at 50% 0%, rgba(183, 255, 60, 0.12) 0%, transparent 65%);
+  .text-text-secondary {
+    color: #6B7280 !important;
   }
-
-  .text-glow {
-    text-shadow: 0 0 20px rgba(183, 255, 60, 0.4);
+  .text-text-muted {
+    color: #9CA3AF !important;
   }
-
-  .border-glass {
-    border: 1px solid rgba(255, 255, 255, 0.08);
+  .gym-glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
-
-  .surface-card {
-    background: #111613;
-    border: 1px solid #273129;
-    border-radius: 0.75rem;
+  .gym-glass-dark {
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
-
-  .surface-elevated {
-    background: #171E19;
-    border: 1px solid #364439;
+  .gym-glow-cyan {
+    box-shadow: 0 0 20px -3px rgba(6, 182, 212, 0.35);
   }
-}
-
-/* Print Styles for Printable Membership Cards & Receipts */
-@media print {
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
+  .gym-glow-amber {
+    box-shadow: 0 0 20px -3px rgba(245, 158, 11, 0.35);
   }
-
-  .no-print {
-    display: none !important;
+  .gym-card-hover {
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
-
-  .print-only {
-    display: block !important;
-  }
-
-  .print-card {
-    border: 1px solid #000 !important;
-    color: #000 !important;
-    background: #fff !important;
-    box-shadow: none !important;
+  .gym-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
   }
 }
+

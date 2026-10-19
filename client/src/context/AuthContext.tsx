@@ -8,8 +8,7 @@ interface AuthContextType {
   activeBranch: Branch | null;
   branches: Branch[];
   loading: boolean;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
-  demoLogin: (role: string) => Promise<void>;
+  login: (credentials: { email?: string; identifier?: string; password: string }) => Promise<void>;
   logout: () => void;
   setActiveBranch: (branch: Branch | null) => void;
   refreshBranches: () => Promise<void>;
@@ -75,18 +74,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const res = await api.getMe();
           setUser(res.user);
         } catch {
-          if (savedToken.startsWith('mock_')) {
-            setUser({
-              id: 'mock-admin-1',
-              fullName: 'Rajesh Deshmukh',
-              email: 'admin@fitcore.com',
-              role: 'SUPER_ADMIN',
-            });
-          } else {
-            localStorage.removeItem('fitcore_token');
-            setToken(null);
-            setUser(null);
-          }
+          localStorage.removeItem('fitcore_token');
+          setToken(null);
+          setUser(null);
         }
       }
       setLoading(false);
@@ -95,52 +85,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initAuth();
   }, []);
 
-  const login = async (credentials: { email: string; password: string }) => {
-    try {
-      const res = await api.login(credentials);
-      localStorage.setItem('fitcore_token', res.token);
-      setToken(res.token);
-      setUser(res.user);
-      await fetchBranches();
-    } catch {
-      // Fallback demo session for static deployments
-      const isReception = credentials.email.includes('reception');
-      const fallbackUser: User = {
-        id: isReception ? 'mock-rep-1' : 'mock-admin-1',
-        fullName: isReception ? 'Pooja Sharma' : 'Rajesh Deshmukh',
-        email: credentials.email,
-        role: isReception ? 'RECEPTIONIST' : 'SUPER_ADMIN',
-      };
-      const mockToken = 'mock_token_fitcore_2026';
-      localStorage.setItem('fitcore_token', mockToken);
-      setToken(mockToken);
-      setUser(fallbackUser);
-      await fetchBranches();
-    }
-  };
-
-  const demoLogin = async (role: string) => {
-    try {
-      const res = await api.demoLogin(role);
-      localStorage.setItem('fitcore_token', res.token);
-      setToken(res.token);
-      setUser(res.user);
-      await fetchBranches();
-    } catch {
-      // Fallback demo session for static deployments
-      const isReception = role === 'RECEPTIONIST';
-      const fallbackUser: User = {
-        id: isReception ? 'mock-rep-1' : 'mock-admin-1',
-        fullName: isReception ? 'Pooja Sharma' : 'Rajesh Deshmukh',
-        email: isReception ? 'reception@fitcore.com' : 'admin@fitcore.com',
-        role: isReception ? 'RECEPTIONIST' : 'SUPER_ADMIN',
-      };
-      const mockToken = 'mock_token_fitcore_2026';
-      localStorage.setItem('fitcore_token', mockToken);
-      setToken(mockToken);
-      setUser(fallbackUser);
-      await fetchBranches();
-    }
+  const login = async (credentials: { email?: string; identifier?: string; password: string }) => {
+    const res = await api.login(credentials);
+    localStorage.setItem('fitcore_token', res.token);
+    setToken(res.token);
+    setUser(res.user);
+    await fetchBranches();
   };
 
   const logout = () => {
@@ -173,7 +123,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         branches,
         loading,
         login,
-        demoLogin,
         logout,
         setActiveBranch,
         refreshBranches: fetchBranches,

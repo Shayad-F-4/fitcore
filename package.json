@@ -9,6 +9,10 @@
     "dev:client": "npm run dev --prefix client",
     "dev": "concurrently -n \"SERVER,CLIENT\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev:client\"",
     "build": "npm run build --prefix server && npm run build --prefix client",
+    "build:client": "npm run build --prefix client",
+    "build:server": "npm run build --prefix server",
+    "pipeline:check": "npm run build:client && npm run build:server && npm run test --prefix server",
+    "deploy:prod": "npm run build:client && npx vercel client --prod --yes",
     "seed": "npm run seed --prefix server",
     "test": "npm run test --prefix server"
   },
