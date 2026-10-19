@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2, CheckCircle2, X, KeyRound, ArrowRight } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Loader2,
+  CheckCircle2,
+  X,
+  KeyRound,
+  ArrowRight,
+  ShieldCheck,
+  Dumbbell,
+  Users,
+  HeartPulse,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 
@@ -136,159 +151,236 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA] text-slate-900 flex flex-col justify-center items-center px-4 py-8 sm:py-12 select-none">
-      <div className="w-full max-w-md">
-        {/* Main Login Card */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xl shadow-slate-200/60 p-6 sm:p-9 space-y-6">
-          {/* Gym Branding Header */}
-          <div className="text-center space-y-2">
+    <div className="relative min-h-screen w-full overflow-x-hidden flex items-center justify-center bg-slate-950 font-sans select-none">
+      {/* 1. Full-Height Gym Background Image with Dark Overlay */}
+      <div
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
+        style={{ backgroundImage: `url('/login-bg.png')` }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/55 backdrop-blur-[0.5px]" />
+      </div>
+
+      {/* 2. Lime Green Geometric Corner Accents Matching Reference Design */}
+      {/* Top-Left Lime-Green Angular Ribbon */}
+      <div className="absolute top-0 left-0 w-36 h-36 sm:w-56 sm:h-56 pointer-events-none z-10 overflow-hidden">
+        <div className="w-[180%] h-[180%] bg-gradient-to-br from-[#84cc16] via-[#65a30d] to-transparent transform -rotate-45 -translate-x-[45%] -translate-y-[45%] opacity-90 shadow-2xl" />
+      </div>
+
+      {/* Bottom-Right Lime-Green Angular Ribbon */}
+      <div className="absolute bottom-0 right-0 w-44 h-44 sm:w-64 sm:h-64 pointer-events-none z-10 overflow-hidden">
+        <div className="w-[180%] h-[180%] bg-gradient-to-tl from-[#84cc16] via-[#4d7c0f] to-transparent transform -rotate-45 translate-x-[45%] translate-y-[45%] opacity-85 shadow-2xl" />
+      </div>
+
+      {/* 3. Main Content: Responsive Two-Column Layout */}
+      <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-10 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12 min-h-screen">
+        {/* Left Column (Desktop Only): Feature Highlights anchored at bottom left */}
+        <div className="hidden lg:flex flex-col justify-end self-end w-full max-w-lg pb-6">
+          <div className="flex items-center gap-10 xl:gap-14 pt-4">
+            {/* Feature 1: Modern Facilities */}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-11 h-11 rounded-xl bg-black/40 backdrop-blur-md border border-lime-400/40 flex items-center justify-center text-lime-400 mb-2 shadow-lg shadow-lime-950/40">
+                <Dumbbell className="w-5 h-5 stroke-[2.2]" />
+              </div>
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-100 leading-tight">
+                MODERN<br />FACILITIES
+              </span>
+            </div>
+
+            {/* Feature 2: Expert Trainers */}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-11 h-11 rounded-xl bg-black/40 backdrop-blur-md border border-lime-400/40 flex items-center justify-center text-lime-400 mb-2 shadow-lg shadow-lime-950/40">
+                <Users className="w-5 h-5 stroke-[2.2]" />
+              </div>
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-100 leading-tight">
+                EXPERT<br />TRAINERS
+              </span>
+            </div>
+
+            {/* Feature 3: Healthy Community */}
+            <div className="flex flex-col items-center text-center">
+              <div className="w-11 h-11 rounded-xl bg-black/40 backdrop-blur-md border border-lime-400/40 flex items-center justify-center text-lime-400 mb-2 shadow-lg shadow-lime-950/40">
+                <HeartPulse className="w-5 h-5 stroke-[2.2]" />
+              </div>
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-100 leading-tight">
+                HEALTHY<br />COMMUNITY
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Floating Pristine White Login Card */}
+        <div className="w-full flex flex-col items-center lg:items-end justify-center my-auto">
+          <div className="w-full max-w-[440px] sm:max-w-[460px] bg-white rounded-3xl shadow-2xl shadow-black/60 border border-white/80 p-6 sm:p-9 text-slate-900 transition-all duration-200">
+            {/* Sagar Fitness Gym Logo */}
             <div className="flex items-center justify-center">
               <img
                 src="/logo.png"
                 alt="Sagar Fitness Gym"
-                className="h-12 sm:h-14 w-auto max-w-[220px] object-contain"
+                className="h-11 sm:h-12 w-auto max-w-[240px] object-contain"
               />
             </div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Gym Management System
-            </p>
-          </div>
 
-          {/* Heading */}
-          <div className="text-center pt-1 border-t border-slate-100">
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-              Welcome Back
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Sign in to manage your gym
-            </p>
-          </div>
-
-          {/* Error Message from Database */}
-          {error && (
-            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs font-medium text-rose-700 flex items-start gap-2.5 animate-in fade-in duration-200">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
-              <span className="leading-snug">{error}</span>
+            {/* Horizontal Divider with Gym Management System Subtitle */}
+            <div className="relative flex items-center justify-center my-3.5">
+              <div className="w-full border-t border-slate-200" />
+              <span className="absolute bg-white px-3 text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400 whitespace-nowrap">
+                Gym Management System
+              </span>
             </div>
-          )}
 
-          {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-            {/* Email Address / User ID Field */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                Email Address or User ID
-              </label>
-              <div className="relative flex items-center">
-                <div className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <input
-                  type="text"
-                  required
-                  autoComplete="username"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="admin@sagarfitness.com or admin"
-                  className="w-full h-12 pl-11 pr-4 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
-                />
+            {/* Heading & Subtitle */}
+            <div className="text-center pt-1 pb-1">
+              <h1 className="text-2xl sm:text-[28px] font-black text-slate-900 tracking-tight">
+                Welcome Back
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                Sign in to manage your gym
+              </p>
+            </div>
+
+            {/* Database Error Alert */}
+            {error && (
+              <div className="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-700 flex items-start gap-2.5 animate-in fade-in duration-200">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
+                <span className="leading-snug">{error}</span>
               </div>
-            </div>
+            )}
 
-            {/* Password Field */}
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                Password
-              </label>
-              <div className="relative flex items-center">
-                <div className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center">
-                  <Lock className="w-5 h-5" />
+            {/* Login Form */}
+            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+              {/* Email Address / User ID Input */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5 tracking-wide">
+                  Email Address or User ID
+                </label>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center">
+                    <Mail className="w-4.5 h-4.5" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    autoComplete="username"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="admin@sagarfitness.com or admin"
+                    className="w-full h-12 pl-11 pr-4 text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
+                  />
                 </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full h-12 pl-11 pr-11 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
-                />
+              </div>
+
+              {/* Password Input */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5 tracking-wide">
+                  Password
+                </label>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center">
+                    <Lock className="w-4.5 h-4.5" />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    className="w-full h-12 pl-11 pr-11 text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg transition-colors cursor-pointer"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4.5 h-4.5" />
+                    ) : (
+                      <Eye className="w-4.5 h-4.5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Remember Me & Forgot Password Row */}
+              <div className="flex items-center justify-between text-xs pt-0.5">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
+                  />
+                  <span className="font-semibold text-slate-700 hover:text-slate-900 transition-colors">
+                    Remember me
+                  </span>
+                </label>
+
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 text-slate-400 hover:text-slate-600 p-1.5 rounded-md transition-colors cursor-pointer"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  title={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => {
+                    setForgotMsg(null);
+                    setShowForgotModal(true);
+                  }}
+                  className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors cursor-pointer"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
+                  Forgot password?
+                </button>
+              </div>
+
+              {/* Sign In Button */}
+              <div className="pt-1.5">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-12 sm:h-12.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-base shadow-md shadow-blue-600/30 hover:shadow-lg hover:shadow-blue-600/40 active:scale-[0.99] transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Signing In...</span>
+                    </>
                   ) : (
-                    <Eye className="w-5 h-5" />
+                    <>
+                      <span>Sign In</span>
+                      <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+                    </>
                   )}
                 </button>
               </div>
-            </div>
 
-            {/* Remember Me & Forgot Password Row */}
-            <div className="flex items-center justify-between text-xs pt-0.5">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600"
-                />
-                <span className="font-semibold text-slate-600 hover:text-slate-800 transition-colors">
-                  Remember me
+              {/* OR Divider */}
+              <div className="relative flex items-center justify-center my-3">
+                <div className="w-full border-t border-slate-200" />
+                <span className="absolute bg-white px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  OR
                 </span>
-              </label>
+              </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setForgotMsg(null);
-                  setShowForgotModal(true);
-                }}
-                className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors cursor-pointer"
-              >
-                Forgot password?
-              </button>
-            </div>
+              {/* Authorized Gym Staff Notice Card */}
+              <div className="p-3 sm:p-3.5 bg-blue-50/80 border border-blue-100 rounded-xl flex items-start gap-3 text-left">
+                <ShieldCheck className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-bold text-slate-900 leading-tight">
+                    Authorized gym staff only.
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                    Need an account? Contact your Gym Administrator.
+                  </p>
+                </div>
+              </div>
+            </form>
+          </div>
 
-            {/* Submit Button - Big, Bold, Professional Height */}
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full h-12 sm:h-13 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-base shadow-md shadow-blue-600/25 hover:shadow-lg hover:shadow-blue-600/35 active:scale-[0.99] transition-all duration-150 flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Signing In...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Sign In</span>
-                    <ArrowRight className="w-5 h-5 stroke-[2.5]" />
-                  </>
-                )}
-              </button>
-            </div>
-
-            <p className="text-center text-xs text-slate-500 pt-1 leading-relaxed">
-              Authorized gym staff only. Need an account? Contact your Gym Administrator.
-            </p>
-          </form>
-        </div>
-
-        {/* Subtle Footer */}
-        <div className="text-center text-xs text-slate-400 mt-6 font-medium">
-          Sagar Fitness Gym • Official Gym Management System
+          {/* Discreet Footer Text */}
+          <div className="text-center text-xs text-slate-300 font-medium mt-4 drop-shadow-sm">
+            Sagar Fitness Gym • Official Gym Management System
+          </div>
         </div>
       </div>
 
-      {/* Forgot Password / OTP Modal */}
+      {/* Forgot Password / Real OTP Recovery Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden p-6 sm:p-7 space-y-4">
@@ -458,4 +550,5 @@ export const LoginPage: React.FC = () => {
     </div>
   );
 };
+
 
