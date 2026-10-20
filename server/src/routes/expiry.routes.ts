@@ -1,5 +1,6 @@
 import { Router, Response } from 'express';
 import { Membership } from '../models/Membership.js';
+import { Member } from '../models/Member.js';
 import { NotificationLog } from '../models/NotificationLog.js';
 import { GymSettings } from '../models/GymSettings.js';
 import { sendSuccess, sendError } from '../utils/response.js';
@@ -46,9 +47,14 @@ router.get('/grouped', authenticate, async (_req: AuthenticatedRequest, res: Res
     // 3. Expired memberships (Expiry date < start of today, active or expired status)
     const todayStart = getKolkataRange(0).start;
 
+    // Fetch non-archived member IDs
+    const nonArchivedMemberIds = await Member.find({ isArchived: false }).distinct('_id');
+
     // Fetch records
     const [expiring2DaysRaw, expiring4to5DaysRaw, expiredRaw] = await Promise.all([
       Membership.find({
+        member: { $in: nonArchivedMemberIds },
+        isArchived: { $ne: true },
         status: 'ACTIVE',
         expiryDate: { $gte: day2Range.start, $lte: day2Range.end },
       })
@@ -56,6 +62,8 @@ router.get('/grouped', authenticate, async (_req: AuthenticatedRequest, res: Res
         .populate('plan'),
 
       Membership.find({
+        member: { $in: nonArchivedMemberIds },
+        isArchived: { $ne: true },
         status: 'ACTIVE',
         expiryDate: { $gte: day4to5Start, $lte: day4to5End },
       })
@@ -64,6 +72,8 @@ router.get('/grouped', authenticate, async (_req: AuthenticatedRequest, res: Res
         .sort({ expiryDate: 1 }),
 
       Membership.find({
+        member: { $in: nonArchivedMemberIds },
+        isArchived: { $ne: true },
         $or: [{ status: 'EXPIRED' }, { status: 'ACTIVE', expiryDate: { $lt: todayStart } }],
       })
         .populate('member')

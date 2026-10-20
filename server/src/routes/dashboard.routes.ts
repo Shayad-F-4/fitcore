@@ -20,6 +20,32 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
 
     const branchFilter = branchId ? { branch: branchId } : {};
 
+    // Get non-archived member IDs (scoped by branch if requested)
+    const nonArchivedMemberIds = await Member.find({ isArchived: false, ...branchFilter }).distinct('_id');
+
+    const expiringMembershipsQuery = {
+      member: { $in: nonArchivedMemberIds },
+      isArchived: { $ne: true },
+      status: 'ACTIVE',
+      expiryDate: { $gte: now, $lte: in7Days },
+    };
+
+    const expiredMembershipsQuery = {
+      member: { $in: nonArchivedMemberIds },
+      isArchived: { $ne: true },
+      $or: [
+        { status: 'EXPIRED' },
+        { status: 'ACTIVE', expiryDate: { $lt: now } },
+      ],
+    };
+
+    const pendingDuesMatch = {
+      member: { $in: nonArchivedMemberIds },
+      isArchived: { $ne: true },
+      status: 'ACTIVE',
+      $expr: { $gt: ['$amountDue', '$amountPaid'] },
+    };
+
     const [
       totalMembers,
       activeMembers,
@@ -63,42 +89,26 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
       Membership.aggregate([
-        { $match: { status: 'ACTIVE', $expr: { $gt: ['$amountDue', '$amountPaid'] } } },
+        { $match: pendingDuesMatch },
         { $group: { _id: null, total: { $sum: { $subtract: ['$amountDue', '$amountPaid'] } }, count: { $sum: 1 } } },
       ]),
-      Membership.find({
-        status: 'ACTIVE',
-        expiryDate: { $gte: now, $lte: in7Days },
-      })
-        .populate('member', 'fullName memberId phone photoUrl isArchived')
+      Membership.find(expiringMembershipsQuery)
+        .populate('member', 'fullName memberId phone photoUrl isArchived branch')
         .populate('plan', 'name price durationDays')
         .sort({ expiryDate: 1 })
         .limit(20),
       Member.find({ isArchived: false, ...branchFilter })
         .sort({ createdAt: -1 })
         .limit(5),
-      Membership.countDocuments({
-        status: 'ACTIVE',
-        expiryDate: { $gte: now, $lte: in7Days },
-      }),
+      Membership.countDocuments(expiringMembershipsQuery),
       AuditLog.find().sort({ createdAt: -1 }).limit(8),
       branchId ? Branch.findById(branchId) : null,
-      Membership.find({
-        $or: [
-          { status: 'EXPIRED' },
-          { status: 'ACTIVE', expiryDate: { $lt: now } },
-        ],
-      })
-        .populate('member', 'fullName memberId phone photoUrl isArchived')
+      Membership.find(expiredMembershipsQuery)
+        .populate('member', 'fullName memberId phone photoUrl isArchived branch')
         .populate('plan', 'name price durationDays')
         .sort({ expiryDate: -1 })
         .limit(20),
-      Membership.countDocuments({
-        $or: [
-          { status: 'EXPIRED' },
-          { status: 'ACTIVE', expiryDate: { $lt: now } },
-        ],
-      }),
+      Membership.countDocuments(expiredMembershipsQuery),
     ]);
 
     // Attach active membership plan to each recent member

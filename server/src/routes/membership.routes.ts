@@ -20,40 +20,53 @@ router.get('/expiration-center', authenticate, async (req: AuthenticatedRequest,
     const in7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
+    const nonArchivedMemberIds = await Member.find({ isArchived: false }).distinct('_id');
+
     const [expiringIn7Days, expiringToday, alreadyExpired, renewalsThisMonth] = await Promise.all([
       Membership.countDocuments({
+        member: { $in: nonArchivedMemberIds },
+        isArchived: { $ne: true },
         status: 'ACTIVE',
         expiryDate: { $gte: todayStart, $lte: in7Days },
       }),
       Membership.countDocuments({
+        member: { $in: nonArchivedMemberIds },
+        isArchived: { $ne: true },
         status: 'ACTIVE',
         expiryDate: { $gte: todayStart, $lte: todayEnd },
       }),
       Membership.countDocuments({
+        member: { $in: nonArchivedMemberIds },
+        isArchived: { $ne: true },
         $or: [
           { status: 'EXPIRED' },
           { status: 'ACTIVE', expiryDate: { $lt: todayStart } },
         ],
       }),
       Membership.countDocuments({
+        member: { $in: nonArchivedMemberIds },
+        isArchived: { $ne: true },
         'renewalHistory.renewedAt': { $gte: startOfMonth },
       }),
     ]);
 
-    let matchQuery: any = {};
+    let matchQuery: any = {
+      member: { $in: nonArchivedMemberIds },
+      isArchived: { $ne: true },
+    };
     if (filterType === '7_DAYS') {
-      matchQuery = { status: 'ACTIVE', expiryDate: { $gt: todayEnd, $lte: in7Days } };
+      matchQuery.status = 'ACTIVE';
+      matchQuery.expiryDate = { $gt: todayEnd, $lte: in7Days };
     } else if (filterType === 'TODAY') {
-      matchQuery = { status: 'ACTIVE', expiryDate: { $gte: todayStart, $lte: todayEnd } };
+      matchQuery.status = 'ACTIVE';
+      matchQuery.expiryDate = { $gte: todayStart, $lte: todayEnd };
     } else if (filterType === 'EXPIRED') {
-      matchQuery = { $or: [{ status: 'EXPIRED' }, { status: 'ACTIVE', expiryDate: { $lt: todayStart } }] };
+      matchQuery.$or = [{ status: 'EXPIRED' }, { status: 'ACTIVE', expiryDate: { $lt: todayStart } }];
     } else {
-      matchQuery = {
-        $or: [
-          { status: 'ACTIVE', expiryDate: { $lte: in7Days } },
-          { status: 'EXPIRED' },
-        ],
-      };
+      matchQuery.$or = [
+        { status: 'ACTIVE', expiryDate: { $lte: in7Days } },
+        { status: 'EXPIRED' },
+      ];
     }
 
     const memberships = await Membership.find(matchQuery)
@@ -132,11 +145,15 @@ router.get('/expiring', authenticate, async (req: AuthenticatedRequest, res: Res
     const futureDate = new Date();
     futureDate.setDate(now.getDate() + days);
 
+    const nonArchivedMemberIds = await Member.find({ isArchived: false }).distinct('_id');
+
     const expiring = await Membership.find({
+      member: { $in: nonArchivedMemberIds },
+      isArchived: { $ne: true },
       status: 'ACTIVE',
       expiryDate: { $gte: now, $lte: futureDate },
     })
-      .populate('member', 'fullName email phone memberId photoUrl')
+      .populate('member', 'fullName email phone memberId photoUrl isArchived')
       .populate('plan', 'name price type')
       .sort({ expiryDate: 1 });
 

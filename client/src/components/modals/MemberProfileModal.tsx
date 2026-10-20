@@ -731,24 +731,24 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
             </div>
           </div>
         )}
-
-        {/* Delete Member Confirmation Modal */}
-        {showDeleteModal && data?.member && (
-          <DeleteMemberModal
-            isOpen={showDeleteModal}
-            member={{
-              _id: data.member._id,
-              memberId: data.member.memberId,
-              fullName: data.member.fullName,
-            }}
-            onClose={() => setShowDeleteModal(false)}
-            onSuccess={() => {
-              onMemberDeleted?.();
-              onClose();
-            }}
-          />
-        )}
       </div>
+
+      {/* Delete Member Confirmation Modal (Rendered at top-level outside overflow-hidden) */}
+      {showDeleteModal && data?.member && (
+        <DeleteMemberModal
+          isOpen={showDeleteModal}
+          member={{
+            _id: data.member._id,
+            memberId: data.member.memberId,
+            fullName: data.member.fullName,
+          }}
+          onClose={() => setShowDeleteModal(false)}
+          onSuccess={() => {
+            onMemberDeleted?.();
+            onClose();
+          }}
+        />
+      )}
     </div>
   );
 };

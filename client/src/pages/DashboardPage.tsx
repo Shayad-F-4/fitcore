@@ -891,7 +891,35 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           onClose={() => setArchiveTargetMember(null)}
           onSuccess={(msg) => {
             setActionNotice(msg);
+            if (archiveTargetMember) {
+              const targetId = archiveTargetMember._id;
+              setData((prev: any) => {
+                if (!prev) return prev;
+                const wasInExpired = (prev.expiredMemberships || []).some(
+                  (s: any) => (s.member?._id || s.member) === targetId
+                );
+                const wasInExpiring = (prev.expiringMemberships || []).some(
+                  (s: any) => (s.member?._id || s.member) === targetId
+                );
+                return {
+                  ...prev,
+                  metrics: {
+                    ...prev.metrics,
+                    alreadyExpiredCount: Math.max(0, (prev.metrics?.alreadyExpiredCount || 0) - (wasInExpired ? 1 : 0)),
+                    expiringMemberships: Math.max(0, (prev.metrics?.expiringMemberships || 0) - (wasInExpiring ? 1 : 0)),
+                    totalMembers: Math.max(0, (prev.metrics?.totalMembers || 0) - 1),
+                  },
+                  expiredMemberships: (prev.expiredMemberships || []).filter(
+                    (s: any) => (s.member?._id || s.member) !== targetId
+                  ),
+                  expiringMemberships: (prev.expiringMemberships || []).filter(
+                    (s: any) => (s.member?._id || s.member) !== targetId
+                  ),
+                };
+              });
+            }
             fetchDashboardStats();
+            fetchActiveMembers(activeSearch);
             setTimeout(() => setActionNotice(null), 6000);
           }}
         />

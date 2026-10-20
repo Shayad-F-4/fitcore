@@ -455,6 +455,12 @@ router.delete('/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), asy
       member.status = 'ARCHIVED';
       await member.save();
 
+      // Synchronize isArchived flag on all memberships
+      await Membership.updateMany(
+        { member: member._id },
+        { $set: { isArchived: true } }
+      );
+
       await recordAuditLog({
         userId: req.user?.userId,
         userName: req.user?.email,
@@ -531,6 +537,12 @@ router.patch('/:id/restore', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN
     member.status = activeSub ? 'ACTIVE' : 'EXPIRED';
     await member.save();
 
+    // Synchronize isArchived flag on all memberships
+    await Membership.updateMany(
+      { member: member._id },
+      { $set: { isArchived: false } }
+    );
+
     await recordAuditLog({
       userId: req.user?.userId,
       userName: req.user?.email,
@@ -564,9 +576,20 @@ router.patch('/:id/archive', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN
     if (member.isArchived) {
       member.status = 'ARCHIVED';
     } else {
-      member.status = 'ACTIVE';
+      const activeSub = await Membership.findOne({
+        member: member._id,
+        status: 'ACTIVE',
+        expiryDate: { $gte: new Date() },
+      });
+      member.status = activeSub ? 'ACTIVE' : 'EXPIRED';
     }
     await member.save();
+
+    // Synchronize isArchived flag on all memberships
+    await Membership.updateMany(
+      { member: member._id },
+      { $set: { isArchived: member.isArchived } }
+    );
 
     await recordAuditLog({
       userId: req.user?.userId,

@@ -29,6 +29,7 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({
       setLoading(true);
       setError(null);
       const res = await api.deleteMember(member._id);
+      window.dispatchEvent(new CustomEvent('fitcore:data-changed'));
       onSuccess({
         archived: res.archived,
         deleted: res.deleted,
@@ -43,17 +44,17 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-rose-50/50">
-          <div className="flex items-center gap-2.5 text-rose-700">
-            <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-rose-50/40">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 border border-rose-200 flex items-center justify-center shrink-0">
               <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">Delete Member</h3>
-              <p className="text-xs text-rose-600/80 font-medium">Safe archival or permanent deletion</p>
+              <h3 className="text-sm font-bold text-slate-900">Delete Member</h3>
+              <p className="text-xs text-rose-700/80 font-medium">Safe archival or permanent deletion</p>
             </div>
           </div>
           <button
@@ -72,7 +73,7 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({
           </p>
 
           {/* Member Card Summary */}
-          <div className="p-3.5 bg-slate-50/80 border border-slate-200/80 rounded-xl flex items-center justify-between shadow-2xs">
+          <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between">
             <div>
               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
                 Member Details
@@ -108,12 +109,12 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5">
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="h-9 px-4 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl transition-all shadow-2xs active:scale-95 disabled:opacity-50"
+            className="h-9 px-4 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 hover:border-slate-300 rounded-lg transition-all active:scale-95 disabled:opacity-50 shrink-0"
           >
             Cancel
           </button>
@@ -121,12 +122,12 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({
             type="button"
             onClick={handleDelete}
             disabled={loading}
-            className="inline-flex items-center gap-2 h-9 px-4.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md hover:shadow-rose-500/20 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 h-9 px-4 rounded-lg bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-semibold transition-all shadow-sm hover:shadow active:scale-95 disabled:opacity-50 shrink-0 whitespace-nowrap"
           >
             {loading ? (
               <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-3.5 h-3.5 shrink-0" />
             )}
             <span>{loading ? 'Processing...' : 'Confirm Delete'}</span>
           </button>

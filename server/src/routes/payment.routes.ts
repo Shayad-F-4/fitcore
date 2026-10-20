@@ -94,23 +94,29 @@ router.get('/daily-settlement', authenticate, async (req: AuthenticatedRequest, 
 // Get all pending membership fee dues
 router.get('/dues', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    const nonArchivedMemberIds = await Member.find({ isArchived: false }).distinct('_id');
+
     const duesMemberships = await Membership.find({
+      member: { $in: nonArchivedMemberIds },
+      isArchived: { $ne: true },
       status: 'ACTIVE',
       $expr: { $gt: ['$amountDue', '$amountPaid'] },
     })
-      .populate('member', 'fullName memberId phone email photoUrl branch')
+      .populate('member', 'fullName memberId phone email photoUrl branch isArchived')
       .populate('plan', 'name price durationDays')
       .sort({ updatedAt: -1 });
 
-    const totalDuesAmount = duesMemberships.reduce(
+    const filteredDues = duesMemberships.filter((m: any) => m.member && !m.member.isArchived);
+
+    const totalDuesAmount = filteredDues.reduce(
       (acc, m) => acc + Math.max(0, m.amountDue - m.amountPaid),
       0
     );
 
     sendSuccess(res, 'Pending dues fetched', {
-      duesCount: duesMemberships.length,
+      duesCount: filteredDues.length,
       totalDuesAmount,
-      memberships: duesMemberships.map((m: any) => ({
+      memberships: filteredDues.map((m: any) => ({
         membershipId: m._id,
         member: m.member,
         plan: m.plan,

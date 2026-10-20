@@ -24,6 +24,7 @@ export interface IMembership extends Document {
   amountDue: number;
   amountPaid: number;
   status: 'ACTIVE' | 'EXPIRED' | 'FROZEN' | 'CANCELLED';
+  isArchived: boolean;
   freezeHistory: IFreezeRecord[];
   renewalHistory: IRenewalRecord[];
   notes?: string;
@@ -80,6 +81,11 @@ const MembershipSchema = new Schema<IMembership>(
       default: 'ACTIVE',
       index: true,
     },
+    isArchived: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     freezeHistory: [
       {
         fromDate: { type: Date, required: true },
@@ -103,5 +109,6 @@ const MembershipSchema = new Schema<IMembership>(
 
 MembershipSchema.index({ member: 1, status: 1 });
 MembershipSchema.index({ expiryDate: 1, status: 1 });
+MembershipSchema.index({ isArchived: 1, status: 1 });
 
 export const Membership = mongoose.model<IMembership>('Membership', MembershipSchema);

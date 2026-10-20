@@ -42,7 +42,7 @@ export const ArchiveMemberModal: React.FC<ArchiveMemberModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-xs animate-in fade-in duration-150">
       <div className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-xl shadow-modal overflow-hidden transform transition-all">
         {/* Header */}
         <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between bg-slate-50">

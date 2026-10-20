@@ -102,14 +102,35 @@ export const runExpirationCheck = async (): Promise<ExpirationSummary> => {
   }
 
   // Compute counts for summary
+  const nonArchivedMemberIds = await Member.find({ isArchived: false }).distinct('_id');
+
   const [expiring7, expiring0, expiredCount] = await Promise.all([
-    Membership.countDocuments({ status: 'ACTIVE', expiryDate: { $gte: todayStart, $lte: in7Days } }),
-    Membership.countDocuments({ status: 'ACTIVE', expiryDate: { $gte: todayStart, $lte: todayEnd } }),
-    Membership.countDocuments({ status: 'EXPIRED' }),
+    Membership.countDocuments({
+      member: { $in: nonArchivedMemberIds },
+      isArchived: { $ne: true },
+      status: 'ACTIVE',
+      expiryDate: { $gte: todayStart, $lte: in7Days },
+    }),
+    Membership.countDocuments({
+      member: { $in: nonArchivedMemberIds },
+      isArchived: { $ne: true },
+      status: 'ACTIVE',
+      expiryDate: { $gte: todayStart, $lte: todayEnd },
+    }),
+    Membership.countDocuments({
+      member: { $in: nonArchivedMemberIds },
+      isArchived: { $ne: true },
+      $or: [
+        { status: 'EXPIRED' },
+        { status: 'ACTIVE', expiryDate: { $lt: todayStart } },
+      ],
+    }),
   ]);
 
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const renewalsThisMonth = await Membership.countDocuments({
+    member: { $in: nonArchivedMemberIds },
+    isArchived: { $ne: true },
     'renewalHistory.renewedAt': { $gte: startOfMonth },
   });
 
