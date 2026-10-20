@@ -61,6 +61,7 @@ export const RegisterMemberModal: React.FC<RegisterMemberModalProps> = ({
 
   // Camera & Image State
   const [cameraActive, setCameraActive] = useState(false);
+  const [cameraFacingMode, setCameraFacingMode] = useState<'user' | 'environment'>('user');
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -123,17 +124,26 @@ export const RegisterMemberModal: React.FC<RegisterMemberModalProps> = ({
     setCameraActive(false);
   };
 
-  const startCamera = async () => {
+  const startCamera = async (targetMode: 'user' | 'environment' = cameraFacingMode) => {
     setCameraError(null);
     try {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Camera access is not supported by your browser.');
       }
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 640 }, facingMode: 'user' },
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 640 },
+          facingMode: { ideal: targetMode },
+        },
         audio: false,
       });
       streamRef.current = stream;
+      setCameraFacingMode(targetMode);
       setCameraActive(true);
       setTimeout(() => {
         if (videoRef.current) {
@@ -143,15 +153,36 @@ export const RegisterMemberModal: React.FC<RegisterMemberModalProps> = ({
       }, 100);
     } catch (err: any) {
       console.warn('Camera error:', err);
-      let msg = 'Unable to access webcam.';
+      let msg = 'Unable to access camera.';
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
         msg = 'Camera permission was denied. You can upload an image from your device instead.';
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
         msg = 'No camera device found on this system. You can upload an image file instead.';
+      } else {
+        // Fallback without specific facingMode if constrained
+        try {
+          const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+          streamRef.current = fallbackStream;
+          setCameraActive(true);
+          setTimeout(() => {
+            if (videoRef.current) {
+              videoRef.current.srcObject = fallbackStream;
+              videoRef.current.play().catch(console.error);
+            }
+          }, 100);
+          return;
+        } catch {
+          msg = 'Unable to open camera on this device.';
+        }
       }
       setCameraError(msg);
       setCameraActive(false);
     }
+  };
+
+  const flipCamera = async () => {
+    const nextMode = cameraFacingMode === 'user' ? 'environment' : 'user';
+    await startCamera(nextMode);
   };
 
   const capturePhoto = () => {
@@ -513,13 +544,24 @@ export const RegisterMemberModal: React.FC<RegisterMemberModalProps> = ({
               {/* Photo Display / Camera View */}
               <div className="w-32 h-32 rounded-xl border-2 border-dashed border-[#E5E7EB] bg-gray-50 flex items-center justify-center overflow-hidden shrink-0 relative shadow-inner">
                 {cameraActive ? (
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="relative w-full h-full">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Floating quick flip button on preview */}
+                    <button
+                      type="button"
+                      onClick={flipCamera}
+                      className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-xs transition-transform active:scale-90 shadow-md"
+                      title="Flip Camera (Front / Back)"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 ) : capturedImage ? (
                   <img
                     src={capturedImage}
@@ -567,7 +609,7 @@ export const RegisterMemberModal: React.FC<RegisterMemberModalProps> = ({
                     <>
                       <button
                         type="button"
-                        onClick={startCamera}
+                        onClick={() => startCamera()}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#E5E7EB] hover:bg-gray-50 text-xs font-semibold text-[#202124] transition-colors shadow-xs"
                       >
                         <Camera className="w-3.5 h-3.5 text-blue-600" />
@@ -597,6 +639,16 @@ export const RegisterMemberModal: React.FC<RegisterMemberModalProps> = ({
                       >
                         <Video className="w-3.5 h-3.5" />
                         Capture Photo
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={flipCamera}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors border border-slate-300/80 shadow-xs active:scale-95"
+                        title="Switch between front selfie and rear back camera"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5 text-blue-600" />
+                        Flip Camera ({cameraFacingMode === 'user' ? 'Front' : 'Back'})
                       </button>
 
                       <button
