@@ -6,7 +6,7 @@ export interface IMember extends Document {
   fullName: string;
   email: string;
   phone: string;
-  gender?: 'MALE' | 'FEMALE' | 'OTHER';
+  gender?: 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY';
   dob?: Date;
   address?: string;
   emergencyContact?: {
@@ -62,7 +62,7 @@ const MemberSchema = new Schema<IMember>(
     },
     gender: {
       type: String,
-      enum: ['MALE', 'FEMALE', 'OTHER'],
+      enum: ['MALE', 'FEMALE', 'OTHER', 'PREFER_NOT_TO_SAY'],
     },
     dob: {
       type: Date,

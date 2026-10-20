@@ -77,7 +77,7 @@ export interface Member {
   fullName: string;
   email: string;
   phone: string;
-  gender?: 'MALE' | 'FEMALE' | 'OTHER';
+  gender?: 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY';
   dob?: string;
   address?: string;
   emergencyContact?: {
@@ -99,6 +99,15 @@ export interface Member {
   joinDate: string;
   isArchived: boolean;
   currentMembership?: Membership;
+  paymentStatus?: 'PAID' | 'PENDING_PAYMENT' | 'NO_DUES';
+  balanceDue?: number;
+  totalDue?: number;
+  totalPaid?: number;
+  daysRemaining?: number;
+  daysSinceExpiry?: number;
+  expiryLabel?: string;
+  isExpiringSoon?: boolean;
+  isExpired?: boolean;
   createdAt: string;
 }
 

@@ -252,7 +252,21 @@ export const api = {
   },
 
   // Members
-  async getMembers(params: { page?: number; limit?: number; search?: string; status?: string; branch?: string; plan?: string; isArchived?: boolean } = {}) {
+  async getMembers(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    branch?: string;
+    plan?: string;
+    isArchived?: boolean;
+    tab?: string;
+    gender?: string;
+    paymentStatus?: string;
+    joiningDate?: string;
+    expiryPeriod?: string;
+    sortBy?: string;
+  } = {}) {
     const query = new URLSearchParams();
     if (params.page) query.set('page', params.page.toString());
     if (params.limit) query.set('limit', params.limit.toString());
@@ -261,6 +275,12 @@ export const api = {
     if (params.branch) query.set('branch', params.branch);
     if (params.plan) query.set('plan', params.plan);
     if (params.isArchived) query.set('isArchived', 'true');
+    if (params.tab) query.set('tab', params.tab);
+    if (params.gender) query.set('gender', params.gender);
+    if (params.paymentStatus) query.set('paymentStatus', params.paymentStatus);
+    if (params.joiningDate) query.set('joiningDate', params.joiningDate);
+    if (params.expiryPeriod) query.set('expiryPeriod', params.expiryPeriod);
+    if (params.sortBy) query.set('sortBy', params.sortBy);
 
     const res = await fetch(`${API_BASE}/members?${query.toString()}`, {
       headers: getHeaders(false),
