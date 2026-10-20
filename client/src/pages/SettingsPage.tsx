@@ -37,7 +37,7 @@ import {
   Search,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { api } from '../api/client';
+import { api, getMediaUrl } from '../api/client';
 import { Branch } from '../types';
 import { formatDateIN } from '../utils/formatters';
 
@@ -102,6 +102,8 @@ export const SettingsPage: React.FC = () => {
     avatarUrl: '',
   });
   const [uploadingStaffPhoto, setUploadingStaffPhoto] = useState(false);
+  const [creatingStaffLoading, setCreatingStaffLoading] = useState(false);
+  const [staffModalError, setStaffModalError] = useState<string | null>(null);
   const [staffMsg, setStaffMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Edit Staff Modal State
@@ -291,6 +293,12 @@ export const SettingsPage: React.FC = () => {
       reader.onload = async () => {
         try {
           const base64 = reader.result as string;
+          // Set immediate local base64 preview
+          if (isNew) {
+            setStaffForm((prev) => ({ ...prev, avatarUrl: base64 }));
+          } else {
+            setEditStaffForm((prev) => ({ ...prev, avatarUrl: base64 }));
+          }
           const uploadRes = await api.uploadPhoto(base64, file.name);
           if (isNew) {
             setStaffForm((prev) => ({ ...prev, avatarUrl: uploadRes.url }));
@@ -312,18 +320,21 @@ export const SettingsPage: React.FC = () => {
 
   const handleCreateStaff = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStaffMsg(null);
+    setStaffModalError(null);
+    setCreatingStaffLoading(true);
     try {
       await api.register({
         ...staffForm,
         branchId: activeBranch?._id,
       });
-      setStaffMsg({ type: 'success', text: 'Staff account created successfully.' });
+      setStaffMsg({ type: 'success', text: `Staff account for ${staffForm.fullName} created successfully.` });
       setShowAddStaffModal(false);
       setStaffForm({ fullName: '', email: '', password: '', role: 'RECEPTIONIST', phone: '', avatarUrl: '' });
       fetchStaff();
     } catch (err: any) {
-      setStaffMsg({ type: 'error', text: err.message || 'Failed to create staff account' });
+      setStaffModalError(err.message || 'Failed to create staff account. Please verify the email and details.');
+    } finally {
+      setCreatingStaffLoading(false);
     }
   };
 
@@ -1395,6 +1406,15 @@ export const SettingsPage: React.FC = () => {
                 <button
                   onClick={() => {
                     setStaffMsg(null);
+                    setStaffModalError(null);
+                    setStaffForm({
+                      fullName: '',
+                      email: '',
+                      password: '',
+                      role: 'RECEPTIONIST',
+                      phone: '',
+                      avatarUrl: '',
+                    });
                     setShowAddStaffModal(true);
                   }}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs shrink-0"
@@ -1442,11 +1462,15 @@ export const SettingsPage: React.FC = () => {
                           <div className="flex items-center gap-3">
                             {st.avatarUrl ? (
                               <img
-                                src={st.avatarUrl}
+                                src={getMediaUrl(st.avatarUrl)}
                                 alt={st.fullName}
                                 className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0"
+                                onError={(e) => {
+                                  (e.target as HTMLElement).style.display = 'none';
+                                }}
                               />
-                            ) : (
+                            ) : null}
+                            {!st.avatarUrl && (
                               <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">
                                 {st.fullName ? st.fullName.charAt(0) : 'S'}
                               </div>
@@ -1970,15 +1994,27 @@ export const SettingsPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleCreateStaff} className="p-6 space-y-3.5">
+              {/* Modal Error Banner */}
+              {staffModalError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-700 flex items-start gap-2.5 animate-in fade-in duration-200">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
+                  <span className="leading-snug">{staffModalError}</span>
+                </div>
+              )}
+
               {/* Staff Avatar Upload */}
               <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
                 {staffForm.avatarUrl ? (
                   <img
-                    src={staffForm.avatarUrl}
+                    src={getMediaUrl(staffForm.avatarUrl)}
                     alt="Staff Avatar"
                     className="w-14 h-14 rounded-full object-cover border border-gray-200 shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
                   />
-                ) : (
+                ) : null}
+                {!staffForm.avatarUrl && (
                   <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-700 font-bold text-lg flex items-center justify-center shrink-0 border border-dashed border-blue-300">
                     <User className="w-6 h-6" />
                   </div>
@@ -2078,15 +2114,23 @@ export const SettingsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddStaffModal(false)}
-                  className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded"
+                  className="px-3.5 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded"
+                  disabled={creatingStaffLoading || uploadingStaffPhoto}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition-all shadow-xs flex items-center gap-1.5"
                 >
-                  Create Account
+                  {creatingStaffLoading ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    'Create Account'
+                  )}
                 </button>
               </div>
             </form>
@@ -2113,11 +2157,15 @@ export const SettingsPage: React.FC = () => {
               <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
                 {editStaffForm.avatarUrl ? (
                   <img
-                    src={editStaffForm.avatarUrl}
+                    src={getMediaUrl(editStaffForm.avatarUrl)}
                     alt="Staff Avatar"
                     className="w-14 h-14 rounded-full object-cover border border-gray-200 shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = 'none';
+                    }}
                   />
-                ) : (
+                ) : null}
+                {!editStaffForm.avatarUrl && (
                   <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-700 font-bold text-lg flex items-center justify-center shrink-0 border border-dashed border-blue-300">
                     <User className="w-6 h-6" />
                   </div>
