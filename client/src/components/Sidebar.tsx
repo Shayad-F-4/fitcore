@@ -106,12 +106,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onO
       >
         <div className="flex flex-col min-h-0 flex-1 overflow-y-auto">
           {/* Brand Header */}
-          <div className="h-16 sm:h-18 px-4 border-b border-slate-200/70 flex items-center justify-between shrink-0">
+          <div className="h-16 sm:h-20 px-4 border-b border-slate-200/70 flex items-center justify-between shrink-0">
             <NavLink to="/" onClick={onCloseMobile} className="flex items-center group py-1">
               <img
                 src="/logo.png"
                 alt="Sagar Fitness Gym"
-                className="h-10 w-auto max-w-[195px] object-contain transition-transform duration-200 group-hover:scale-105"
+                className="h-11 sm:h-13 w-auto max-w-[210px] object-contain transition-transform duration-200 group-hover:scale-105"
               />
             </NavLink>
 

@@ -761,7 +761,7 @@ export const SettingsPage: React.FC = () => {
                         <img
                           src="/logo.png"
                           alt="Sagar Fitness Gym"
-                          className="h-10 w-auto max-w-[140px] object-contain"
+                          className="h-12 sm:h-13 w-auto max-w-[180px] object-contain"
                         />
                       </div>
                       <div>
@@ -1008,7 +1008,7 @@ export const SettingsPage: React.FC = () => {
                     <img
                       src="/logo.png"
                       alt="Logo"
-                      className="h-8 w-auto max-w-[100px] object-contain"
+                      className="h-10 w-auto max-w-[130px] object-contain"
                     />
                     <div className="text-right">
                       <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Official Bill</div>
