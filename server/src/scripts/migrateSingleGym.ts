@@ -18,8 +18,8 @@ export async function migrateToSingleGym() {
     if (primaryBranch) {
       primaryBranch.name = 'Sagar Fitness Gym';
       primaryBranch.code = 'SAGAR-01';
-      primaryBranch.address = 'Sagar Fitness Gym, Near Sagar Corner, Baner';
-      primaryBranch.city = 'Pune';
+      primaryBranch.address = 'Sagar Fitness Gym, Pathardi, Maharashtra, India';
+      primaryBranch.city = 'Pathardi';
       primaryBranch.phone = '+91 98220 10001';
       primaryBranch.email = 'info@sagarfitness.com';
       primaryBranch.openingHours = 'Mon-Sun: 05:30 AM - 10:30 PM';
@@ -30,8 +30,8 @@ export async function migrateToSingleGym() {
       primaryBranch = await Branch.create({
         name: 'Sagar Fitness Gym',
         code: 'SAGAR-01',
-        address: 'Sagar Fitness Gym, Near Sagar Corner, Baner',
-        city: 'Pune',
+        address: 'Sagar Fitness Gym, Pathardi, Maharashtra, India',
+        city: 'Pathardi',
         phone: '+91 98220 10001',
         email: 'info@sagarfitness.com',
         openingHours: 'Mon-Sun: 05:30 AM - 10:30 PM',
@@ -83,10 +83,10 @@ export async function migrateToSingleGym() {
   }
   settings.gymName = 'Sagar Fitness Gym';
   settings.tagline = 'Strength • Transformation • Health Center';
-  settings.address = 'Near Sagar Corner, Baner';
-  settings.city = 'Pune';
+  settings.address = 'Sagar Fitness Gym, Pathardi';
+  settings.city = 'Pathardi';
   settings.state = 'Maharashtra';
-  settings.pincode = '411045';
+  settings.pincode = '414102';
   settings.phone = '+91 98220 10001';
   settings.email = 'info@sagarfitness.com';
   settings.logoUrl = '/logo.png';

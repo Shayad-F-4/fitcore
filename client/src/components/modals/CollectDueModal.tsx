@@ -100,7 +100,7 @@ export const CollectDueModal: React.FC<CollectDueModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] overflow-y-auto">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
           <div className="flex items-center gap-3">
@@ -236,20 +236,20 @@ export const CollectDueModal: React.FC<CollectDueModalProps> = ({
           </div>
 
           {/* Submit Actions */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
-              className="h-9 px-4 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl transition-all shadow-2xs active:scale-95"
+              className="w-full sm:w-auto min-h-[44px] h-11 px-4 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl transition-all shadow-2xs active:scale-95 flex items-center justify-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-2 h-9 px-4.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md hover:shadow-emerald-500/20 disabled:opacity-50"
+              className="w-full sm:w-auto min-h-[44px] h-11 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md hover:shadow-emerald-500/20 disabled:opacity-50 inline-flex items-center justify-center gap-2"
             >
-              <Receipt className="w-3.5 h-3.5" />
+              <Receipt className="w-4 h-4" />
               <span>{loading ? 'Processing...' : 'Collect & Print Receipt'}</span>
             </button>
           </div>

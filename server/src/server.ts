@@ -9,6 +9,7 @@ import { connectDB } from './config/db.js';
 import { User } from './models/User.js';
 import { seedDatabase } from './scripts/seed.js';
 import { ensureCoreUsers } from './scripts/ensureUsers.js';
+import { migrateToSingleGym } from './scripts/migrateSingleGym.js';
 import { runExpirationCheck } from './services/expirationService.js';
 
 // Route imports
@@ -26,7 +27,6 @@ import notificationRoutes from './routes/notification.routes.js';
 import followUpRoutes from './routes/followUp.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
 import expiryRoutes from './routes/expiry.routes.js';
-import backupRoutes, { runAutomatedDailyBackup } from './routes/backup.routes.js';
 import { runAutoExpiryReminders } from './services/whatsappService.js';
 
 import rateLimit from 'express-rate-limit';
@@ -53,23 +53,38 @@ app.use(
   })
 );
 
+const configuredOrigins = (process.env.CLIENT_URL || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 const allowedOrigins = [
-  ENV.CLIENT_URL || 'http://localhost:5173',
+  ...configuredOrigins,
   'http://localhost:5173',
   'http://localhost:4173',
+  'http://localhost:3000',
   'https://client-seven-zeta-72.vercel.app',
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.endsWith('.pages.dev') ||
+        origin.endsWith('.onrender.com')
+      ) {
         callback(null, true);
       } else {
+        // Allow origin in development/production if not explicitly blocked
         callback(null, true);
       }
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
 
@@ -86,12 +101,16 @@ if (ENV.NODE_ENV !== 'test') {
 // Static file serving for uploads (member photographs)
 app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
 
-// Health check endpoint
-app.get('/api/health', (_req, res) => {
+// Health check endpoint (both /health and /api/health for Render/cloud load balancers)
+app.get(['/health', '/api/health'], (_req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
   res.json({
     status: 'online',
-    system: 'FitCore Gym Management API',
+    system: 'FitCore — Sagar Fitness Gym API',
+    facility: 'Sagar Fitness Gym, Pathardi, Maharashtra, India',
+    database: dbStatus,
     version: '1.0.0',
+    uptime: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
   });
 });
@@ -111,7 +130,6 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/expiry', expiryRoutes);
-app.use('/api/backup', backupRoutes);
 
 // Global Error Handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
@@ -128,6 +146,8 @@ const startServer = async () => {
     await connectDB();
     // Ensure Sagar Fitness Gym admin and desk users are always available
     await ensureCoreUsers().catch((e) => console.error('[Auth Init Error]', e));
+    // Ensure single Sagar Fitness Gym branch is established
+    await migrateToSingleGym().catch((e) => console.error('[Single Gym Migration Error]', e));
 
     // Auto-seed if database is clean
     const userCount = await User.countDocuments();
@@ -141,17 +161,13 @@ const startServer = async () => {
       await runAutoExpiryReminders();
     }
 
-    // Run automated daily backup check
-    await runAutomatedDailyBackup();
-
     // Set periodic expiration & reminder monitor (every 30 mins)
     setInterval(async () => {
       try {
         await runExpirationCheck();
         await runAutoExpiryReminders();
-        await runAutomatedDailyBackup();
       } catch (err) {
-        console.error('[Background Expiration/Reminder/Backup Error]', err);
+        console.error('[Background Expiration/Reminder Error]', err);
       }
     }, 30 * 60 * 1000);
 

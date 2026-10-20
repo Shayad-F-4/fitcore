@@ -29,10 +29,6 @@ import {
   Send,
   Smartphone,
   Sparkles,
-  Database,
-  Download,
-  RotateCcw,
-  HardDrive,
   Phone,
   Mail,
   MapPin,
@@ -48,18 +44,18 @@ import { formatDateIN } from '../utils/formatters';
 export const SettingsPage: React.FC = () => {
   const { user, branches, activeBranch, setActiveBranch, updateCurrentUser } = useAuth();
   const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'GYM_ADMIN';
-  const [activeTab, setActiveTab] = useState<'general' | 'whatsapp' | 'staff' | 'security' | 'activity' | 'backup'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'whatsapp' | 'staff' | 'security' | 'activity'>('general');
 
   // General & WhatsApp Settings State (Persisted in DB)
   const [gymSettings, setGymSettings] = useState<any>({
-    gymName: 'FitCore Fitness Club',
-    tagline: 'Train Smarter. Manage Better.',
-    phone: '+91 98765 43210',
-    email: 'desk@fitcore.in',
-    address: 'Plot 42, Sector 18, Commercial Belt',
-    city: 'Noida',
-    state: 'Uttar Pradesh',
-    pincode: '201301',
+    gymName: 'Sagar Fitness Gym',
+    tagline: 'Strength • Transformation • Health Center',
+    phone: '+91 98220 10001',
+    email: 'info@sagarfitness.com',
+    address: 'Sagar Fitness Gym, Pathardi',
+    city: 'Pathardi',
+    state: 'Maharashtra',
+    pincode: '414102',
     gstin: '',
     isTaxEnabled: false,
     taxRatePercent: 18,
@@ -149,80 +145,13 @@ export const SettingsPage: React.FC = () => {
   const [auditRoleFilter, setAuditRoleFilter] = useState('ALL');
   const [auditPagination, setAuditPagination] = useState({ total: 0, page: 1, limit: 50, totalPages: 1 });
 
-  // Database Backup & Recovery State
-  const [backups, setBackups] = useState<any[]>([]);
-  const [loadingBackups, setLoadingBackups] = useState(false);
-  const [creatingBackup, setCreatingBackup] = useState(false);
-  const [restoringBackup, setRestoringBackup] = useState(false);
-  const [restoreTargetBackup, setRestoreTargetBackup] = useState<any | null>(null);
-  const [backupNotice, setBackupNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
   useEffect(() => {
     if (activeTab === 'staff') {
       fetchStaff();
     } else if (activeTab === 'activity') {
       fetchAuditLogs(1);
-    } else if (activeTab === 'backup') {
-      fetchBackups();
     }
   }, [activeTab, auditActionFilter, auditRoleFilter]);
-
-  const fetchBackups = async () => {
-    try {
-      setLoadingBackups(true);
-      const list = await api.getBackups();
-      setBackups(list || []);
-    } catch (err: any) {
-      console.error('Failed to load backups:', err);
-    } finally {
-      setLoadingBackups(false);
-    }
-  };
-
-  const handleCreateBackupNow = async () => {
-    try {
-      setCreatingBackup(true);
-      setBackupNotice(null);
-      const res = await api.createBackup();
-      setBackupNotice({ type: 'success', text: res.message || 'Database backup successfully created.' });
-      await fetchBackups();
-    } catch (err: any) {
-      setBackupNotice({ type: 'error', text: err.message || 'Failed to create backup' });
-    } finally {
-      setCreatingBackup(false);
-    }
-  };
-
-  const handleConfirmRestore = async () => {
-    if (!restoreTargetBackup) return;
-    try {
-      setRestoringBackup(true);
-      setBackupNotice(null);
-      const res = await api.restoreBackup(restoreTargetBackup.filename);
-      setBackupNotice({
-        type: 'success',
-        text: res.message || `Database successfully restored from ${restoreTargetBackup.filename}.`,
-      });
-      setRestoreTargetBackup(null);
-      window.dispatchEvent(new CustomEvent('fitcore:data-changed'));
-      await fetchBackups();
-    } catch (err: any) {
-      setBackupNotice({ type: 'error', text: err.message || 'Failed to restore backup' });
-    } finally {
-      setRestoringBackup(false);
-    }
-  };
-
-  const handleDeleteBackupFile = async (filename: string) => {
-    if (!window.confirm(`Are you sure you want to delete backup file "${filename}"?`)) return;
-    try {
-      await api.deleteBackup(filename);
-      setBackupNotice({ type: 'success', text: `Backup file "${filename}" deleted.` });
-      await fetchBackups();
-    } catch (err: any) {
-      setBackupNotice({ type: 'error', text: err.message || 'Failed to delete backup' });
-    }
-  };
 
   const fetchStaff = async () => {
     try {
@@ -686,20 +615,6 @@ export const SettingsPage: React.FC = () => {
           <Activity className={`w-4 h-4 ${activeTab === 'activity' ? 'text-blue-600' : 'text-slate-400'}`} />
           Desk Activity & Logins
         </button>
-
-        {isAdmin && (
-          <button
-            onClick={() => setActiveTab('backup')}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-              activeTab === 'backup'
-                ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
-            }`}
-          >
-            <Database className={`w-4 h-4 ${activeTab === 'backup' ? 'text-blue-600' : 'text-slate-400'}`} />
-            Database Backup & Restore
-          </button>
-        )}
       </div>
 
       {/* Tab 1: General & Indian Gym Profile */}
@@ -880,7 +795,7 @@ export const SettingsPage: React.FC = () => {
                         value={gymSettings.address || ''}
                         onChange={(e) => setGymSettings({ ...gymSettings, address: e.target.value })}
                         className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-slate-900 border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                        placeholder="e.g. Main Road, Baner, Pune"
+                        placeholder="e.g. Main Road, Pathardi, Maharashtra"
                       />
                     </div>
                   </div>
@@ -1029,7 +944,7 @@ export const SettingsPage: React.FC = () => {
                     <div className="flex items-center gap-1.5">
                       <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                       <span className="truncate">
-                        {gymSettings.address || 'Main Road, Baner'}, {gymSettings.city || 'Pune'} - {gymSettings.pincode || '411045'}
+                        {gymSettings.address || 'Main Road, Pathardi'}, {gymSettings.city || 'Pathardi'} - {gymSettings.pincode || '414102'}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -1068,11 +983,11 @@ export const SettingsPage: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
                   <span className="text-slate-500 font-medium">Primary Facility</span>
-                  <span className="font-bold text-slate-800">Baner, Pune</span>
+                  <span className="font-bold text-slate-800">Pathardi, Maharashtra</span>
                 </div>
                 <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                  <span className="text-slate-500 font-medium">Auto-Backups</span>
-                  <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Nightly Active</span>
+                  <span className="text-slate-500 font-medium">System Database</span>
+                  <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Connected (Cloud)</span>
                 </div>
                 <div className="flex items-center justify-between py-1.5">
                   <span className="text-slate-500 font-medium">Active Staff Logins</span>
@@ -2040,310 +1955,6 @@ export const SettingsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Tab 7: Database Backup & Disaster Recovery */}
-      {activeTab === 'backup' && isAdmin && (
-        <div className="space-y-6">
-          {/* Top Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white border border-[#E5E7EB] rounded-lg p-5 shadow-subtle">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
-                  Available Backups
-                </span>
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
-                  <Database className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="mt-2 text-2xl font-extrabold text-[#202124]">
-                {backups.length}
-              </div>
-              <p className="text-[11px] text-[#6B7280] mt-1">Saved disaster recovery snapshots</p>
-            </div>
-
-            <div className="bg-white border border-[#E5E7EB] rounded-lg p-5 shadow-subtle">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
-                  Automated Daily Backups
-                </span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
-                  <Clock className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="mt-2 flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-base font-bold text-emerald-700">Active (Daily)</span>
-              </div>
-              <p className="text-[11px] text-[#6B7280] mt-1">Automatically snapshots database daily</p>
-            </div>
-
-            <div className="bg-white border border-[#E5E7EB] rounded-lg p-5 shadow-subtle">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
-                  Protected Collections
-                </span>
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
-                  <HardDrive className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="mt-2 text-2xl font-extrabold text-[#202124]">
-                10 Collections
-              </div>
-              <p className="text-[11px] text-[#6B7280] mt-1">Members, Invoices, Attendance, Logs</p>
-            </div>
-          </div>
-
-          {/* Backup Notice */}
-          {backupNotice && (
-            <div
-              className={`p-4 rounded-lg text-xs font-medium flex items-center justify-between ${
-                backupNotice.type === 'success'
-                  ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
-                  : 'bg-red-50 border border-red-200 text-red-800'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                {backupNotice.type === 'success' ? (
-                  <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                ) : (
-                  <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
-                )}
-                <span>{backupNotice.text}</span>
-              </div>
-              <button onClick={() => setBackupNotice(null)} className="hover:opacity-75">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-
-          {/* Table Container */}
-          <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-subtle overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#E5E7EB] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-50/50">
-              <div>
-                <h3 className="text-sm font-bold text-[#202124] uppercase tracking-wider">
-                  Database Snapshot Archive ({backups.length})
-                </h3>
-                <p className="text-xs text-[#6B7280] mt-0.5">
-                  Point-in-time full database backups for emergency recovery and audit compliance.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={fetchBackups}
-                  disabled={loadingBackups}
-                  className="h-10 w-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-center transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                  title="Refresh backups"
-                >
-                  <RefreshCw className={`w-4 h-4 ${loadingBackups ? 'animate-spin text-blue-600' : ''}`} />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleCreateBackupNow}
-                  disabled={creatingBackup}
-                  className="inline-flex items-center gap-2.5 h-10 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md hover:shadow-blue-500/20 disabled:opacity-50"
-                >
-                  <div className="w-5.5 h-5.5 rounded-md bg-white/20 flex items-center justify-center shrink-0">
-                    {creatingBackup ? (
-                      <RefreshCw className="w-3.5 h-3.5 text-white animate-spin" />
-                    ) : (
-                      <Database className="w-3.5 h-3.5 text-white" />
-                    )}
-                  </div>
-                  <span>{creatingBackup ? 'Generating Snapshot...' : 'Create Backup Now'}</span>
-                </button>
-              </div>
-            </div>
-
-            {loadingBackups ? (
-              <div className="p-12 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-                <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
-                <span>Loading database snapshots...</span>
-              </div>
-            ) : backups.length === 0 ? (
-              <div className="p-12 text-center text-xs text-slate-500">
-                No backup snapshots found. Click &quot;Create Backup Now&quot; to generate your first point-in-time database snapshot.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50/75 text-[11px] font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                    <tr>
-                      <th className="px-6 py-3">Snapshot File</th>
-                      <th className="px-6 py-3">Created Date & Time</th>
-                      <th className="px-6 py-3">Total Records</th>
-                      <th className="px-6 py-3">File Size</th>
-                      <th className="px-6 py-3">Origin</th>
-                      <th className="px-6 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {backups.map((b: any) => {
-                      const sizeKb = Math.round(b.fileSizeBytes / 1024 * 10) / 10;
-                      const isAuto = b.createdBy === 'automated-scheduler' || b.createdBy === 'system';
-
-                      return (
-                        <tr key={b.filename} className="hover:bg-slate-50/60 transition-colors">
-                          <td className="px-6 py-3.5">
-                            <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-md bg-blue-50 text-blue-700 flex items-center justify-center font-bold shrink-0 border border-blue-100">
-                                <Database className="w-3.5 h-3.5" />
-                              </div>
-                              <div>
-                                <div className="font-semibold text-slate-900 font-mono text-xs">
-                                  {b.filename}
-                                </div>
-                                <div className="text-[10px] text-slate-400">
-                                  Version {b.version || '1.0'}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-
-                          <td className="px-6 py-3.5 text-slate-700 font-medium">
-                            <div>{formatDateIN(b.createdAt)}</div>
-                            <div className="text-[10px] text-slate-400 font-mono">
-                              {new Date(b.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                            </div>
-                          </td>
-
-                          <td className="px-6 py-3.5">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                              {b.totalRecords} records
-                            </span>
-                          </td>
-
-                          <td className="px-6 py-3.5 font-mono text-slate-600">
-                            {sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(2)} MB` : `${sizeKb} KB`}
-                          </td>
-
-                          <td className="px-6 py-3.5">
-                            <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                                isAuto
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : 'bg-purple-50 text-purple-700 border border-purple-200'
-                              }`}
-                            >
-                              {isAuto ? '⚙️ Scheduled Daily' : `👤 ${b.createdBy}`}
-                            </span>
-                          </td>
-
-                          <td className="px-6 py-3.5 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <a
-                                href={api.getBackupDownloadUrl(b.filename)}
-                                download={b.filename}
-                                className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                                title="Download JSON Backup"
-                              >
-                                <div className="w-5.5 h-5.5 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 border border-slate-200">
-                                  <Download className="w-3 h-3" />
-                                </div>
-                                <span>Download</span>
-                              </a>
-
-                              <button
-                                type="button"
-                                onClick={() => setRestoreTargetBackup(b)}
-                                className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-amber-800 bg-white hover:bg-amber-50/50 border border-slate-200 hover:border-amber-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                                title="Restore Database to this point"
-                              >
-                                <div className="w-5.5 h-5.5 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100 transition-colors group-hover:bg-amber-100">
-                                  <RotateCcw className="w-3 h-3" />
-                                </div>
-                                <span>Restore</span>
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteBackupFile(b.filename)}
-                                className="h-8 w-8 rounded-lg bg-white border border-slate-200 hover:border-rose-300 text-slate-400 hover:text-rose-600 hover:bg-rose-50/50 flex items-center justify-center transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                                title="Delete Backup"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Restore Confirmation Dialog */}
-          {restoreTargetBackup && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-xs">
-              <div className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-xl shadow-modal overflow-hidden">
-                <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between bg-amber-50">
-                  <div className="flex items-center gap-2 text-amber-800">
-                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
-                    <h3 className="text-sm font-bold">Confirm Database Restoration</h3>
-                  </div>
-                  <button
-                    onClick={() => setRestoreTargetBackup(null)}
-                    disabled={restoringBackup}
-                    className="p-1 rounded text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="p-6 space-y-4">
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    Are you sure you want to restore the FitCore database from this snapshot?
-                  </p>
-
-                  <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-lg space-y-1">
-                    <div className="text-xs font-bold text-gray-900 font-mono">
-                      {restoreTargetBackup.filename}
-                    </div>
-                    <div className="text-[11px] text-gray-500 flex items-center justify-between">
-                      <span>Created: {formatDateIN(restoreTargetBackup.createdAt)}</span>
-                      <span className="font-semibold text-blue-700">
-                        {restoreTargetBackup.totalRecords} records
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900 leading-relaxed">
-                    <span className="font-semibold">Safe Upsert Mode:</span> Records will be synchronized and updated based on this snapshot. All missing or modified items will be safely brought back.
-                  </div>
-                </div>
-
-                <div className="px-6 py-3.5 bg-gray-50 border-t border-[#E5E7EB] flex items-center justify-end gap-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setRestoreTargetBackup(null)}
-                    disabled={restoringBackup}
-                    className="px-4 py-2 rounded-lg border border-[#E5E7EB] bg-white text-gray-700 hover:bg-gray-100 text-xs font-semibold"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleConfirmRestore}
-                    disabled={restoringBackup}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs disabled:opacity-50"
-                  >
-                    {restoringBackup ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <RotateCcw className="w-3.5 h-3.5" />
-                    )}
-                    <span>{restoringBackup ? 'Restoring Database...' : 'Confirm & Restore'}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Add Staff Modal */}
       {showAddStaffModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
@@ -2412,7 +2023,7 @@ export const SettingsPage: React.FC = () => {
                 <input
                   type="email"
                   required
-                  placeholder="e.g. frontdesk@fitcore.com"
+                  placeholder="e.g. frontdesk@sagarfitness.com"
                   value={staffForm.email}
                   onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
                   className="w-full px-3 py-2 text-xs border rounded-md focus:border-blue-600 focus:outline-none"

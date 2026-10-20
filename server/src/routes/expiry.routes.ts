@@ -13,7 +13,7 @@ const router = Router();
 router.get('/grouped', authenticate, async (_req: AuthenticatedRequest, res: Response) => {
   try {
     const settings = await GymSettings.getSettings();
-    const gymName = settings.gymName || 'FitCore Fitness Club';
+    const gymName = settings.gymName || 'Sagar Fitness Gym';
 
     // Current time in Asia/Kolkata
     const kolkataFormatter = new Intl.DateTimeFormat('en-CA', {

@@ -215,7 +215,7 @@ export const runAutoExpiryReminders = async (): Promise<{
   let skippedCount = 0;
   let notConfiguredCount = 0;
 
-  const gymName = settings.gymName || 'FitCore Fitness Club';
+  const gymName = settings.gymName || 'Sagar Fitness Gym';
 
   for (const sub of memberships) {
     const member = sub.member as any;

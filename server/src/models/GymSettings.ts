@@ -31,14 +31,14 @@ export interface IGymSettings extends Document {
 
 const GymSettingsSchema = new Schema<IGymSettings>(
   {
-    gymName: { type: String, default: 'FitCore Fitness Club', trim: true },
-    tagline: { type: String, default: 'Train Smarter. Manage Better.', trim: true },
-    address: { type: String, default: 'Plot 42, Sector 18, Commercial Belt' },
-    city: { type: String, default: 'Noida' },
-    state: { type: String, default: 'Uttar Pradesh' },
-    pincode: { type: String, default: '201301' },
-    phone: { type: String, default: '+91 98765 43210' },
-    email: { type: String, default: 'desk@fitcore.in' },
+    gymName: { type: String, default: 'Sagar Fitness Gym', trim: true },
+    tagline: { type: String, default: 'Strength • Transformation • Health Center', trim: true },
+    address: { type: String, default: 'Sagar Fitness Gym, Pathardi' },
+    city: { type: String, default: 'Pathardi' },
+    state: { type: String, default: 'Maharashtra' },
+    pincode: { type: String, default: '414102' },
+    phone: { type: String, default: '+91 98220 10001' },
+    email: { type: String, default: 'info@sagarfitness.com' },
     logoUrl: { type: String, default: '' },
     gstin: { type: String, default: '', uppercase: true, trim: true },
     isTaxEnabled: { type: Boolean, default: false },

@@ -54,5 +54,6 @@ const AttendanceSchema = new Schema<IAttendance>(
 
 AttendanceSchema.index({ member: 1, checkInTime: -1 });
 AttendanceSchema.index({ branch: 1, checkInTime: -1 });
+AttendanceSchema.index({ checkInTime: -1, checkOutTime: 1 });
 
 export const Attendance = mongoose.model<IAttendance>('Attendance', AttendanceSchema);

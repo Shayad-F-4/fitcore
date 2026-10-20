@@ -96,52 +96,77 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
         .populate('member', 'fullName memberId phone photoUrl isArchived branch')
         .populate('plan', 'name price durationDays')
         .sort({ expiryDate: 1 })
-        .limit(20),
+        .limit(20)
+        .lean(),
       Member.find({ isArchived: false, ...branchFilter })
         .sort({ createdAt: -1 })
-        .limit(5),
+        .limit(5)
+        .lean(),
       Membership.countDocuments(expiringMembershipsQuery),
-      AuditLog.find().sort({ createdAt: -1 }).limit(8),
-      branchId ? Branch.findById(branchId) : null,
+      AuditLog.find().sort({ createdAt: -1 }).limit(8).lean(),
+      branchId ? Branch.findById(branchId).lean() : null,
       Membership.find(expiredMembershipsQuery)
         .populate('member', 'fullName memberId phone photoUrl isArchived branch')
         .populate('plan', 'name price durationDays')
         .sort({ expiryDate: -1 })
-        .limit(20),
+        .limit(20)
+        .lean(),
       Membership.countDocuments(expiredMembershipsQuery),
     ]);
 
-    // Attach active membership plan to each recent member
-    const recentMembers = await Promise.all(
-      recentMembersRaw.map(async (m) => {
-        const activeSub = await Membership.findOne({ member: m._id, status: 'ACTIVE' }).populate('plan');
-        return {
-          ...m.toObject(),
-          membershipPlanName: activeSub?.plan ? (activeSub.plan as any).name : 'Standard Pass',
-        };
-      })
-    );
+    // Attach active membership plan to each recent member in memory (avoids N+1 query loop)
+    const recentMemberIds = recentMembersRaw.map((m: any) => m._id);
+    const activeSubsForRecent = await Membership.find({
+      member: { $in: recentMemberIds },
+      status: 'ACTIVE',
+    })
+      .populate('plan', 'name')
+      .lean();
 
-    // Monthly revenue trend (past 6 months)
-    const monthLabels: string[] = [];
+    const planByMemberId = new Map();
+    activeSubsForRecent.forEach((sub: any) => {
+      if (sub.member) {
+        planByMemberId.set(sub.member.toString(), (sub.plan as any)?.name || 'Standard Pass');
+      }
+    });
+
+    const recentMembers = recentMembersRaw.map((m: any) => ({
+      ...m,
+      membershipPlanName: planByMemberId.get(m._id.toString()) || 'Standard Pass',
+    }));
+
+    // Monthly revenue trend (past 6 months in a single high-performance aggregation)
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    const monthlyAgg = await Payment.aggregate([
+      {
+        $match: {
+          status: { $in: ['PAID', 'PARTIAL'] },
+          paymentDate: { $gte: sixMonthsAgo },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: { date: '$paymentDate', timezone: 'Asia/Kolkata' } },
+            month: { $month: { date: '$paymentDate', timezone: 'Asia/Kolkata' } },
+          },
+          total: { $sum: '$amount' },
+        },
+      },
+    ]);
+
+    const revenueMap = new Map<string, number>();
+    monthlyAgg.forEach((item: any) => {
+      const key = `${item._id.year}-${item._id.month}`;
+      revenueMap.set(key, item.total);
+    });
+
     const monthlyRevenueData: { month: string; revenue: number }[] = [];
-
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const endD = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
-      const label = d.toLocaleString('default', { month: 'short' });
-      monthLabels.push(label);
-
-      const mAgg = await Payment.aggregate([
-        {
-          $match: {
-            status: 'PAID',
-            paymentDate: { $gte: d, $lte: endD },
-          },
-        },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]);
-      monthlyRevenueData.push({ month: label, revenue: mAgg[0]?.total || 0 });
+      const label = d.toLocaleString('en-IN', { month: 'short' });
+      const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
+      monthlyRevenueData.push({ month: label, revenue: revenueMap.get(key) || 0 });
     }
 
     // Capacity calculation

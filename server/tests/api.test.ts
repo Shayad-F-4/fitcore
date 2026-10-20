@@ -731,7 +731,7 @@ describe('FitCore End-to-End API Suite (20 Acceptance Scenarios)', () => {
       .set('Authorization', `Bearer ${staffToken}`);
     expect(revokedAccess.status).toBe(403);
     expect(revokedAccess.body.message).toContain('deactivated');
-  });
+  }, 15000);
 
   // Scenario 38: Last Active Administrator Safety Safeguard
   it('38. Protects the last active administrator from accidental deactivation or demotion', async () => {

@@ -273,7 +273,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
       ]);
 
       const today = new Date().toISOString().split('T')[0];
-      exportToCSV(`fitcore_payments_${today}`, headers, rows);
+      exportToCSV(`sagar_fitness_payments_${today}`, headers, rows);
     } catch (err: any) {
       alert(err.message || 'Failed to export payments to CSV');
     } finally {
@@ -591,54 +591,131 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                 No payment records found matching your filters.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50/75 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                    <tr>
-                      <th className="px-5 py-3">Receipt #</th>
-                      <th className="px-5 py-3">Member</th>
-                      <th className="px-5 py-3">Date</th>
-                      <th className="px-5 py-3">Amount</th>
-                      <th className="px-5 py-3">Method</th>
-                      <th className="px-5 py-3">Status</th>
-                      <th className="px-5 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {payments.map((p) => {
-                      const memberObj = p.member || {};
-                      return (
-                        <tr key={p._id} className="hover:bg-slate-50/60 transition-colors">
-                          <td className="px-5 py-3.5 font-mono text-xs font-semibold text-blue-600">
-                            {p.receiptNumber}
-                          </td>
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50/75 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                      <tr>
+                        <th className="px-5 py-3">Receipt #</th>
+                        <th className="px-5 py-3">Member</th>
+                        <th className="px-5 py-3">Date</th>
+                        <th className="px-5 py-3">Amount</th>
+                        <th className="px-5 py-3">Method</th>
+                        <th className="px-5 py-3">Status</th>
+                        <th className="px-5 py-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {payments.map((p) => {
+                        const memberObj = p.member || {};
+                        return (
+                          <tr key={p._id} className="hover:bg-slate-50/60 transition-colors">
+                            <td className="px-5 py-3.5 font-mono text-xs font-semibold text-blue-600">
+                              {p.receiptNumber}
+                            </td>
 
-                          <td className="px-5 py-3.5">
-                            <div className="font-semibold text-slate-900">
+                            <td className="px-5 py-3.5">
+                              <div className="font-semibold text-slate-900">
+                                {memberObj.fullName || 'Member'}
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                ID: {memberObj.memberId || '—'}
+                              </div>
+                            </td>
+
+                            <td className="px-5 py-3.5 text-sm text-slate-500 font-medium">
+                              {formatDateIN(p.paymentDate)}
+                            </td>
+
+                            <td className="px-5 py-3.5 font-bold text-slate-900">
+                              {formatINR(p.amount)}
+                            </td>
+
+                            <td className="px-5 py-3.5 text-xs text-slate-600">
+                              <span className="px-2 py-0.5 rounded-md bg-slate-100 font-medium border border-slate-200">
+                                {p.paymentMethod}
+                              </span>
+                            </td>
+
+                            <td className="px-5 py-3.5">
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                  p.status === 'PAID'
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                    : p.status === 'PARTIAL'
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                }`}
+                              >
+                                {p.status}
+                              </span>
+                            </td>
+
+                            <td className="px-5 py-3.5 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => {
+                                    if (onOpenReceipt) onOpenReceipt(p);
+                                    else setSelectedReceipt(p);
+                                  }}
+                                  className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                                  title="View & Print Official Bill"
+                                >
+                                  <div className="w-5.5 h-5.5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 transition-colors group-hover:bg-blue-100 group-hover:text-blue-700">
+                                    <Printer className="w-3 h-3" />
+                                  </div>
+                                  <span>View Bill</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card View (Zero Sideways Scrolling) */}
+                <div className="block md:hidden divide-y divide-slate-100">
+                  {payments.map((p) => {
+                    const memberObj = p.member || {};
+                    return (
+                      <div key={p._id} className="p-4 space-y-3 bg-white">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <span className="font-mono text-xs font-bold text-blue-600 block">
+                              {p.receiptNumber}
+                            </span>
+                            <h4 className="font-bold text-sm text-slate-900 mt-0.5 truncate">
                               {memberObj.fullName || 'Member'}
-                            </div>
-                            <div className="text-xs text-slate-500">
+                            </h4>
+                            <p className="text-xs text-slate-500 font-mono">
                               ID: {memberObj.memberId || '—'}
+                            </p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className="text-base font-black text-slate-900">
+                              {formatINR(p.amount)}
                             </div>
-                          </td>
+                            <span className="text-[11px] text-slate-400 font-medium block mt-0.5">
+                              {formatDateIN(p.paymentDate)}
+                            </span>
+                          </div>
+                        </div>
 
-                          <td className="px-5 py-3.5 text-sm text-slate-500 font-medium">
-                            {formatDateIN(p.paymentDate)}
-                          </td>
-
-                          <td className="px-5 py-3.5 font-bold text-slate-900">
-                            {formatINR(p.amount)}
-                          </td>
-
-                          <td className="px-5 py-3.5 text-xs text-slate-600">
-                            <span className="px-2 py-0.5 rounded-md bg-slate-100 font-medium border border-slate-200">
+                        <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Method:</span>
+                            <span className="px-2 py-0.5 rounded-md bg-white text-xs font-semibold text-slate-700 border border-slate-200">
                               {p.paymentMethod}
                             </span>
-                          </td>
+                          </div>
 
-                          <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Status:</span>
                             <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${
                                 p.status === 'PAID'
                                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                   : p.status === 'PARTIAL'
@@ -648,36 +725,30 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                             >
                               {p.status}
                             </span>
-                          </td>
+                          </div>
+                        </div>
 
-                          <td className="px-5 py-3.5 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => {
-                                  if (onOpenReceipt) onOpenReceipt(p);
-                                  else setSelectedReceipt(p);
-                                }}
-                                className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                                title="View & Print Official Bill"
-                              >
-                                <div className="w-5.5 h-5.5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 transition-colors group-hover:bg-blue-100 group-hover:text-blue-700">
-                                  <Printer className="w-3 h-3" />
-                                </div>
-                                <span>View Bill</span>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onOpenReceipt) onOpenReceipt(p);
+                            else setSelectedReceipt(p);
+                          }}
+                          className="w-full min-h-[44px] h-11 inline-flex items-center justify-center gap-2 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-blue-50 hover:text-blue-700 border border-slate-200 hover:border-blue-300 transition-all active:scale-95 shadow-2xs"
+                        >
+                          <Printer className="w-4 h-4 text-blue-600" />
+                          <span>View Official Bill / Receipt</span>
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
 
             {pagination.totalPages > 1 && (
-              <div className="px-5 py-3 border-t border-slate-200 bg-slate-50/75 flex items-center justify-between text-xs text-slate-500">
-                <div>
+              <div className="px-5 py-3 border-t border-slate-200 bg-slate-50/75 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                <div className="text-center sm:text-left">
                   Showing <span className="font-semibold text-slate-900">{(pagination.page - 1) * pagination.limit + 1}</span> to{' '}
                   <span className="font-semibold text-slate-900">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of{' '}
                   <span className="font-semibold text-slate-900">{pagination.total}</span> payments
@@ -687,7 +758,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                   <button
                     disabled={pagination.page <= 1}
                     onClick={() => fetchPaymentsData(pagination.page - 1)}
-                    className="h-8 w-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 shadow-2xs hover:shadow-xs flex items-center justify-center"
+                    className="h-9 w-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 shadow-2xs hover:shadow-xs flex items-center justify-center"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -697,7 +768,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                   <button
                     disabled={pagination.page >= pagination.totalPages}
                     onClick={() => fetchPaymentsData(pagination.page + 1)}
-                    className="h-8 w-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 shadow-2xs hover:shadow-xs flex items-center justify-center"
+                    className="h-9 w-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 shadow-2xs hover:shadow-xs flex items-center justify-center"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -769,111 +840,201 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                 🎉 No pending dues! All members have cleared their subscription fees.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50/75 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                    <tr>
-                      <th className="px-5 py-3">Member</th>
-                      <th className="px-5 py-3">Plan</th>
-                      <th className="px-5 py-3">Total Fee</th>
-                      <th className="px-5 py-3">Amount Paid</th>
-                      <th className="px-5 py-3">Pending Due</th>
-                      <th className="px-5 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredDues.map((d: any) => {
-                      const m = d.member || {};
-                      const p = d.plan || {};
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50/75 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                      <tr>
+                        <th className="px-5 py-3">Member</th>
+                        <th className="px-5 py-3">Plan</th>
+                        <th className="px-5 py-3">Total Fee</th>
+                        <th className="px-5 py-3">Amount Paid</th>
+                        <th className="px-5 py-3">Pending Due</th>
+                        <th className="px-5 py-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filteredDues.map((d: any) => {
+                        const m = d.member || {};
+                        const p = d.plan || {};
 
-                      return (
-                        <tr key={d.membershipId} className="hover:bg-slate-50/60 transition-colors">
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-3">
-                              {m.photoUrl ? (
-                                <img
-                                  src={m.photoUrl}
-                                  alt={m.fullName}
-                                  className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0"
-                                />
-                              ) : (
-                                <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center shrink-0">
-                                  {m.fullName?.charAt(0) || 'M'}
-                                </div>
-                              )}
-                              <div>
-                                <div className="font-semibold text-xs text-slate-900">{m.fullName}</div>
-                                <div className="text-[11px] text-slate-500 font-mono">
-                                  ID: {m.memberId} • {m.phone}
+                        return (
+                          <tr key={d.membershipId} className="hover:bg-slate-50/60 transition-colors">
+                            <td className="px-5 py-3.5">
+                              <div className="flex items-center gap-3">
+                                {m.photoUrl ? (
+                                  <img
+                                    src={m.photoUrl}
+                                    alt={m.fullName}
+                                    className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0"
+                                  />
+                                ) : (
+                                  <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center shrink-0">
+                                    {m.fullName?.charAt(0) || 'M'}
+                                  </div>
+                                )}
+                                <div>
+                                  <div className="font-semibold text-xs text-slate-900">{m.fullName}</div>
+                                  <div className="text-[11px] text-slate-500 font-mono">
+                                    ID: {m.memberId} • {m.phone}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </td>
+                            </td>
 
-                          <td className="px-5 py-3.5 text-xs text-slate-800 font-medium">
-                            {p.name || 'Membership'}
-                          </td>
+                            <td className="px-5 py-3.5 text-xs text-slate-800 font-medium">
+                              {p.name || 'Membership'}
+                            </td>
 
-                          <td className="px-5 py-3.5 text-xs text-slate-600 font-mono">
-                            {formatINR(d.amountDue)}
-                          </td>
+                            <td className="px-5 py-3.5 text-xs text-slate-600 font-mono">
+                              {formatINR(d.amountDue)}
+                            </td>
 
-                          <td className="px-5 py-3.5 text-xs text-emerald-700 font-semibold font-mono">
-                            {formatINR(d.amountPaid)}
-                          </td>
+                            <td className="px-5 py-3.5 text-xs text-emerald-700 font-semibold font-mono">
+                              {formatINR(d.amountPaid)}
+                            </td>
 
-                          <td className="px-5 py-3.5">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300">
-                              {formatINR(d.balanceDue)} Due
-                            </span>
-                          </td>
+                            <td className="px-5 py-3.5">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                                {formatINR(d.balanceDue)} Due
+                              </span>
+                            </td>
 
-                          <td className="px-5 py-3.5 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              {m.phone && (
+                            <td className="px-5 py-3.5 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                {m.phone && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      sendWhatsAppDueReminder({
+                                        name: m.fullName,
+                                        phone: m.phone,
+                                        dueAmount: d.balanceDue,
+                                        planName: p.name,
+                                      })
+                                    }
+                                    className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-emerald-700 bg-white hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                                    title="Send WhatsApp Payment Reminder"
+                                  >
+                                    <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
+                                      <MessageCircle className="w-3 h-3" />
+                                    </div>
+                                    <span>WhatsApp</span>
+                                  </button>
+                                )}
+
                                 <button
                                   type="button"
-                                  onClick={() =>
-                                    sendWhatsAppDueReminder({
-                                      name: m.fullName,
-                                      phone: m.phone,
-                                      dueAmount: d.balanceDue,
-                                      planName: p.name,
-                                    })
-                                  }
-                                  className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-emerald-700 bg-white hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                                  title="Send WhatsApp Payment Reminder"
+                                  onClick={() => {
+                                    if (onOpenCollectDue) {
+                                      onOpenCollectDue(d);
+                                    }
+                                  }}
+                                  className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-amber-800 bg-white hover:bg-amber-50/50 border border-slate-200 hover:border-amber-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                                  title="Collect Outstanding Due"
                                 >
-                                  <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
-                                    <MessageCircle className="w-3 h-3" />
+                                  <div className="w-5.5 h-5.5 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100 transition-colors group-hover:bg-amber-100">
+                                    <span className="text-xs font-bold">₹</span>
                                   </div>
-                                  <span>WhatsApp</span>
+                                  <span>Collect Due</span>
                                 </button>
-                              )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (onOpenCollectDue) {
-                                    onOpenCollectDue(d);
-                                  }
-                                }}
-                                className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-amber-800 bg-white hover:bg-amber-50/50 border border-slate-200 hover:border-amber-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                                title="Collect Outstanding Due"
-                              >
-                                <div className="w-5.5 h-5.5 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100 transition-colors group-hover:bg-amber-100">
-                                  <span className="text-xs font-bold">₹</span>
-                                </div>
-                                <span>Collect Due</span>
-                              </button>
+                {/* Mobile Card View (Zero Sideways Scrolling) */}
+                <div className="block md:hidden divide-y divide-slate-100">
+                  {filteredDues.map((d: any) => {
+                    const m = d.member || {};
+                    const p = d.plan || {};
+
+                    return (
+                      <div key={d.membershipId} className="p-4 space-y-3 bg-white">
+                        <div className="flex items-start gap-3">
+                          {m.photoUrl ? (
+                            <img
+                              src={m.photoUrl}
+                              alt={m.fullName}
+                              className="w-11 h-11 rounded-full object-cover border border-slate-200 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-11 h-11 rounded-full bg-amber-100 text-amber-800 font-bold text-sm flex items-center justify-center shrink-0 border border-amber-200">
+                              {m.fullName?.charAt(0) || 'M'}
                             </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-bold text-sm text-slate-900 truncate">
+                              {m.fullName}
+                            </h4>
+                            <div className="text-xs text-slate-500 font-mono mt-0.5">
+                              ID: {m.memberId} {m.phone ? `• ${m.phone}` : ''}
+                            </div>
+                            <span className="inline-block mt-1 text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                              {p.name || 'Membership'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Financial Metrics Strip */}
+                        <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-center">
+                          <div>
+                            <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total</span>
+                            <span className="text-xs font-semibold text-slate-700 block mt-0.5 font-mono">{formatINR(d.amountDue)}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Paid</span>
+                            <span className="text-xs font-bold text-emerald-700 block mt-0.5 font-mono">{formatINR(d.amountPaid)}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] uppercase font-bold text-amber-700 block tracking-wider">Pending</span>
+                            <span className="text-xs font-black text-amber-800 block mt-0.5 font-mono">{formatINR(d.balanceDue)}</span>
+                          </div>
+                        </div>
+
+                        {/* Touch Actions: 44px Buttons */}
+                        <div className="flex items-center gap-2 pt-1">
+                          {m.phone && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                sendWhatsAppDueReminder({
+                                  name: m.fullName,
+                                  phone: m.phone,
+                                  dueAmount: d.balanceDue,
+                                  planName: p.name,
+                                })
+                              }
+                              className="flex-1 min-h-[44px] h-11 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 active:scale-95 transition-all shadow-2xs"
+                            >
+                              <MessageCircle className="w-4 h-4 text-emerald-600" />
+                              <span>WhatsApp</span>
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (onOpenCollectDue) {
+                                onOpenCollectDue(d);
+                              }
+                            }}
+                            className="flex-1 min-h-[44px] h-11 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 active:scale-95 transition-all shadow-2xs"
+                          >
+                            <span className="text-sm font-bold">₹</span>
+                            <span>Collect Due</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -988,57 +1149,106 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                 No transactions recorded on this date.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-gray-50 text-xs font-semibold text-[#6B7280] uppercase tracking-wider border-b border-[#E5E7EB]">
-                    <tr>
-                      <th className="px-5 py-3">Receipt #</th>
-                      <th className="px-5 py-3">Time</th>
-                      <th className="px-5 py-3">Member</th>
-                      <th className="px-5 py-3">Cashier</th>
-                      <th className="px-5 py-3">Method</th>
-                      <th className="px-5 py-3 text-right">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E5E7EB]">
-                    {settlementData?.payments.map((p: any) => (
-                      <tr key={p._id} className="hover:bg-gray-50/75 transition-colors">
-                        <td className="px-5 py-3 font-mono text-xs font-semibold text-blue-600">
-                          {p.receiptNumber}
-                        </td>
-                        <td className="px-5 py-3 text-xs text-gray-500 font-mono">
-                          {formatTimeIN(p.paymentDate)}
-                        </td>
-                        <td className="px-5 py-3 text-xs font-semibold text-[#202124]">
-                          {p.member?.fullName || 'Member'}
-                          <span className="text-[11px] text-gray-400 font-normal font-mono ml-1.5">
-                            ({p.member?.memberId})
-                          </span>
-                        </td>
-                        <td className="px-5 py-3 text-xs text-gray-600">
-                          {p.recordedBy?.fullName || 'Desk Staff'}
-                        </td>
-                        <td className="px-5 py-3 text-xs">
-                          <span
-                            className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
-                              p.paymentMethod === 'CASH'
-                                ? 'bg-emerald-50 text-emerald-800'
-                                : p.paymentMethod === 'UPI'
-                                ? 'bg-blue-50 text-blue-800'
-                                : 'bg-purple-50 text-purple-800'
-                            }`}
-                          >
-                            {p.paymentMethod}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3 text-right font-bold text-xs text-gray-900">
-                          {formatINR(p.amount)}
-                        </td>
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-50 text-xs font-semibold text-[#6B7280] uppercase tracking-wider border-b border-[#E5E7EB]">
+                      <tr>
+                        <th className="px-5 py-3">Receipt #</th>
+                        <th className="px-5 py-3">Time</th>
+                        <th className="px-5 py-3">Member</th>
+                        <th className="px-5 py-3">Cashier</th>
+                        <th className="px-5 py-3">Method</th>
+                        <th className="px-5 py-3 text-right">Amount</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-[#E5E7EB]">
+                      {settlementData?.payments.map((p: any) => (
+                        <tr key={p._id} className="hover:bg-gray-50/75 transition-colors">
+                          <td className="px-5 py-3 font-mono text-xs font-semibold text-blue-600">
+                            {p.receiptNumber}
+                          </td>
+                          <td className="px-5 py-3 text-xs text-gray-500 font-mono">
+                            {formatTimeIN(p.paymentDate)}
+                          </td>
+                          <td className="px-5 py-3 text-xs font-semibold text-[#202124]">
+                            {p.member?.fullName || 'Member'}
+                            <span className="text-[11px] text-gray-400 font-normal font-mono ml-1.5">
+                              ({p.member?.memberId})
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-xs text-gray-600">
+                            {p.recordedBy?.fullName || 'Desk Staff'}
+                          </td>
+                          <td className="px-5 py-3 text-xs">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
+                                p.paymentMethod === 'CASH'
+                                  ? 'bg-emerald-50 text-emerald-800'
+                                  : p.paymentMethod === 'UPI'
+                                  ? 'bg-blue-50 text-blue-800'
+                                  : 'bg-purple-50 text-purple-800'
+                              }`}
+                            >
+                              {p.paymentMethod}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-right font-bold text-xs text-gray-900">
+                            {formatINR(p.amount)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card View (Zero Sideways Scrolling) */}
+                <div className="block md:hidden divide-y divide-slate-100">
+                  {settlementData?.payments.map((p: any) => (
+                    <div key={p._id} className="p-4 space-y-2.5 bg-white">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <span className="font-mono text-xs font-bold text-blue-600 block">
+                            {p.receiptNumber}
+                          </span>
+                          <h5 className="font-bold text-sm text-slate-900 mt-0.5 truncate">
+                            {p.member?.fullName || 'Member'}
+                          </h5>
+                          <span className="text-xs text-slate-500 font-mono">
+                            ID: {p.member?.memberId || '—'}
+                          </span>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-base font-black text-slate-900">
+                            {formatINR(p.amount)}
+                          </div>
+                          <span className="text-[11px] text-slate-400 font-mono block mt-0.5">
+                            {formatTimeIN(p.paymentDate)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/70 text-xs">
+                        <span className="text-slate-500">
+                          Cashier: <strong className="text-slate-700">{p.recordedBy?.fullName || 'Desk Staff'}</strong>
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                            p.paymentMethod === 'CASH'
+                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                              : p.paymentMethod === 'UPI'
+                              ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                              : 'bg-purple-50 text-purple-800 border border-purple-200'
+                          }`}
+                        >
+                          {p.paymentMethod}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
 
             {/* Handover Signoff Box for Printing */}
@@ -1064,12 +1274,12 @@ export const BillingPage: React.FC<BillingPageProps> = ({
       {/* Record Payment Modal */}
       {showPayModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-lg shadow-modal overflow-hidden">
+          <div className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-2xl shadow-modal overflow-hidden max-h-[92vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between">
               <h3 className="text-base font-bold text-[#202124]">Record Payment</h3>
               <button
                 onClick={() => setShowPayModal(false)}
-                className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1077,7 +1287,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
 
             <form onSubmit={handleCreatePayment} className="p-6 space-y-4">
               {payError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md text-xs text-red-700 flex items-center gap-2">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{payError}</span>
                 </div>
@@ -1093,7 +1303,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                   placeholder="e.g. FC-1001"
                   value={payForm.memberId}
                   onChange={(e) => setPayForm({ ...payForm, memberId: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 text-sm border border-[#E5E7EB] rounded-xl focus:border-blue-600 focus:outline-none"
                 />
               </div>
 
@@ -1108,7 +1318,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                   placeholder="e.g. 1299"
                   value={payForm.amount}
                   onChange={(e) => setPayForm({ ...payForm, amount: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 text-sm border border-[#E5E7EB] rounded-xl focus:border-blue-600 focus:outline-none"
                 />
               </div>
 
@@ -1119,7 +1329,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                 <select
                   value={payForm.paymentMethod}
                   onChange={(e) => setPayForm({ ...payForm, paymentMethod: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 text-sm border border-[#E5E7EB] rounded-xl focus:border-blue-600 focus:outline-none bg-white"
                 >
                   <option value="UPI">UPI / QR</option>
                   <option value="CASH">Cash</option>
@@ -1138,22 +1348,22 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                   placeholder="Transaction reference..."
                   value={payForm.notes}
                   onChange={(e) => setPayForm({ ...payForm, notes: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
+                  className="w-full px-3.5 py-2.5 text-sm border border-[#E5E7EB] rounded-xl focus:border-blue-600 focus:outline-none"
                 />
               </div>
 
-              <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-end gap-3">
+              <div className="pt-3 border-t border-[#E5E7EB] flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setShowPayModal(false)}
-                  className="px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                  className="w-full sm:w-auto min-h-[44px] h-11 px-4 rounded-xl text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={payLoading}
-                  className="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-subtle disabled:opacity-50"
+                  className="w-full sm:w-auto min-h-[44px] h-11 px-6 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all shadow-xs disabled:opacity-50"
                 >
                   {payLoading ? 'Recording...' : 'Record Payment'}
                 </button>

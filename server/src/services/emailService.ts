@@ -114,7 +114,7 @@ export const sendPasswordResetEmail = async (
           <p><strong>Security Notice:</strong> This OTP is single-use and will expire in <strong>15 minutes</strong>. If you did not request this password reset, please ignore this email; your account remains secure.</p>
         </div>
         <div class="footer">
-          <p>Sagar Fitness Gym • Baner, Pune</p>
+          <p>Sagar Fitness Gym • Pathardi, Maharashtra, India</p>
           <p>This is an automated administrative notification. Please do not reply directly.</p>
         </div>
       </div>
@@ -136,7 +136,7 @@ export const sendPasswordResetEmail = async (
       from: fromAddress,
       to: toEmail,
       subject: 'Password Reset Instructions - Sagar Fitness Gym',
-      text: `Hello ${userName},\n\nWe received a request to reset your password for Sagar Fitness Gym.\n\nPlease reset your password using the following link:\n${resetUrl}\n\nOr using your single-use recovery token:\n${resetToken}\n\nThis token will expire in 15 minutes.\n\nSagar Fitness Gym • Baner, Pune`,
+      text: `Hello ${userName},\n\nWe received a request to reset your password for Sagar Fitness Gym.\n\nPlease reset your password using the following link:\n${resetUrl}\n\nOr using your single-use recovery token:\n${resetToken}\n\nThis token will expire in 15 minutes.\n\nSagar Fitness Gym • Pathardi, Maharashtra, India`,
       html: htmlContent,
     });
 
@@ -206,7 +206,7 @@ export const sendStaffWelcomeEmail = async (
           </div>
         </div>
         <div class="footer">
-          <p>Sagar Fitness Gym • Baner, Pune</p>
+          <p>Sagar Fitness Gym • Pathardi, Maharashtra, India</p>
         </div>
       </div>
     </body>

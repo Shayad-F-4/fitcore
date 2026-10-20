@@ -78,10 +78,10 @@ export const PlansPage: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editPlan, setEditPlan] = useState<MembershipPlan | null>(null);
 
-  const fetchPlans = async () => {
+  const fetchPlans = async (bypassCache = false) => {
     try {
       setLoading(true);
-      const res = await api.getPlans(false);
+      const res = await api.getPlans(false, bypassCache);
       if (Array.isArray(res) && res.length > 0) {
         setPlans(res);
       } else {
@@ -96,21 +96,40 @@ export const PlansPage: React.FC = () => {
 
   useEffect(() => {
     fetchPlans();
+
+    const handleDataChanged = () => {
+      fetchPlans(true);
+    };
+
+    window.addEventListener('fitcore:data-changed', handleDataChanged);
+    return () => window.removeEventListener('fitcore:data-changed', handleDataChanged);
   }, []);
 
   const handleToggleStatus = async (plan: MembershipPlan) => {
     setActionError(null);
     setActionSuccess(null);
+    const previousActiveState = plan.active;
+    const newActiveState = !previousActiveState;
+
+    // 1. Instant optimistic update so badge and button update immediately ("turant")
+    setPlans((prev) =>
+      prev.map((p) => (p._id === plan._id ? { ...p, active: newActiveState } : p))
+    );
+
     try {
-      await api.togglePlanStatus(plan._id);
-      setActionSuccess(`Plan "${plan.name}" ${plan.active ? 'deactivated' : 'activated'} successfully.`);
-      fetchPlans();
-    } catch {
-      // Local fallback for offline/static deployment demo
+      const res = await api.togglePlanStatus(plan._id);
+      if (res && res._id) {
+        setPlans((prev) =>
+          prev.map((p) => (p._id === res._id ? { ...p, active: res.active } : p))
+        );
+      }
+      setActionSuccess(`Plan "${plan.name}" ${newActiveState ? 'activated' : 'deactivated'} successfully.`);
+    } catch (err: any) {
+      // Revert if API fails
       setPlans((prev) =>
-        prev.map((p) => (p._id === plan._id ? { ...p, active: !p.active } : p))
+        prev.map((p) => (p._id === plan._id ? { ...p, active: previousActiveState } : p))
       );
-      setActionSuccess(`Plan "${plan.name}" ${plan.active ? 'deactivated' : 'activated'} successfully.`);
+      setActionError(err.message || `Failed to update status for "${plan.name}".`);
     }
   };
 
@@ -122,14 +141,15 @@ export const PlansPage: React.FC = () => {
     );
     if (!confirmed) return;
 
+    // Optimistic removal
+    setPlans((prev) => prev.filter((p) => p._id !== plan._id));
+
     try {
       await api.deletePlan(plan._id);
       setActionSuccess(`Plan "${plan.name}" deleted successfully.`);
-      fetchPlans();
-    } catch {
-      // Local fallback for offline/static deployment demo
-      setPlans((prev) => prev.filter((p) => p._id !== plan._id));
-      setActionSuccess(`Plan "${plan.name}" deleted successfully.`);
+    } catch (err: any) {
+      fetchPlans(true);
+      setActionError(err.message || `Failed to delete plan "${plan.name}".`);
     }
   };
 
@@ -195,115 +215,201 @@ export const PlansPage: React.FC = () => {
             No membership plans found. Click &quot;+ Add Plan&quot; to create your first plan.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50/80 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                <tr>
-                  <th className="px-5 py-3.5">Plan</th>
-                  <th className="px-5 py-3.5">Duration</th>
-                  <th className="px-5 py-3.5">Price</th>
-                  <th className="px-5 py-3.5">Status</th>
-                  <th className="px-5 py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {plans.map((plan) => (
-                  <tr key={plan._id} className="hover:bg-slate-50/70 transition-colors">
-                    {/* Plan Name & Description */}
-                    <td className="px-5 py-3.5">
-                      <div className="font-bold text-slate-900">{plan.name}</div>
-                      {plan.description && (
-                        <div className="text-xs text-slate-500 mt-0.5 max-w-sm truncate">
-                          {plan.description}
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Duration */}
-                    <td className="px-5 py-3.5 text-sm font-medium text-slate-700">
-                      {plan.durationDays} days
-                    </td>
-
-                    {/* Price */}
-                    <td className="px-5 py-3.5 font-bold text-slate-900">
-                      {formatINR(plan.price)}
-                    </td>
-
-                    {/* Status Badge */}
-                    <td className="px-5 py-3.5">
-                      {plan.active ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 shadow-2xs">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                          Inactive
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Actions: Aesthetic Micro-Card Buttons with Dedicated Icon Badges */}
-                    <td className="px-5 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* Edit Button */}
-                        <button
-                          onClick={() => setEditPlan(plan)}
-                          className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                          title="Edit Plan"
-                        >
-                          <div className="w-5.5 h-5.5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 transition-colors group-hover:bg-blue-100 group-hover:text-blue-700">
-                            <Edit2 className="w-3 h-3 shrink-0" />
-                          </div>
-                          <span>Edit</span>
-                        </button>
-
-                        {/* Status Toggle Button */}
-                        <button
-                          onClick={() => handleToggleStatus(plan)}
-                          className={`group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold transition-all active:scale-95 shadow-2xs hover:shadow-xs ${
-                            plan.active
-                              ? 'text-slate-700 hover:text-amber-800 bg-white hover:bg-amber-50/50 border border-slate-200 hover:border-amber-300'
-                              : 'text-slate-700 hover:text-emerald-800 bg-white hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-300'
-                          }`}
-                          title={plan.active ? 'Deactivate Plan' : 'Activate Plan'}
-                        >
-                          {plan.active ? (
-                            <>
-                              <div className="w-5.5 h-5.5 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100 transition-colors group-hover:bg-amber-100 group-hover:text-amber-700">
-                                <ToggleRight className="w-3.5 h-3.5 shrink-0" />
-                              </div>
-                              <span>Deactivate</span>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100 group-hover:text-emerald-700">
-                                <ToggleLeft className="w-3.5 h-3.5 shrink-0" />
-                              </div>
-                              <span>Activate</span>
-                            </>
-                          )}
-                        </button>
-
-                        {/* Delete Button */}
-                        <button
-                          onClick={() => handleDeletePlan(plan)}
-                          className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-rose-700 bg-white hover:bg-rose-50/50 border border-slate-200 hover:border-rose-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                          title="Delete Plan"
-                        >
-                          <div className="w-5.5 h-5.5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100 transition-colors group-hover:bg-rose-100 group-hover:text-rose-700">
-                            <Trash2 className="w-3 h-3 shrink-0" />
-                          </div>
-                          <span>Delete</span>
-                        </button>
-                      </div>
-                    </td>
+          <>
+            {/* Desktop / Tablet Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50/80 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                  <tr>
+                    <th className="px-5 py-3.5">Plan</th>
+                    <th className="px-5 py-3.5">Duration</th>
+                    <th className="px-5 py-3.5">Price</th>
+                    <th className="px-5 py-3.5">Status</th>
+                    <th className="px-5 py-3.5 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {plans.map((plan) => (
+                    <tr key={plan._id} className="hover:bg-slate-50/70 transition-colors">
+                      {/* Plan Name & Description */}
+                      <td className="px-5 py-3.5">
+                        <div className="font-bold text-slate-900">{plan.name}</div>
+                        {plan.description && (
+                          <div className="text-xs text-slate-500 mt-0.5 max-w-sm truncate">
+                            {plan.description}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Duration */}
+                      <td className="px-5 py-3.5 text-sm font-medium text-slate-700">
+                        {plan.durationDays} days
+                      </td>
+
+                      {/* Price */}
+                      <td className="px-5 py-3.5 font-bold text-slate-900">
+                        {formatINR(plan.price)}
+                      </td>
+
+                      {/* Status Badge */}
+                      <td className="px-5 py-3.5">
+                        {plan.active ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 shadow-2xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                            Inactive
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-5 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {/* Edit Button */}
+                          <button
+                            onClick={() => setEditPlan(plan)}
+                            className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                            title="Edit Plan"
+                          >
+                            <div className="w-5.5 h-5.5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 transition-colors group-hover:bg-blue-100 group-hover:text-blue-700">
+                              <Edit2 className="w-3 h-3 shrink-0" />
+                            </div>
+                            <span>Edit</span>
+                          </button>
+
+                          {/* Status Toggle Button */}
+                          <button
+                            onClick={() => handleToggleStatus(plan)}
+                            className={`group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold transition-all active:scale-95 shadow-2xs hover:shadow-xs ${
+                              plan.active
+                                ? 'text-slate-700 hover:text-amber-800 bg-white hover:bg-amber-50/50 border border-slate-200 hover:border-amber-300'
+                                : 'text-slate-700 hover:text-emerald-800 bg-white hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-300'
+                            }`}
+                            title={plan.active ? 'Deactivate Plan' : 'Activate Plan'}
+                          >
+                            {plan.active ? (
+                              <>
+                                <div className="w-5.5 h-5.5 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100 transition-colors group-hover:bg-amber-100 group-hover:text-amber-700">
+                                  <ToggleRight className="w-3.5 h-3.5 shrink-0" />
+                                </div>
+                                <span>Deactivate</span>
+                              </>
+                            ) : (
+                              <>
+                                <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100 group-hover:text-emerald-700">
+                                  <ToggleLeft className="w-3.5 h-3.5 shrink-0" />
+                                </div>
+                                <span>Activate</span>
+                              </>
+                            )}
+                          </button>
+
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => handleDeletePlan(plan)}
+                            className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-rose-700 bg-white hover:bg-rose-50/50 border border-slate-200 hover:border-rose-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                            title="Delete Plan"
+                          >
+                            <div className="w-5.5 h-5.5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100 transition-colors group-hover:bg-rose-100 group-hover:text-rose-700">
+                              <Trash2 className="w-3 h-3 shrink-0" />
+                            </div>
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View (Full Touch Experience, Zero Sideways Scroll) */}
+            <div className="block md:hidden divide-y divide-slate-100">
+              {plans.map((plan) => (
+                <div key={plan._id} className="p-4 space-y-3 bg-white">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-base text-slate-900">{plan.name}</h4>
+                      {plan.description && (
+                        <p className="text-xs text-slate-500 mt-1 leading-snug">
+                          {plan.description}
+                        </p>
+                      )}
+                    </div>
+                    {plan.active ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                        Inactive
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/70">
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Duration</span>
+                      <span className="font-bold text-slate-800 text-xs mt-0.5 block">{plan.durationDays} days</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Fee</span>
+                      <span className="font-black text-lg text-slate-900 mt-0.5 block">{formatINR(plan.price)}</span>
+                    </div>
+                  </div>
+
+                  {/* Actions Row with 44px min-height buttons */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setEditPlan(plan)}
+                      className="flex-1 min-h-[44px] h-11 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 active:scale-95 transition-all shadow-2xs"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      <span>Edit</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleToggleStatus(plan)}
+                      className={`flex-1 min-h-[44px] h-11 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-2xs ${
+                        plan.active
+                          ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                          : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      }`}
+                    >
+                      {plan.active ? (
+                        <>
+                          <ToggleRight className="w-4 h-4 text-amber-600" />
+                          <span>Deactivate</span>
+                        </>
+                      ) : (
+                        <>
+                          <ToggleLeft className="w-4 h-4 text-emerald-600" />
+                          <span>Activate</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeletePlan(plan)}
+                      className="min-h-[44px] h-11 w-11 inline-flex items-center justify-center rounded-xl bg-rose-50 text-rose-700 border border-rose-200 active:scale-95 transition-all shadow-2xs shrink-0"
+                      title="Delete Plan"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
@@ -467,18 +573,18 @@ const PlanFormModal: React.FC<PlanFormModalProps> = ({
             />
           </div>
 
-          <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-[#E5E7EB] flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
-              className="h-9 px-4 rounded-xl text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-all active:scale-95"
+              className="w-full sm:w-auto min-h-[44px] h-11 px-4 rounded-xl text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-all active:scale-95"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="h-9 px-5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition-all shadow-xs active:scale-95 disabled:opacity-50"
+              className="w-full sm:w-auto min-h-[44px] h-11 px-6 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition-all shadow-xs active:scale-95 disabled:opacity-50"
             >
               {loading ? 'Saving...' : 'Save Plan'}
             </button>

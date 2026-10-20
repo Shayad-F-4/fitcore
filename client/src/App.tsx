@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { LoginPage } from './pages/LoginPage';
 import { Member, Membership, Payment } from './types';
 
@@ -77,7 +78,7 @@ export const App: React.FC = () => {
         <div className="flex flex-col items-center gap-3">
           <div className="w-9 h-9 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
           <span className="text-xs text-slate-500 font-semibold tracking-wide">
-            Loading FitCore...
+            Loading Sagar Fitness Gym...
           </span>
         </div>
       </div>
@@ -107,7 +108,7 @@ export const App: React.FC = () => {
           onOpenRegister={() => setIsRegisterOpen(true)}
         />
 
-        <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto pb-16">
+        <main className="flex-1 p-3 sm:p-4 md:p-8 max-w-7xl w-full mx-auto pb-28 lg:pb-16">
           <Suspense fallback={<RouteSuspenseFallback />}>
             <Routes>
               <Route
@@ -194,6 +195,12 @@ export const App: React.FC = () => {
             </Routes>
           </Suspense>
         </main>
+
+        {/* Mobile Bottom Navigation (Persistent, Safe-Area Padded) */}
+        <MobileBottomNav
+          onToggleSidebar={() => setIsMobileNavOpen((prev) => !prev)}
+          isSidebarOpen={isMobileNavOpen}
+        />
       </div>
 
       {/* Global Modals - Lazy loaded on demand */}

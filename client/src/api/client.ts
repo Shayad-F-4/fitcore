@@ -1,5 +1,21 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
+export const getMediaUrl = (path?: string): string => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+    return path;
+  }
+  if (API_BASE.startsWith('http')) {
+    try {
+      const parsed = new URL(API_BASE);
+      return `${parsed.origin}${path.startsWith('/') ? path : `/${path}`}`;
+    } catch {
+      return path;
+    }
+  }
+  return path;
+};
+
 const getHeaders = (hasBody = true): HeadersInit => {
   const token = localStorage.getItem('fitcore_token');
   const headers: HeadersInit = {};
@@ -158,42 +174,60 @@ export const api = {
   },
 
   // Membership Plans
-  async getPlans(activeOnly = false) {
+  async getPlans(activeOnly = false, bypassCache = false) {
+    if (bypassCache) {
+      const res = await fetch(`${API_BASE}/plans?activeOnly=${activeOnly}`, {
+        headers: getHeaders(false),
+      });
+      return handleResponse<any[]>(res);
+    }
     return cachedGet<any[]>(`${API_BASE}/plans?activeOnly=${activeOnly}`, 5000);
   },
 
   async createPlan(data: any) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/plans`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PLAN_CREATED', plan: result } }));
+    return result;
   },
 
   async togglePlanStatus(id: string) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/plans/${id}/toggle-status`, {
       method: 'PATCH',
       headers: getHeaders(),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PLAN_STATUS_TOGGLED', plan: result } }));
+    return result;
   },
 
   async updatePlan(id: string, data: any) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/plans/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PLAN_UPDATED', plan: result } }));
+    return result;
   },
 
   async deletePlan(id: string) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/plans/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PLAN_DELETED', id } }));
+    return result;
   },
 
   // Members
@@ -679,39 +713,5 @@ export const api = {
     }>(res);
   },
 
-  // Database Backup & Recovery
-  async getBackups() {
-    const res = await fetch(`${API_BASE}/backup`, {
-      headers: getHeaders(),
-    });
-    return handleResponse<any[]>(res);
-  },
-
-  async createBackup() {
-    const res = await fetch(`${API_BASE}/backup/create`, {
-      method: 'POST',
-      headers: getHeaders(),
-    });
-    return handleResponse<any>(res);
-  },
-
-  async restoreBackup(filename: string) {
-    const res = await fetch(`${API_BASE}/backup/restore/${encodeURIComponent(filename)}`, {
-      method: 'POST',
-      headers: getHeaders(),
-    });
-    return handleResponse<any>(res);
-  },
-
-  async deleteBackup(filename: string) {
-    const res = await fetch(`${API_BASE}/backup/${encodeURIComponent(filename)}`, {
-      method: 'DELETE',
-      headers: getHeaders(),
-    });
-    return handleResponse<any>(res);
-  },
-
-  getBackupDownloadUrl(filename: string) {
-    return `${API_BASE}/backup/download/${encodeURIComponent(filename)}`;
-  },
 };
+

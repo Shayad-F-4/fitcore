@@ -177,7 +177,7 @@ export const AttendancePage: React.FC = () => {
       ];
     });
 
-    exportToCSV(`fitcore_attendance_${selectedDate}`, headers, rows);
+    exportToCSV(`sagar_fitness_attendance_${selectedDate}`, headers, rows);
   };
 
   // Count active occupants (no check-out time)
@@ -260,14 +260,14 @@ export const AttendancePage: React.FC = () => {
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="Enter Member ID (e.g. FC-1001) or phone number..."
-              className="w-full pl-9 pr-3 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:outline-none transition-colors text-slate-900 placeholder-slate-400"
+              className="w-full h-11 pl-9 pr-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-blue-600 focus:outline-none transition-colors text-slate-900 placeholder-slate-400 font-medium"
             />
           </div>
 
           <button
             type="submit"
             disabled={lookingUp || !identifier.trim()}
-            className="group inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all active:scale-95 shadow-2xs hover:shadow-xs disabled:opacity-50"
+            className="group inline-flex items-center justify-center gap-2 min-h-[44px] h-11 px-4 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all active:scale-95 shadow-2xs hover:shadow-xs disabled:opacity-50"
           >
             <div className="w-5.5 h-5.5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
               <Search className="w-3.5 h-3.5" />
@@ -279,7 +279,7 @@ export const AttendancePage: React.FC = () => {
             type="button"
             onClick={handleCheckIn}
             disabled={lookingUp || !identifier.trim()}
-            className="inline-flex items-center justify-center gap-2 h-10 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md hover:shadow-emerald-500/20 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 min-h-[44px] h-11 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md hover:shadow-emerald-500/20 disabled:opacity-50"
           >
             <div className="w-5.5 h-5.5 rounded-md bg-white/20 flex items-center justify-center shrink-0">
               <UserCheck className="w-3.5 h-3.5 text-white" />
@@ -429,108 +429,205 @@ export const AttendancePage: React.FC = () => {
             No attendance visits recorded on {selectedDate}.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50/75 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                <tr>
-                  <th className="px-5 py-3">Member</th>
-                  <th className="px-5 py-3">Member ID</th>
-                  <th className="px-5 py-3">Check-In Time</th>
-                  <th className="px-5 py-3">Check-Out Time</th>
-                  <th className="px-5 py-3">Duration</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {attendanceLogs.map((log) => {
-                  const memberObj = log.member || {};
-                  const isCheckedIn = !log.checkOutTime;
+          <>
+            {/* Desktop / Tablet Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50/75 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                  <tr>
+                    <th className="px-5 py-3">Member</th>
+                    <th className="px-5 py-3">Member ID</th>
+                    <th className="px-5 py-3">Check-In Time</th>
+                    <th className="px-5 py-3">Check-Out Time</th>
+                    <th className="px-5 py-3">Duration</th>
+                    <th className="px-5 py-3">Status</th>
+                    <th className="px-5 py-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {attendanceLogs.map((log) => {
+                    const memberObj = log.member || {};
+                    const isCheckedIn = !log.checkOutTime;
 
-                  const checkInDate = new Date(log.checkInTime);
-                  const checkInTimeFormatted = checkInDate.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  });
+                    const checkInDate = new Date(log.checkInTime);
+                    const checkInTimeFormatted = checkInDate.toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    });
 
-                  const checkOutTimeFormatted = log.checkOutTime
-                    ? new Date(log.checkOutTime).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })
-                    : '—';
+                    const checkOutTimeFormatted = log.checkOutTime
+                      ? new Date(log.checkOutTime).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : '—';
 
-                  return (
-                    <tr key={log._id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          {memberObj.photoUrl ? (
-                            <img
-                              src={memberObj.photoUrl}
-                              alt={memberObj.fullName}
-                              className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
-                            />
+                    return (
+                      <tr key={log._id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-3">
+                            {memberObj.photoUrl ? (
+                              <img
+                                src={memberObj.photoUrl}
+                                alt={memberObj.fullName}
+                                className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-700 font-semibold text-xs flex items-center justify-center shrink-0">
+                                {memberObj.fullName ? memberObj.fullName.charAt(0) : 'M'}
+                              </div>
+                            )}
+                            <span className="font-semibold text-slate-900">
+                              {memberObj.fullName || 'Member'}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-3.5 font-mono text-xs font-medium text-slate-500">
+                          {memberObj.memberId || '—'}
+                        </td>
+
+                        <td className="px-5 py-3.5 text-sm text-slate-900 font-medium">
+                          {checkInTimeFormatted}
+                        </td>
+
+                        <td className="px-5 py-3.5 text-sm text-slate-500 font-medium">
+                          {checkOutTimeFormatted}
+                        </td>
+
+                        <td className="px-5 py-3.5 text-sm text-slate-600">
+                          {log.durationMinutes ? `${log.durationMinutes} mins` : isCheckedIn ? 'Active' : '—'}
+                        </td>
+
+                        <td className="px-5 py-3.5">
+                          {isCheckedIn ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              Inside Gym
+                            </span>
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-700 font-semibold text-xs flex items-center justify-center shrink-0">
-                              {memberObj.fullName ? memberObj.fullName.charAt(0) : 'M'}
-                            </div>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                              <CheckCircle className="w-3 h-3 text-slate-500" />
+                              Completed
+                            </span>
                           )}
-                          <span className="font-semibold text-slate-900">
+                        </td>
+
+                        <td className="px-5 py-3.5 text-right">
+                          {isCheckedIn && (
+                            <button
+                              onClick={() => handleCheckOut(log._id)}
+                              className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-rose-700 hover:text-rose-800 bg-white hover:bg-rose-50/50 border border-slate-200 hover:border-rose-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                              title="Check Out Member"
+                            >
+                              <div className="w-5.5 h-5.5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100 transition-colors group-hover:bg-rose-100">
+                                <LogOut className="w-3 h-3" />
+                              </div>
+                              <span>Check Out</span>
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card List View (Full Touch Experience, Zero Sideways Scroll) */}
+            <div className="block md:hidden divide-y divide-slate-100">
+              {attendanceLogs.map((log) => {
+                const memberObj = log.member || {};
+                const isCheckedIn = !log.checkOutTime;
+
+                const checkInDate = new Date(log.checkInTime);
+                const checkInTimeFormatted = checkInDate.toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+
+                const checkOutTimeFormatted = log.checkOutTime
+                  ? new Date(log.checkOutTime).toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : '—';
+
+                return (
+                  <div key={log._id} className="p-3.5 space-y-2.5 bg-white">
+                    {/* Header: Photo, Name, Member ID, Status */}
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        {memberObj.photoUrl ? (
+                          <img
+                            src={memberObj.photoUrl}
+                            alt={memberObj.fullName}
+                            className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0 border border-blue-100">
+                            {memberObj.fullName ? memberObj.fullName.charAt(0) : 'M'}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-sm text-slate-900 truncate">
                             {memberObj.fullName || 'Member'}
-                          </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                            ID: <span className="text-slate-800 font-semibold">{memberObj.memberId || '—'}</span>
+                          </div>
                         </div>
-                      </td>
+                      </div>
 
-                      <td className="px-5 py-3.5 font-mono text-xs font-medium text-slate-500">
-                        {memberObj.memberId || '—'}
-                      </td>
-
-                      <td className="px-5 py-3.5 text-sm text-slate-900 font-medium">
-                        {checkInTimeFormatted}
-                      </td>
-
-                      <td className="px-5 py-3.5 text-sm text-slate-500 font-medium">
-                        {checkOutTimeFormatted}
-                      </td>
-
-                      <td className="px-5 py-3.5 text-sm text-slate-600">
-                        {log.durationMinutes ? `${log.durationMinutes} mins` : isCheckedIn ? 'Active' : '—'}
-                      </td>
-
-                      <td className="px-5 py-3.5">
+                      <div className="shrink-0">
                         {isCheckedIn ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                             Inside Gym
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
                             <CheckCircle className="w-3 h-3 text-slate-500" />
                             Completed
                           </span>
                         )}
-                      </td>
+                      </div>
+                    </div>
 
-                      <td className="px-5 py-3.5 text-right">
-                        {isCheckedIn && (
-                          <button
-                            onClick={() => handleCheckOut(log._id)}
-                            className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-rose-700 hover:text-rose-800 bg-white hover:bg-rose-50/50 border border-slate-200 hover:border-rose-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                            title="Check Out Member"
-                          >
-                            <div className="w-5.5 h-5.5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100 transition-colors group-hover:bg-rose-100">
-                              <LogOut className="w-3 h-3" />
-                            </div>
-                            <span>Check Out</span>
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                    {/* Time Details Grid */}
+                    <div className="grid grid-cols-3 gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/60 text-center text-xs">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">In</span>
+                        <span className="font-bold text-slate-900 mt-0.5 block">{checkInTimeFormatted}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Out</span>
+                        <span className="font-medium text-slate-600 mt-0.5 block">{checkOutTimeFormatted}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Duration</span>
+                        <span className="font-bold text-blue-700 mt-0.5 block">
+                          {log.durationMinutes ? `${log.durationMinutes}m` : isCheckedIn ? 'Active' : '—'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Check Out Action Button */}
+                    {isCheckedIn && (
+                      <button
+                        type="button"
+                        onClick={() => handleCheckOut(log._id)}
+                        className="w-full min-h-[44px] h-11 inline-flex items-center justify-center gap-2 px-4 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all active:scale-[0.98] shadow-2xs"
+                      >
+                        <LogOut className="w-4 h-4 text-rose-600" />
+                        <span>Check Out Member</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 

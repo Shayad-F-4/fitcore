@@ -198,7 +198,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     return (
       <div className="flex items-center justify-center py-28 text-gray-500 text-sm">
         <RotateCw className="w-5 h-5 animate-spin mr-2 text-blue-600" />
-        Loading FitCore Dashboard...
+        Loading Sagar Fitness Gym Dashboard...
       </div>
     );
   }
@@ -232,7 +232,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       {/* =========================================================================
           GYM DASHBOARD BANNER (Clean, Minimal, Professional)
           ========================================================================= */}
-      <div className="relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/80 text-white h-44 sm:h-52 flex flex-col sm:flex-row sm:items-end justify-between gap-4 p-6 sm:p-8 bg-slate-950">
+      <div className="relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/80 text-white min-h-[140px] h-36 sm:h-44 md:h-52 flex flex-col sm:flex-row sm:items-end justify-between gap-3 p-4 sm:p-6 md:p-8 bg-slate-950">
         {/* Background Image: Clean Photographic Gym Image */}
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -243,11 +243,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
         {/* Gym Name & Tagline */}
         <div className="relative z-10">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+          <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
             Sagar Fitness Gym
           </h1>
-          <p className="text-xs sm:text-sm text-slate-200 font-medium mt-1 drop-shadow-md">
-            Strength • Transformation • Health Center • Baner, Pune
+          <p className="text-xs sm:text-sm text-slate-200 font-medium mt-0.5 sm:mt-1 drop-shadow-md">
+            Strength • Transformation • Health Center • Pathardi, Maharashtra
           </p>
         </div>
 
@@ -257,9 +257,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             <button
               id="hero-add-member-btn"
               onClick={onOpenRegister}
-              className="inline-flex items-center gap-2.5 h-11 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-sm font-bold shadow-lg shadow-blue-900/30 hover:shadow-xl hover:shadow-blue-600/35 transition-all transform hover:-translate-y-0.5 active:scale-95 shrink-0 whitespace-nowrap"
+              className="inline-flex items-center gap-2 h-10 sm:h-11 px-4 sm:px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-bold shadow-lg shadow-blue-900/30 hover:shadow-xl hover:shadow-blue-600/35 transition-all transform hover:-translate-y-0.5 active:scale-95 shrink-0 whitespace-nowrap min-h-[44px]"
             >
-              <div className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
                 <UserPlus className="w-3.5 h-3.5 text-white shrink-0" />
               </div>
               <span>Add Member</span>
@@ -270,8 +270,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
       {/* Front Desk Tasks Toolbar (Prominently displayed for Desk Staff) */}
       {!isAdmin && (
-        <div className="bg-white border border-emerald-200/90 rounded-2xl p-4 shadow-sm space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+        <div className="bg-white border border-emerald-200/90 rounded-2xl p-3.5 sm:p-4 shadow-sm space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 border-b border-slate-100 pb-2.5">
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -286,10 +286,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
             <button
               onClick={() => navigate('/attendance')}
-              className="p-3 rounded-xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-300 text-left transition-all active:scale-[0.98] group cursor-pointer"
+              className="p-3 rounded-xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-300 text-left transition-all active:scale-[0.98] group cursor-pointer min-h-[44px]"
             >
               <div className="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-emerald-800">
                 <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
@@ -303,7 +303,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             {onOpenRegister && (
               <button
                 onClick={onOpenRegister}
-                className="p-3 rounded-xl bg-slate-50 hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 text-left transition-all active:scale-[0.98] group cursor-pointer"
+                className="p-3 rounded-xl bg-slate-50 hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 text-left transition-all active:scale-[0.98] group cursor-pointer min-h-[44px]"
               >
                 <div className="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-blue-800">
                   <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
@@ -317,7 +317,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
             <button
               onClick={() => navigate('/billing')}
-              className="p-3 rounded-xl bg-slate-50 hover:bg-rose-50/70 border border-slate-200 hover:border-rose-300 text-left transition-all active:scale-[0.98] group cursor-pointer"
+              className="p-3 rounded-xl bg-slate-50 hover:bg-rose-50/70 border border-slate-200 hover:border-rose-300 text-left transition-all active:scale-[0.98] group cursor-pointer min-h-[44px]"
             >
               <div className="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-rose-800">
                 <div className="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
@@ -333,7 +333,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 const el = document.getElementById('expiry-warning-section');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="p-3 rounded-xl bg-slate-50 hover:bg-amber-50/70 border border-slate-200 hover:border-amber-300 text-left transition-all active:scale-[0.98] group cursor-pointer"
+              className="p-3 rounded-xl bg-slate-50 hover:bg-amber-50/70 border border-slate-200 hover:border-amber-300 text-left transition-all active:scale-[0.98] group cursor-pointer min-h-[44px]"
             >
               <div className="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-amber-800">
                 <div className="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
@@ -348,49 +348,45 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       )}
 
       {/* =========================================================================
-          SECTION B: Exactly 5 Summary Cards
-          1. Today's Revenue | 2. Active Athletes | 3. Expiry Alerts | 4. Pending Dues | 5. Total Revenue
-          ========================================================================= */}
-      {/* =========================================================================
           SECTION B: Exactly 5 Summary Cards (Side Nav Bar Color Themed Inside Cards)
           1. Today's Revenue (Emerald) | 2. Active Athletes (Blue) | 3. Expiry Alerts (Amber) | 4. Pending Dues (Rose) | 5. Total Revenue (Purple)
           ========================================================================= */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
         {/* Card 1: Today's Revenue (Emerald - Matching Members/Revenue) */}
-        <div className="bg-emerald-50/40 border border-emerald-200/80 border-l-4 border-l-emerald-500 rounded-xl p-4 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all">
+        <div className="bg-emerald-50/40 border border-emerald-200/80 border-l-4 border-l-emerald-500 rounded-xl p-3 sm:p-4 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-emerald-800/80 uppercase tracking-wider">
+            <span className="text-[11px] sm:text-xs font-bold text-emerald-800/80 uppercase tracking-wider truncate mr-1">
               Today's Revenue
             </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-100/90 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-sm shadow-2xs">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-100/90 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-xs sm:text-sm shadow-2xs shrink-0">
               ₹
             </div>
           </div>
-          <div className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
+          <div className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
             {formatINR(metrics.todayRevenue || 0)}
           </div>
-          <p className="text-[11px] text-emerald-800/70 mt-1 flex items-center gap-1.5 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-            Counter & digital receipts today
+          <p className="text-[10px] sm:text-[11px] text-emerald-800/70 mt-1 flex items-center gap-1.5 font-medium truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
+            <span className="truncate">Counter & digital receipts</span>
           </p>
         </div>
 
         {/* Card 2: Active Athletes (Blue - Matching Dashboard) */}
-        <div className="bg-blue-50/40 border border-blue-200/80 border-l-4 border-l-blue-500 rounded-xl p-4 shadow-2xs hover:border-blue-300 hover:shadow-xs transition-all">
+        <div className="bg-blue-50/40 border border-blue-200/80 border-l-4 border-l-blue-500 rounded-xl p-3 sm:p-4 shadow-2xs hover:border-blue-300 hover:shadow-xs transition-all">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-blue-800/80 uppercase tracking-wider">
+            <span className="text-[11px] sm:text-xs font-bold text-blue-800/80 uppercase tracking-wider truncate mr-1">
               Active Athletes
             </span>
-            <div className="w-8 h-8 rounded-lg bg-blue-100/90 text-blue-700 border border-blue-200 flex items-center justify-center shadow-2xs">
-              <Users className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100/90 text-blue-700 border border-blue-200 flex items-center justify-center shadow-2xs shrink-0">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
+          <div className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
             {(metrics.activeMembers || activeMembersTotal).toLocaleString('en-IN')}
           </div>
-          <p className="text-[11px] text-blue-800/70 mt-1 flex items-center gap-1.5 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-            Valid active gym memberships
+          <p className="text-[10px] sm:text-[11px] text-blue-800/70 mt-1 flex items-center gap-1.5 font-medium truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
+            <span className="truncate">Valid active memberships</span>
           </p>
         </div>
 
@@ -400,30 +396,30 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             const el = document.getElementById('expiry-warning-section');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
           }}
-          className="bg-amber-50/40 border border-amber-200/80 border-l-4 border-l-amber-500 rounded-xl p-4 shadow-2xs hover:border-amber-300 hover:shadow-xs cursor-pointer active:scale-[0.98] transition-all"
+          className="bg-amber-50/40 border border-amber-200/80 border-l-4 border-l-amber-500 rounded-xl p-3 sm:p-4 shadow-2xs hover:border-amber-300 hover:shadow-xs cursor-pointer active:scale-[0.98] transition-all"
           title="Click to view all membership expiry warnings"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-amber-800/80 uppercase tracking-wider">
+            <span className="text-[11px] sm:text-xs font-bold text-amber-800/80 uppercase tracking-wider truncate mr-1">
               Expiry Alerts
             </span>
-            <div className="w-8 h-8 rounded-lg bg-amber-100/90 text-amber-700 border border-amber-200 flex items-center justify-center shadow-2xs">
-              <Clock className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-100/90 text-amber-700 border border-amber-200 flex items-center justify-center shadow-2xs shrink-0">
+              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-black text-slate-900 tracking-tight">
+          <div className="mt-1.5 sm:mt-2 flex items-baseline gap-1.5">
+            <span className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
               {totalExpiryAlerts.toLocaleString('en-IN')}
             </span>
-            <span className="text-[11px] text-amber-800/70 font-medium">pending renewal</span>
+            <span className="text-[10px] sm:text-[11px] text-amber-800/70 font-medium truncate">pending</span>
           </div>
-          <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+          <div className="mt-1 flex items-center gap-1 sm:gap-1.5 flex-wrap">
             {(metrics.alreadyExpiredCount || 0) > 0 && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
-                🔴 {metrics.alreadyExpiredCount} Expired
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                🔴 {metrics.alreadyExpiredCount} Exp
               </span>
             )}
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-900 border border-amber-200">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-semibold bg-amber-100 text-amber-900 border border-amber-200">
               ⚠️ {metrics.expiringMemberships || 0} Soon
             </span>
           </div>
@@ -432,46 +428,46 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         {/* Card 4: Pending Dues (Rose - Matching Billing/Dues) */}
         <div
           onClick={() => navigate('/billing')}
-          className="bg-rose-50/40 border border-rose-200/80 border-l-4 border-l-rose-500 rounded-xl p-4 shadow-2xs hover:border-rose-300 hover:shadow-xs cursor-pointer active:scale-[0.98] transition-all"
+          className="bg-rose-50/40 border border-rose-200/80 border-l-4 border-l-rose-500 rounded-xl p-3 sm:p-4 shadow-2xs hover:border-rose-300 hover:shadow-xs cursor-pointer active:scale-[0.98] transition-all"
           title="Click to view pending dues ledger"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-rose-800/80 uppercase tracking-wider">
+            <span className="text-[11px] sm:text-xs font-bold text-rose-800/80 uppercase tracking-wider truncate mr-1">
               Pending Dues
             </span>
-            <div className="w-8 h-8 rounded-lg bg-rose-100/90 text-rose-700 border border-rose-200 flex items-center justify-center shadow-2xs">
-              <AlertCircle className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-100/90 text-rose-700 border border-rose-200 flex items-center justify-center shadow-2xs shrink-0">
+              <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           </div>
-          <div className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
+          <div className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
             {formatINR(pendingDues.totalDuesAmount)}
           </div>
-          <p className="text-[11px] text-rose-800/70 mt-1 flex items-center gap-1.5 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
-            {pendingDues.duesCount} members with balance
+          <p className="text-[10px] sm:text-[11px] text-rose-800/70 mt-1 flex items-center gap-1.5 font-medium truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-600 shrink-0" />
+            <span className="truncate">{pendingDues.duesCount} members with due</span>
           </p>
         </div>
 
-        {/* Card 5: Total Revenue (Purple - Matching Plans/Revenue) */}
+        {/* Card 5: Total Revenue (Purple - Matching Plans/Revenue, spans 2 cols on mobile) */}
         <div
           onClick={() => navigate('/billing')}
-          className="bg-purple-50/40 border border-purple-200/80 border-l-4 border-l-purple-500 rounded-xl p-4 shadow-2xs hover:border-purple-300 hover:shadow-xs cursor-pointer active:scale-[0.98] transition-all"
+          className="col-span-2 lg:col-span-1 bg-purple-50/40 border border-purple-200/80 border-l-4 border-l-purple-500 rounded-xl p-3 sm:p-4 shadow-2xs hover:border-purple-300 hover:shadow-xs cursor-pointer active:scale-[0.98] transition-all"
           title="Click to view monthly billing"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-purple-800/80 uppercase tracking-wider">
+            <span className="text-[11px] sm:text-xs font-bold text-purple-800/80 uppercase tracking-wider truncate mr-1">
               Total Revenue
             </span>
-            <div className="w-8 h-8 rounded-lg bg-purple-100/90 text-purple-700 border border-purple-200 flex items-center justify-center font-bold text-sm shadow-2xs">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-100/90 text-purple-700 border border-purple-200 flex items-center justify-center font-bold text-xs sm:text-sm shadow-2xs shrink-0">
               ₹
             </div>
           </div>
-          <div className="mt-2 text-2xl font-black text-slate-900 tracking-tight">
+          <div className="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-black text-slate-900 tracking-tight">
             {formatINR(metrics.monthlyRevenue || 0)}
           </div>
-          <p className="text-[11px] text-purple-800/70 mt-1 flex items-center gap-1.5 font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-600" />
-            Total collections this calendar month
+          <p className="text-[10px] sm:text-[11px] text-purple-800/70 mt-1 flex items-center gap-1.5 font-medium truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-600 shrink-0" />
+            <span className="truncate">Monthly collections</span>
           </p>
         </div>
       </div>
@@ -517,180 +513,316 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             All member passes are currently valid and active. No expired or expiring memberships.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
-                <tr>
-                  <th className="px-6 py-3">Member Name</th>
-                  <th className="px-6 py-3">Phone Number</th>
-                  <th className="px-6 py-3">Membership Plan</th>
-                  <th className="px-6 py-3">Expiry Date</th>
-                  <th className="px-6 py-3">Status / Alert</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {displayedAlerts.map((sub: any) => {
-                  const memberObj: any = sub.member || {};
-                  const planObj: any = sub.plan || {};
-                  const isExp = sub.isExpired;
+          <>
+            {/* Desktop / Tablet Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                  <tr>
+                    <th className="px-6 py-3">Member Name</th>
+                    <th className="px-6 py-3">Phone Number</th>
+                    <th className="px-6 py-3">Membership Plan</th>
+                    <th className="px-6 py-3">Expiry Date</th>
+                    <th className="px-6 py-3">Status / Alert</th>
+                    <th className="px-6 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {displayedAlerts.map((sub: any) => {
+                    const memberObj: any = sub.member || {};
+                    const planObj: any = sub.plan || {};
+                    const isExp = sub.isExpired;
 
-                  return (
-                    <tr
-                      key={sub._id}
-                      className={`transition-colors ${
-                        isExp
-                          ? 'bg-rose-50/40 hover:bg-rose-50/70'
-                          : 'hover:bg-slate-50/70'
-                      }`}
-                    >
-                      {/* Member Photo and Name */}
-                      <td className="px-6 py-3.5">
-                        <button
-                          onClick={() => {
-                            if (memberObj._id && onSelectMember) {
-                              onSelectMember(memberObj._id);
-                            }
-                          }}
-                          className="flex items-center gap-3 text-left group"
-                        >
-                          {memberObj.photoUrl ? (
-                            <img
-                              src={memberObj.photoUrl}
-                              alt={memberObj.fullName}
-                              className={`w-9 h-9 rounded-xl object-cover shrink-0 border ${
-                                isExp ? 'border-rose-300' : 'border-slate-200'
-                              } shadow-xs`}
-                            />
-                          ) : (
-                            <div
-                              className={`w-9 h-9 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 border ${
-                                isExp
-                                  ? 'bg-rose-100 text-rose-700 border-rose-200'
-                                  : 'bg-blue-50 text-blue-700 border-blue-100'
-                              } shadow-xs`}
-                            >
-                              {memberObj.fullName ? memberObj.fullName.charAt(0) : 'M'}
-                            </div>
-                          )}
-                          <div>
-                            <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
-                              <span>{memberObj.fullName || 'Member'}</span>
-                              {isExp && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-700 border border-rose-200">
-                                  EXPIRED
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-[11px] text-slate-500 font-mono mt-0.5">
-                              ID: {memberObj.memberId || '—'}
-                            </div>
-                          </div>
-                        </button>
-                      </td>
-
-                      {/* Phone Number */}
-                      <td className="px-6 py-3.5 font-mono font-medium text-slate-700">
-                        {formatDisplayPhoneIN(memberObj.phone)}
-                      </td>
-
-                      {/* Membership Plan */}
-                      <td className="px-6 py-3.5 text-slate-800 font-semibold">
-                        {planObj.name || 'Standard Pass'}
-                      </td>
-
-                      {/* Expiry Date (DD/MM/YYYY) */}
-                      <td
-                        className={`px-6 py-3.5 font-semibold font-mono ${
-                          isExp ? 'text-rose-700 font-bold' : 'text-slate-800'
+                    return (
+                      <tr
+                        key={sub._id}
+                        className={`transition-colors ${
+                          isExp
+                            ? 'bg-rose-50/40 hover:bg-rose-50/70'
+                            : 'hover:bg-slate-50/70'
                         }`}
                       >
-                        {formatDateIN(sub.expiryDate)}
-                      </td>
-
-                      {/* Days Remaining / Status Badge */}
-                      <td className="px-6 py-3.5">
-                        {getDaysRemainingBadge(sub.expiryDate, isExp)}
-                      </td>
-
-                      {/* Actions: Aesthetic Buttons */}
-                      <td className="px-6 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {memberObj.phone && (
-                            <button
-                              onClick={() => {
-                                if (isExp) {
-                                  sendWhatsAppExpiredNotice({
-                                    name: memberObj.fullName || 'Member',
-                                    phone: memberObj.phone,
-                                    planName: planObj.name,
-                                    expiryDate: sub.expiryDate,
-                                  });
-                                } else {
-                                  sendWhatsAppReminder({
-                                    name: memberObj.fullName || 'Member',
-                                    phone: memberObj.phone,
-                                    planName: planObj.name,
-                                    expiryDate: sub.expiryDate,
-                                  });
-                                }
-                              }}
-                              className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 hover:border-emerald-300 hover:text-emerald-800 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                              title={
-                                isExp
-                                  ? 'Send WhatsApp Expired Renewal Notice'
-                                  : 'Send WhatsApp Expiry Reminder'
-                              }
-                            >
-                              <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
-                                <MessageCircle className="w-3 h-3 shrink-0" />
-                              </div>
-                              <span>WhatsApp</span>
-                            </button>
-                          )}
-
+                        {/* Member Photo and Name */}
+                        <td className="px-6 py-3.5">
                           <button
                             onClick={() => {
-                              if (onRenewMember) onRenewMember(sub);
+                              if (memberObj._id && onSelectMember) {
+                                onSelectMember(memberObj._id);
+                              }
                             }}
-                            className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-3 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all shadow-xs hover:shadow-md hover:shadow-blue-500/20 active:scale-95"
+                            className="flex items-center gap-3 text-left group"
                           >
-                            <div className="w-5.5 h-5.5 rounded-md bg-white/20 flex items-center justify-center shrink-0">
-                              <RotateCw className="w-3 h-3 text-white shrink-0" />
-                            </div>
-                            <span>Renew</span>
-                          </button>
-
-                          {/* Archive Option (for expired members who left the gym) */}
-                          {isAdmin && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setArchiveTargetMember({
-                                  _id: memberObj._id,
-                                  memberId: memberObj.memberId,
-                                  fullName: memberObj.fullName || 'Member',
-                                  phone: memberObj.phone,
-                                  photoUrl: memberObj.photoUrl,
-                                });
-                              }}
-                              className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-rose-700 bg-white hover:bg-rose-50/50 border border-slate-200 hover:border-rose-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                              title="Member left the gym? Safely archive to remove from active alerts while preserving all records"
-                            >
-                              <div className="w-5.5 h-5.5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100 transition-colors group-hover:bg-rose-100">
-                                <Archive className="w-3 h-3 shrink-0" />
+                            {memberObj.photoUrl ? (
+                              <img
+                                src={memberObj.photoUrl}
+                                alt={memberObj.fullName}
+                                className={`w-9 h-9 rounded-xl object-cover shrink-0 border ${
+                                  isExp ? 'border-rose-300' : 'border-slate-200'
+                                } shadow-xs`}
+                              />
+                            ) : (
+                              <div
+                                className={`w-9 h-9 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 border ${
+                                  isExp
+                                    ? 'bg-rose-100 text-rose-700 border-rose-200'
+                                    : 'bg-blue-50 text-blue-700 border-blue-100'
+                                } shadow-xs`}
+                              >
+                                {memberObj.fullName ? memberObj.fullName.charAt(0) : 'M'}
                               </div>
-                              <span>Archive</span>
+                            )}
+                            <div>
+                              <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                                <span>{memberObj.fullName || 'Member'}</span>
+                                {isExp && (
+                                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-700 border border-rose-200">
+                                    EXPIRED
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                                ID: {memberObj.memberId || '—'}
+                              </div>
+                            </div>
+                          </button>
+                        </td>
+
+                        {/* Phone Number */}
+                        <td className="px-6 py-3.5 font-mono font-medium text-slate-700">
+                          {formatDisplayPhoneIN(memberObj.phone)}
+                        </td>
+
+                        {/* Membership Plan */}
+                        <td className="px-6 py-3.5 text-slate-800 font-semibold">
+                          {planObj.name || 'Standard Pass'}
+                        </td>
+
+                        {/* Expiry Date (DD/MM/YYYY) */}
+                        <td
+                          className={`px-6 py-3.5 font-semibold font-mono ${
+                            isExp ? 'text-rose-700 font-bold' : 'text-slate-800'
+                          }`}
+                        >
+                          {formatDateIN(sub.expiryDate)}
+                        </td>
+
+                        {/* Days Remaining / Status Badge */}
+                        <td className="px-6 py-3.5">
+                          {getDaysRemainingBadge(sub.expiryDate, isExp)}
+                        </td>
+
+                        {/* Actions: Aesthetic Buttons */}
+                        <td className="px-6 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {memberObj.phone && (
+                              <button
+                                onClick={() => {
+                                  if (isExp) {
+                                    sendWhatsAppExpiredNotice({
+                                      name: memberObj.fullName || 'Member',
+                                      phone: memberObj.phone,
+                                      planName: planObj.name,
+                                      expiryDate: sub.expiryDate,
+                                    });
+                                  } else {
+                                    sendWhatsAppReminder({
+                                      name: memberObj.fullName || 'Member',
+                                      phone: memberObj.phone,
+                                      planName: planObj.name,
+                                      expiryDate: sub.expiryDate,
+                                    });
+                                  }
+                                }}
+                                className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 hover:border-emerald-300 hover:text-emerald-800 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                                title={
+                                  isExp
+                                    ? 'Send WhatsApp Expired Renewal Notice'
+                                    : 'Send WhatsApp Expiry Reminder'
+                                }
+                              >
+                                <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
+                                  <MessageCircle className="w-3 h-3 shrink-0" />
+                                </div>
+                                <span>WhatsApp</span>
+                              </button>
+                            )}
+
+                            <button
+                              onClick={() => {
+                                if (onRenewMember) onRenewMember(sub);
+                              }}
+                              className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-3 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all shadow-xs hover:shadow-md hover:shadow-blue-500/20 active:scale-95"
+                            >
+                              <div className="w-5.5 h-5.5 rounded-md bg-white/20 flex items-center justify-center shrink-0">
+                                <RotateCw className="w-3 h-3 text-white shrink-0" />
+                              </div>
+                              <span>Renew</span>
                             </button>
-                          )}
+
+                            {/* Archive Option (for expired members who left the gym) */}
+                            {isAdmin && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setArchiveTargetMember({
+                                    _id: memberObj._id,
+                                    memberId: memberObj.memberId,
+                                    fullName: memberObj.fullName || 'Member',
+                                    phone: memberObj.phone,
+                                    photoUrl: memberObj.photoUrl,
+                                  });
+                                }}
+                                className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-rose-700 bg-white hover:bg-rose-50/50 border border-slate-200 hover:border-rose-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                                title="Member left the gym? Safely archive to remove from active alerts while preserving all records"
+                              >
+                                <div className="w-5.5 h-5.5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100 transition-colors group-hover:bg-rose-100">
+                                  <Archive className="w-3 h-3 shrink-0" />
+                                </div>
+                                <span>Archive</span>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card List View (Full Touch Experience, Zero Sideways Scroll) */}
+            <div className="block md:hidden divide-y divide-slate-100">
+              {displayedAlerts.map((sub: any) => {
+                const memberObj: any = sub.member || {};
+                const planObj: any = sub.plan || {};
+                const isExp = sub.isExpired;
+
+                return (
+                  <div
+                    key={sub._id}
+                    className={`p-3.5 space-y-2.5 transition-colors ${
+                      isExp ? 'bg-rose-50/30' : 'bg-white'
+                    }`}
+                  >
+                    {/* Header: Photo, Name, ID, Expiry status badge */}
+                    <div className="flex items-start justify-between gap-2.5">
+                      <button
+                        onClick={() => {
+                          if (memberObj._id && onSelectMember) {
+                            onSelectMember(memberObj._id);
+                          }
+                        }}
+                        className="flex items-center gap-2.5 text-left group min-w-0 flex-1"
+                      >
+                        {memberObj.photoUrl ? (
+                          <img
+                            src={memberObj.photoUrl}
+                            alt={memberObj.fullName}
+                            className={`w-10 h-10 rounded-xl object-cover shrink-0 border ${
+                              isExp ? 'border-rose-300' : 'border-slate-200'
+                            } shadow-xs`}
+                          />
+                        ) : (
+                          <div
+                            className={`w-10 h-10 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 border ${
+                              isExp
+                                ? 'bg-rose-100 text-rose-700 border-rose-200'
+                                : 'bg-blue-50 text-blue-700 border-blue-100'
+                            } shadow-xs`}
+                          >
+                            {memberObj.fullName ? memberObj.fullName.charAt(0) : 'M'}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-sm text-slate-900 group-hover:text-blue-600 truncate flex items-center gap-1.5">
+                            <span className="truncate">{memberObj.fullName || 'Member'}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                            ID: <span className="text-slate-800 font-semibold">{memberObj.memberId || '—'}</span>
+                            {memberObj.phone && <span> • {formatDisplayPhoneIN(memberObj.phone)}</span>}
+                          </div>
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </button>
+
+                      <div className="shrink-0">
+                        {getDaysRemainingBadge(sub.expiryDate, isExp)}
+                      </div>
+                    </div>
+
+                    {/* Details: Plan & Expiry */}
+                    <div className="flex items-center justify-between text-xs px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200/60 font-medium">
+                      <span className="text-slate-600 font-semibold truncate mr-2">
+                        {planObj.name || 'Standard Pass'}
+                      </span>
+                      <span className={`font-mono text-[11px] shrink-0 ${isExp ? 'text-rose-700 font-bold' : 'text-slate-700'}`}>
+                        Exp: {formatDateIN(sub.expiryDate)}
+                      </span>
+                    </div>
+
+                    {/* Actions: Full touch-friendly row */}
+                    <div className="flex items-center gap-2 pt-0.5">
+                      {memberObj.phone && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isExp) {
+                              sendWhatsAppExpiredNotice({
+                                name: memberObj.fullName || 'Member',
+                                phone: memberObj.phone,
+                                planName: planObj.name,
+                                expiryDate: sub.expiryDate,
+                              });
+                            } else {
+                              sendWhatsAppReminder({
+                                name: memberObj.fullName || 'Member',
+                                phone: memberObj.phone,
+                                planName: planObj.name,
+                                expiryDate: sub.expiryDate,
+                              });
+                            }
+                          }}
+                          className="flex-1 min-h-[44px] h-11 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 active:scale-95 transition-all shadow-2xs"
+                        >
+                          <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>WhatsApp</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (onRenewMember) onRenewMember(sub);
+                        }}
+                        className="flex-1 min-h-[44px] h-11 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 transition-all shadow-xs"
+                      >
+                        <RotateCw className="w-3.5 h-3.5 text-white shrink-0" />
+                        <span>Renew</span>
+                      </button>
+
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setArchiveTargetMember({
+                              _id: memberObj._id,
+                              memberId: memberObj.memberId,
+                              fullName: memberObj.fullName || 'Member',
+                              phone: memberObj.phone,
+                              photoUrl: memberObj.photoUrl,
+                            });
+                          }}
+                          className="min-h-[44px] h-11 w-11 inline-flex items-center justify-center rounded-xl text-slate-500 hover:text-rose-700 bg-slate-50 border border-slate-200 active:scale-95 transition-all shrink-0"
+                          title="Archive member"
+                        >
+                          <Archive className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 
@@ -780,106 +912,180 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-3.5">Member</th>
-                  <th className="px-6 py-3.5">Member ID</th>
-                  <th className="px-6 py-3.5">Phone Number</th>
-                  <th className="px-6 py-3.5">Membership Plan</th>
-                  <th className="px-6 py-3.5">Expiry Date</th>
-                  <th className="px-6 py-3.5 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {activeMembers.map((member: any) => {
-                  const currentSub = member.currentMembership;
-                  const planName = currentSub?.plan?.name || 'Active Membership Pass';
-                  const expiryDate = currentSub?.expiryDate;
+          <>
+            {/* Desktop / Tablet Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                  <tr>
+                    <th className="px-6 py-3.5">Member</th>
+                    <th className="px-6 py-3.5">Member ID</th>
+                    <th className="px-6 py-3.5">Phone Number</th>
+                    <th className="px-6 py-3.5">Membership Plan</th>
+                    <th className="px-6 py-3.5">Expiry Date</th>
+                    <th className="px-6 py-3.5 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {activeMembers.map((member: any) => {
+                    const currentSub = member.currentMembership;
+                    const planName = currentSub?.plan?.name || 'Active Membership Pass';
+                    const expiryDate = currentSub?.expiryDate;
 
-                  return (
-                    <tr key={member._id} className="hover:bg-slate-50/75 transition-colors">
-                      {/* 1. Member Photo & Name */}
-                      <td className="px-6 py-3.5">
-                        <button
-                          onClick={() => {
-                            if (member._id && onSelectMember) {
-                              onSelectMember(member._id);
-                            }
-                          }}
-                          className="flex items-center gap-3 text-left group"
-                        >
-                          {member.photoUrl ? (
-                            <img
-                              src={member.photoUrl}
-                              alt={member.fullName}
-                              className="w-9 h-9 rounded-xl object-cover border border-slate-200 shadow-xs shrink-0"
-                            />
-                          ) : (
-                            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100 shadow-xs">
-                              {member.fullName ? member.fullName.charAt(0) : 'M'}
+                    return (
+                      <tr key={member._id} className="hover:bg-slate-50/75 transition-colors">
+                        {/* 1. Member Photo & Name */}
+                        <td className="px-6 py-3.5">
+                          <button
+                            onClick={() => {
+                              if (member._id && onSelectMember) {
+                                onSelectMember(member._id);
+                              }
+                            }}
+                            className="flex items-center gap-3 text-left group"
+                          >
+                            {member.photoUrl ? (
+                              <img
+                                src={member.photoUrl}
+                                alt={member.fullName}
+                                className="w-9 h-9 rounded-xl object-cover border border-slate-200 shadow-xs shrink-0"
+                              />
+                            ) : (
+                              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100 shadow-xs">
+                                {member.fullName ? member.fullName.charAt(0) : 'M'}
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                                {member.fullName || 'Member'}
+                              </div>
+                              <div className="text-[11px] text-slate-500 font-medium">
+                                {member.email || 'No email registered'}
+                              </div>
                             </div>
-                          )}
-                          <div>
-                            <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
-                              {member.fullName || 'Member'}
+                          </button>
+                        </td>
+
+                        {/* 2. Member ID */}
+                        <td className="px-6 py-3.5">
+                          <span className="inline-flex px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200/80 font-mono font-bold text-slate-800 text-xs shadow-2xs">
+                            {member.memberId || '—'}
+                          </span>
+                        </td>
+
+                        {/* 3. Phone Number */}
+                        <td className="px-6 py-3.5 font-mono text-slate-700 font-medium">
+                          {formatDisplayPhoneIN(member.phone)}
+                        </td>
+
+                        {/* 4. Membership Plan */}
+                        <td className="px-6 py-3.5 text-slate-800 font-semibold">
+                          {planName}
+                        </td>
+
+                        {/* 5. Expiry Date (DD/MM/YYYY) */}
+                        <td className="px-6 py-3.5 font-mono text-slate-800 font-medium">
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50/70 border border-emerald-100 font-mono text-xs font-semibold text-emerald-800">
+                            {expiryDate ? formatDateIN(expiryDate) : 'Ongoing'}
+                          </span>
+                        </td>
+
+                        {/* 6. Quick Action to View Profile */}
+                        <td className="px-6 py-3.5 text-right">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (member._id && onSelectMember) {
+                                onSelectMember(member._id);
+                              }
+                            }}
+                            className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-3 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                            title="View Member Profile"
+                          >
+                            <div className="w-5.5 h-5.5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 transition-colors group-hover:bg-blue-100 group-hover:text-blue-700">
+                              <Eye className="w-3 h-3 shrink-0" />
                             </div>
-                            <div className="text-[11px] text-slate-500 font-medium">
-                              {member.email || 'No email registered'}
-                            </div>
+                            <span>View Profile</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card List View */}
+            <div className="block md:hidden divide-y divide-slate-100">
+              {activeMembers.map((member: any) => {
+                const currentSub = member.currentMembership;
+                const planName = currentSub?.plan?.name || 'Active Pass';
+                const expiryDate = currentSub?.expiryDate;
+
+                return (
+                  <div key={member._id} className="p-3.5 space-y-2.5 bg-white">
+                    <div className="flex items-start justify-between gap-2.5">
+                      <button
+                        onClick={() => {
+                          if (member._id && onSelectMember) {
+                            onSelectMember(member._id);
+                          }
+                        }}
+                        className="flex items-center gap-2.5 text-left group min-w-0 flex-1"
+                      >
+                        {member.photoUrl ? (
+                          <img
+                            src={member.photoUrl}
+                            alt={member.fullName}
+                            className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200 shadow-xs"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100 shadow-xs">
+                            {member.fullName ? member.fullName.charAt(0) : 'M'}
                           </div>
-                        </button>
-                      </td>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-sm text-slate-900 group-hover:text-blue-600 truncate">
+                            {member.fullName || 'Member'}
+                          </div>
+                          <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                            ID: <span className="text-slate-800 font-semibold">{member.memberId || '—'}</span>
+                            {member.phone && <span> • {formatDisplayPhoneIN(member.phone)}</span>}
+                          </div>
+                        </div>
+                      </button>
 
-                      {/* 2. Member ID */}
-                      <td className="px-6 py-3.5">
-                        <span className="inline-flex px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200/80 font-mono font-bold text-slate-800 text-xs shadow-2xs">
-                          {member.memberId || '—'}
-                        </span>
-                      </td>
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                        ACTIVE
+                      </span>
+                    </div>
 
-                      {/* 3. Phone Number */}
-                      <td className="px-6 py-3.5 font-mono text-slate-700 font-medium">
-                        {formatDisplayPhoneIN(member.phone)}
-                      </td>
-
-                      {/* 4. Membership Plan */}
-                      <td className="px-6 py-3.5 text-slate-800 font-semibold">
+                    <div className="flex items-center justify-between text-xs px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200/60">
+                      <span className="text-slate-700 font-semibold truncate mr-2">
                         {planName}
-                      </td>
+                      </span>
+                      <span className="font-mono text-[11px] text-emerald-800 font-medium shrink-0">
+                        Exp: {expiryDate ? formatDateIN(expiryDate) : 'Ongoing'}
+                      </span>
+                    </div>
 
-                      {/* 5. Expiry Date (DD/MM/YYYY) */}
-                      <td className="px-6 py-3.5 font-mono text-slate-800 font-medium">
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50/70 border border-emerald-100 font-mono text-xs font-semibold text-emerald-800">
-                          {expiryDate ? formatDateIN(expiryDate) : 'Ongoing'}
-                        </span>
-                      </td>
-
-                      {/* 6. Quick Action to View Profile: Aesthetic Micro-Card Button */}
-                      <td className="px-6 py-3.5 text-right">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (member._id && onSelectMember) {
-                              onSelectMember(member._id);
-                            }
-                          }}
-                          className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-3 rounded-lg text-xs font-semibold text-slate-700 hover:text-blue-700 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
-                          title="View Member Profile"
-                        >
-                          <div className="w-5.5 h-5.5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 transition-colors group-hover:bg-blue-100 group-hover:text-blue-700">
-                            <Eye className="w-3 h-3 shrink-0" />
-                          </div>
-                          <span>View Profile</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (member._id && onSelectMember) {
+                          onSelectMember(member._id);
+                        }
+                      }}
+                      className="w-full min-h-[44px] h-11 inline-flex items-center justify-center gap-2 px-4 rounded-xl text-xs font-bold text-slate-700 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 hover:text-blue-700 transition-all active:scale-[0.98] shadow-2xs"
+                    >
+                      <Eye className="w-4 h-4 text-blue-600" />
+                      <span>View Member Profile</span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
 

@@ -157,7 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onO
                   end={item.exact}
                   onClick={onCloseMobile}
                   className={({ isActive }) =>
-                    `group flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all active:scale-[0.98] ${
+                    `group flex items-center justify-between px-3 py-2.5 min-h-[44px] rounded-xl text-sm transition-all active:scale-[0.98] ${
                       isActive
                         ? `${item.activeColor} shadow-2xs`
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 font-medium border-l-4 border-l-transparent'

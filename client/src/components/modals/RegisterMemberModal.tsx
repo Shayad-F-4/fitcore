@@ -831,19 +831,19 @@ export const RegisterMemberModal: React.FC<RegisterMemberModalProps> = ({
         </form>
 
         {/* Fixed Sticky Footer - Always Visible! */}
-        <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between shrink-0">
+        <div className="px-5 py-3.5 border-t border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
           <div className="text-xs text-slate-500 font-medium hidden sm:block">
             Membership will be activated from {formatDateIN(startObj)} to {expiryDateFormatted}
           </div>
 
-          <div className="flex items-center gap-2.5 ml-auto">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto ml-auto">
             <button
               type="button"
               onClick={() => {
                 stopCamera();
                 onClose();
               }}
-              className="h-9 px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 bg-white border border-slate-200 hover:border-slate-300 rounded-xl transition-all shadow-2xs active:scale-95"
+              className="flex-1 sm:flex-none min-h-[44px] h-11 px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 bg-white border border-slate-200 hover:border-slate-300 rounded-xl transition-all shadow-2xs active:scale-95 flex items-center justify-center"
             >
               Cancel
             </button>
@@ -851,11 +851,11 @@ export const RegisterMemberModal: React.FC<RegisterMemberModalProps> = ({
               type="submit"
               form="register-member-form"
               disabled={loading}
-              className="inline-flex items-center gap-2 h-9 px-5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md hover:shadow-blue-500/20 disabled:opacity-50"
+              className="flex-1 sm:flex-none min-h-[44px] h-11 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white text-xs font-bold transition-all shadow-xs hover:shadow-md hover:shadow-blue-500/20 disabled:opacity-50 inline-flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
-                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>Registering Member...</span>
                 </>
               ) : (

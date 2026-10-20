@@ -88,7 +88,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   const phone = gym?.phone || '';
 
   const totalFee = payment.amount + (balanceDue > 0 ? balanceDue : 0);
-  const filename = `FitCore-Receipt-${payment.receiptNumber}`;
+  const filename = `SagarFitness-Receipt-${payment.receiptNumber}`;
 
   const handleDownloadPdf = async () => {
     setIsGeneratingPdf(true);
@@ -332,24 +332,24 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           </div>
         </div>
 
-        {/* Compact Footer Actions */}
-        <div className="px-5 py-3 border-t border-slate-200 bg-white flex flex-wrap items-center justify-between gap-2 shrink-0">
+        {/* Compact Responsive Footer Actions */}
+        <div className="px-5 py-3 border-t border-slate-200 bg-white flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0">
           <button
             type="button"
             onClick={handleClose}
-            className="h-9 px-4 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors"
+            className="w-full sm:w-auto min-h-[44px] h-11 sm:h-9 px-4 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-colors order-last sm:order-first"
           >
             Close
           </button>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-1 sm:flex items-center gap-2">
             <button
               type="button"
               onClick={handleShareWhatsApp}
-              className="h-9 inline-flex items-center gap-1.5 px-3.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all shadow-xs"
+              className="w-full sm:w-auto min-h-[44px] h-11 sm:h-9 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all shadow-xs"
               title="Share Receipt to Member on WhatsApp"
             >
-              <MessageCircle className="w-3.5 h-3.5" />
+              <MessageCircle className="w-4 h-4" />
               <span>Share to WhatsApp</span>
             </button>
 
@@ -357,18 +357,18 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
               type="button"
               onClick={handleDownloadPdf}
               disabled={isGeneratingPdf}
-              className="h-9 inline-flex items-center gap-1.5 px-3.5 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 transition-colors shadow-xs disabled:opacity-50"
+              className="w-full sm:w-auto min-h-[44px] h-11 sm:h-9 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 transition-colors shadow-xs disabled:opacity-50"
             >
-              <Download className="w-3.5 h-3.5 text-slate-600" />
+              <Download className="w-4 h-4 text-slate-600" />
               <span>{isGeneratingPdf ? 'Generating...' : 'Download PDF'}</span>
             </button>
 
             <button
               type="button"
               onClick={handlePrint}
-              className="h-9 inline-flex items-center gap-1.5 px-4 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-xs active:scale-95"
+              className="w-full sm:w-auto min-h-[44px] h-11 sm:h-9 inline-flex items-center justify-center gap-1.5 px-4 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-xs active:scale-95"
             >
-              <Printer className="w-3.5 h-3.5" />
+              <Printer className="w-4 h-4" />
               <span>Print Receipt</span>
             </button>
           </div>

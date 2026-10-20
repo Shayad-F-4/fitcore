@@ -1,6 +1,6 @@
 # Sagar Fitness Gym — Gym Management System
 
-> **Official Production Application for Sagar Fitness Gym (Single Location, Baner, Pune)**
+> **Official Production Application for Sagar Fitness Gym (Single Location, Pathardi, Maharashtra, India)**
 
 A stable, secure, and production-ready gym management system engineered with React 18, TypeScript, Vite, Tailwind CSS, Node.js, Express, MongoDB, and Mongoose. Specifically tailored for single-gym operations with tax-free billing, real-time member check-ins, automated subscription tracking, and role-based operational access.
 
@@ -9,7 +9,7 @@ A stable, secure, and production-ready gym management system engineered with Rea
 ## 🏛️ 1. Architecture Overview
 
 ### Single-Gym Architecture
-- **Single Physical Location**: Sagar Fitness Gym, Baner, Pune.
+- **Single Physical Location**: Sagar Fitness Gym, Pathardi, Maharashtra, India.
 - **No Multi-Branch Overhead**: All branch switchers, multi-branch dropdowns, branch comparison analytics, and branch routing have been eliminated.
 - **Data Model**: All database records (Members, Memberships, Attendance, Payments, Audit Logs) operate under the single Sagar Fitness Gym configuration (`SAGAR-01`).
 - **Reporting & Timezone**: Configured for Indian Rupee (`₹` / `INR`) and `Asia/Kolkata` (IST, UTC+5:30) date formatting (`DD/MM/YYYY`).

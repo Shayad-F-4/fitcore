@@ -23,7 +23,7 @@ export interface ExpiryReminderParams {
 export const getExpiryReminderMessage = ({
   name,
   expiryDate,
-  gymName = 'FitCore Fitness Club',
+  gymName = 'Sagar Fitness Gym',
 }: Omit<ExpiryReminderParams, 'phone'>): string => {
   const formattedDate = formatDateIN(expiryDate);
   return `Hi ${name}, your ${gymName} gym membership expires on ${formattedDate}. Please renew your membership on time to continue your workouts without interruption. For renewal assistance, contact our front desk. Thank you!`;
@@ -32,7 +32,7 @@ export const getExpiryReminderMessage = ({
 export const getWelcomeMessage = (
   name: string,
   memberId: string,
-  gymName = 'FitCore Fitness Club'
+  gymName = 'Sagar Fitness Gym'
 ): string => {
   return (
     `Welcome to ${gymName}, ${name}! 🏋️🔥\n\n` +
@@ -71,8 +71,8 @@ export interface ExpiredNoticeParams {
 export const getExpiredNoticeMessage = ({
   name,
   expiryDate,
-  planName = 'FitCore Membership',
-  gymName = 'FitCore Fitness Club',
+  planName = 'Sagar Fitness Membership',
+  gymName = 'Sagar Fitness Gym',
 }: Omit<ExpiredNoticeParams, 'phone'>): string => {
   const formattedDate = formatDateIN(expiryDate);
   return (
@@ -106,8 +106,8 @@ export const getDueReminderMessage = ({
   name,
   dueAmount,
   amountPending,
-  planName = 'FitCore Membership',
-  gymName = 'FitCore Fitness Club',
+  planName = 'Sagar Fitness Membership',
+  gymName = 'Sagar Fitness Gym',
 }: Omit<DueReminderParams, 'phone'>): string => {
   const finalDue = dueAmount ?? amountPending ?? 0;
   const formattedDue = formatINR(finalDue);

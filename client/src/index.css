@@ -83,5 +83,35 @@
     transform: translateY(-2px);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
   }
+
+  /* Safe-area padding utilities for notched mobile phones */
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+  }
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top, 0px), 12px);
+  }
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Print Styles: Clean printing of receipts, sheets, and membership cards */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  aside,
+  header,
+  nav,
+  #mobile-bottom-nav,
+  .no-print,
+  button:not(.print-allow) {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
 }
 

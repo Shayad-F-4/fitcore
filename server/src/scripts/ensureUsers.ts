@@ -82,14 +82,35 @@ export async function ensureCoreUsers() {
       await User.create(u);
       console.log(`[Auth Setup] Created user account: ${u.email} / username: ${u.username} (${u.role})`);
     } else {
-      // Ensure password, username, and role are active
-      existing.password = u.password;
+      // Preserve changed passwords unless explicitly requested via RESET_DEFAULT_PASSWORDS=true
+      if (process.env.RESET_DEFAULT_PASSWORDS === 'true') {
+        existing.password = u.password;
+      }
       existing.username = u.username;
       existing.role = u.role;
       existing.status = 'ACTIVE';
       if (!existing.branch && branchId) existing.branch = branchId;
       await existing.save();
-      console.log(`[Auth Setup] Updated/verified user account: ${u.email} / username: ${u.username} (${u.role})`);
+      console.log(`[Auth Setup] Verified active account: ${u.email} / username: ${u.username} (${u.role})`);
+    }
+  }
+
+  // Support custom gym owner provisioned via production environment variables
+  const customAdminEmail = process.env.INITIAL_ADMIN_EMAIL?.trim().toLowerCase();
+  const customAdminPassword = process.env.INITIAL_ADMIN_PASSWORD?.trim();
+  if (customAdminEmail && customAdminPassword) {
+    let customAdmin = await User.findOne({ email: customAdminEmail });
+    if (!customAdmin) {
+      await User.create({
+        email: customAdminEmail,
+        username: process.env.INITIAL_ADMIN_USERNAME?.trim().toLowerCase() || customAdminEmail.split('@')[0],
+        password: customAdminPassword,
+        fullName: process.env.INITIAL_ADMIN_NAME?.trim() || 'Sagar Fitness Gym Owner',
+        role: 'SUPER_ADMIN',
+        branch: branchId,
+        status: 'ACTIVE',
+      });
+      console.log(`[Auth Setup] Created custom production Gym Owner: ${customAdminEmail}`);
     }
   }
 }

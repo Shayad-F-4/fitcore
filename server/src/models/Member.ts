@@ -119,5 +119,7 @@ const MemberSchema = new Schema<IMember>(
 );
 
 MemberSchema.index({ fullName: 'text', email: 'text', phone: 'text', memberId: 'text' });
+MemberSchema.index({ isArchived: 1, status: 1, createdAt: -1 });
+MemberSchema.index({ isArchived: 1, branch: 1, createdAt: -1 });
 
 export const Member = mongoose.model<IMember>('Member', MemberSchema);
