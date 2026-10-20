@@ -808,7 +808,7 @@ export const SettingsPage: React.FC = () => {
                         value={gymSettings.city || ''}
                         onChange={(e) => setGymSettings({ ...gymSettings, city: e.target.value })}
                         className="w-full px-3 py-2 text-xs font-semibold text-slate-900 border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                        placeholder="e.g. Pune"
+                        placeholder="e.g. Pathardi"
                       />
                     </div>
                     <div>

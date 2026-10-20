@@ -449,8 +449,8 @@ export const RegisterMemberModal: React.FC<RegisterMemberModalProps> = ({
                   Gym Location
                 </label>
                 <div className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-lg bg-gray-50 text-slate-800 font-semibold flex items-center justify-between">
-                  <span>Sagar Fitness Gym</span>
-                  <span className="text-xs text-slate-400 font-normal">Pune</span>
+                  <span>{activeBranch?.name || 'Sagar Fitness Gym'}</span>
+                  <span className="text-xs text-slate-400 font-normal">{activeBranch?.city || 'Pathardi'}</span>
                 </div>
               </div>
 
@@ -461,7 +461,7 @@ export const RegisterMemberModal: React.FC<RegisterMemberModalProps> = ({
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Flat 402, Shivneri Heights, FC Road, Shivajinagar, Pune"
+                  placeholder="e.g. Near Old Bus Stand, Main Road, Pathardi, Maharashtra 414102"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-lg focus:border-blue-600 focus:outline-none"
