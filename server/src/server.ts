@@ -10,6 +10,7 @@ import { User } from './models/User.js';
 import { seedDatabase } from './scripts/seed.js';
 import { ensureCoreUsers } from './scripts/ensureUsers.js';
 import { migrateToSingleGym } from './scripts/migrateSingleGym.js';
+import { ensureDefaultPlans } from './scripts/ensurePlans.js';
 import { runExpirationCheck } from './services/expirationService.js';
 
 // Route imports
@@ -148,6 +149,8 @@ const startServer = async () => {
     await ensureCoreUsers().catch((e) => console.error('[Auth Init Error]', e));
     // Ensure single Sagar Fitness Gym branch is established
     await migrateToSingleGym().catch((e) => console.error('[Single Gym Migration Error]', e));
+    // Ensure standard Sagar Fitness Gym membership plans exist
+    await ensureDefaultPlans().catch((e) => console.error('[Plans Setup Error]', e));
 
     // Auto-seed if database is clean
     const userCount = await User.countDocuments();
