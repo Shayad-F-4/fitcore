@@ -14,7 +14,6 @@ import {
   Edit2,
   Eye,
   Download,
-  MessageCircle,
   RotateCcw,
   RotateCw,
   Trash2,
@@ -34,6 +33,7 @@ import { Avatar } from '../components/Avatar';
 import { exportToCSV } from '../utils/csvExport';
 import { sendWhatsAppReminder, openWhatsApp, getWelcomeMessage, sendWhatsAppDueReminder } from '../utils/whatsapp';
 import { formatINR, formatDateIN, formatDisplayPhoneIN } from '../utils/formatters';
+import { WhatsAppIcon } from '../components/WhatsAppIcon';
 
 interface MembersPageProps {
   onOpenRegister: () => void;
@@ -619,10 +619,10 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
                                     );
                                   }
                                 }}
-                                className="h-8 w-8 rounded-lg bg-white border border-slate-200 hover:border-emerald-300 text-emerald-600 hover:bg-emerald-50/50 flex items-center justify-center transition-all active:scale-95 shadow-2xs hover:shadow-xs"
+                                className="h-8 w-8 rounded-lg bg-white border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 flex items-center justify-center transition-all active:scale-95 shadow-2xs hover:shadow-xs"
                                 title="Send WhatsApp Message / Reminder"
                               >
-                                <MessageCircle className="w-3.5 h-3.5" />
+                                <WhatsAppIcon className="w-4 h-4" />
                               </button>
                             )}
 
@@ -697,7 +697,7 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
                                         }}
                                         className="w-full px-3 py-2 text-xs text-amber-700 hover:bg-amber-50 flex items-center gap-2 font-medium"
                                       >
-                                        <MessageCircle className="w-3.5 h-3.5 text-amber-600" />
+                                        <WhatsAppIcon className="w-3.5 h-3.5" />
                                         WhatsApp Due Reminder ({formatINR(pendingBalance)})
                                       </button>
                                     ) : (
@@ -725,7 +725,7 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
                                         }}
                                         className="w-full px-3 py-2 text-xs text-emerald-700 hover:bg-emerald-50 flex items-center gap-2"
                                       >
-                                        <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                                        <WhatsAppIcon className="w-3.5 h-3.5" />
                                         WhatsApp Reminder
                                       </button>
                                     ))}
@@ -917,7 +917,7 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
                         className="min-h-[44px] h-11 w-11 inline-flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 active:scale-95 transition-all shadow-2xs shrink-0"
                         title="WhatsApp"
                       >
-                        <MessageCircle className="w-4 h-4" />
+                        <WhatsAppIcon className="w-5 h-5" />
                       </button>
                     )}
 

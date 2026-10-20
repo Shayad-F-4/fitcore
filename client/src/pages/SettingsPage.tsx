@@ -25,7 +25,6 @@ import {
   X,
   ExternalLink,
   Laptop,
-  MessageSquare,
   Send,
   Smartphone,
   Sparkles,
@@ -41,6 +40,7 @@ import { api, getMediaUrl } from '../api/client';
 import { Branch } from '../types';
 import { formatDateIN } from '../utils/formatters';
 import { Avatar } from '../components/Avatar';
+import { WhatsAppIcon } from '../components/WhatsAppIcon';
 
 export const SettingsPage: React.FC = () => {
   const { user, branches, activeBranch, setActiveBranch, updateCurrentUser } = useAuth();
@@ -578,7 +578,7 @@ export const SettingsPage: React.FC = () => {
               : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
-          <MessageSquare className={`w-4 h-4 ${activeTab === 'whatsapp' ? 'text-emerald-600' : 'text-slate-400'}`} />
+          <WhatsAppIcon className="w-4 h-4" />
           WhatsApp Automation
           {gymSettings.whatsappStatus?.isConfigured ? (
             <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
@@ -1022,8 +1022,8 @@ export const SettingsPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
-                      <MessageSquare className="w-5 h-5" />
+                    <span className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+                      <WhatsAppIcon className="w-6 h-6" />
                     </span>
                     <h2 className="text-lg font-bold text-slate-900">
                       WhatsApp Cloud API Automation

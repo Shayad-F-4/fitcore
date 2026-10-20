@@ -3,11 +3,11 @@ import {
   Clock,
   AlertTriangle,
   RefreshCw,
-  MessageCircle,
   CreditCard,
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
+import { WhatsAppIcon } from './WhatsAppIcon';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { formatDisplayPhoneIN } from '../utils/formatters';
@@ -171,7 +171,7 @@ export const ExpiryManager: React.FC<ExpiryManagerProps> = ({
                 : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-2xs'
             }`}
           >
-            <MessageCircle className="w-3.5 h-3.5" />
+            <WhatsAppIcon className="w-3.5 h-3.5" />
             <span>Expiring in 4–5 Days</span>
             <span
               className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
@@ -299,7 +299,7 @@ export const ExpiryManager: React.FC<ExpiryManagerProps> = ({
                               title="Open WhatsApp with prefilled reminder"
                             >
                               <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
-                                <MessageCircle className="w-3 h-3" />
+                                <WhatsAppIcon className="w-3.5 h-3.5" />
                               </div>
                               <span>WhatsApp</span>
                             </button>
@@ -346,7 +346,7 @@ export const ExpiryManager: React.FC<ExpiryManagerProps> = ({
                         onClick={() => handleManualSend(item)}
                         className="w-full min-h-[44px] h-11 inline-flex items-center justify-center gap-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 active:scale-95 transition-all shadow-2xs"
                       >
-                        <MessageCircle className="w-4 h-4 text-emerald-600" />
+                        <WhatsAppIcon className="w-4 h-4" />
                         <span>Send WhatsApp Reminder</span>
                       </button>
                     </div>
@@ -414,7 +414,7 @@ export const ExpiryManager: React.FC<ExpiryManagerProps> = ({
                               className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-emerald-700 bg-white hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
                             >
                               <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
-                                <MessageCircle className="w-3 h-3" />
+                                <WhatsAppIcon className="w-3.5 h-3.5" />
                               </div>
                               <span>Remind on WhatsApp</span>
                             </button>
@@ -459,7 +459,7 @@ export const ExpiryManager: React.FC<ExpiryManagerProps> = ({
                         onClick={() => handleManualSend(item)}
                         className="w-full min-h-[44px] h-11 inline-flex items-center justify-center gap-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 active:scale-95 transition-all shadow-2xs"
                       >
-                        <MessageCircle className="w-4 h-4 text-emerald-600" />
+                        <WhatsAppIcon className="w-4 h-4" />
                         <span>Send WhatsApp Reminder</span>
                       </button>
                     </div>
@@ -531,7 +531,7 @@ export const ExpiryManager: React.FC<ExpiryManagerProps> = ({
                                 className="h-8 w-8 rounded-lg bg-white border border-slate-200 hover:border-emerald-300 text-emerald-600 hover:bg-emerald-50/50 flex items-center justify-center transition-all active:scale-95 shadow-2xs hover:shadow-xs"
                                 title="Chat on WhatsApp"
                               >
-                                <MessageCircle className="w-3.5 h-3.5" />
+                                <WhatsAppIcon className="w-4 h-4" />
                               </button>
                               {onRenewMember && (
                                 <button
@@ -590,7 +590,7 @@ export const ExpiryManager: React.FC<ExpiryManagerProps> = ({
                           }}
                           className="flex-1 min-h-[44px] h-11 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 active:scale-95 transition-all shadow-2xs"
                         >
-                          <MessageCircle className="w-4 h-4 text-emerald-600" />
+                          <WhatsAppIcon className="w-4 h-4" />
                           <span>WhatsApp</span>
                         </button>
 

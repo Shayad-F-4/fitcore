@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
   Clock,
-  MessageCircle,
   RefreshCw,
   Filter,
 } from 'lucide-react';
+import { WhatsAppIcon } from '../components/WhatsAppIcon';
 import { api } from '../api/client';
 import { formatDateTimeIN, formatDisplayPhoneIN } from '../utils/formatters';
 import { ExpiryManager } from '../components/ExpiryManager';
@@ -92,7 +92,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({
               : 'border-transparent text-slate-500 hover:text-slate-900'
           }`}
         >
-          <MessageCircle className="w-4 h-4" />
+          <WhatsAppIcon className="w-4 h-4" />
           <span>WhatsApp Reminder History</span>
         </button>
       </div>

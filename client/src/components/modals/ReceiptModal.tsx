@@ -6,8 +6,8 @@ import {
   Dumbbell,
   CheckCircle2,
   AlertCircle,
-  MessageCircle,
 } from 'lucide-react';
+import { WhatsAppIcon } from '../WhatsAppIcon';
 import { Payment } from '../../types';
 import { formatINR, formatDateIN } from '../../utils/formatters';
 import { api } from '../../api/client';
@@ -349,7 +349,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
               className="w-full sm:w-auto min-h-[44px] h-11 sm:h-9 inline-flex items-center justify-center gap-1.5 px-3.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all shadow-xs"
               title="Share Receipt to Member on WhatsApp"
             >
-              <MessageCircle className="w-4 h-4" />
+              <WhatsAppIcon className="w-4 h-4" />
               <span>Share to WhatsApp</span>
             </button>
 

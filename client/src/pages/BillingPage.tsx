@@ -13,13 +13,13 @@ import {
   AlertCircle,
   Download,
   Calendar,
-  MessageCircle,
   Wallet,
   Clock,
   RefreshCw,
   FileText,
   User,
 } from 'lucide-react';
+import { WhatsAppIcon } from '../components/WhatsAppIcon';
 import { api } from '../api/client';
 import { Payment } from '../types';
 import { ReceiptModal } from '../components/modals/ReceiptModal';
@@ -916,7 +916,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                                     title="Send WhatsApp Payment Reminder"
                                   >
                                     <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
-                                      <MessageCircle className="w-3 h-3" />
+                                      <WhatsAppIcon className="w-3.5 h-3.5" />
                                     </div>
                                     <span>WhatsApp</span>
                                   </button>
@@ -1007,7 +1007,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                               }
                               className="flex-1 min-h-[44px] h-11 inline-flex items-center justify-center gap-1.5 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 active:scale-95 transition-all shadow-2xs"
                             >
-                              <MessageCircle className="w-4 h-4 text-emerald-600" />
+                              <WhatsAppIcon className="w-4 h-4" />
                               <span>WhatsApp</span>
                             </button>
                           )}

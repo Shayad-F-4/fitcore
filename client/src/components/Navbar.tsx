@@ -15,10 +15,10 @@ import {
   ExternalLink,
   RefreshCw,
   Zap,
-  MessageCircle,
 } from 'lucide-react';
 import { sendWhatsAppReminder, openWhatsApp, getWelcomeMessage } from '../utils/whatsapp';
 import { Avatar } from './Avatar';
+import { WhatsAppIcon } from './WhatsAppIcon';
 
 interface NavbarProps {
   onToggleSidebar?: () => void;
@@ -453,10 +453,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                             onClick={() => {
                               openWhatsApp(member.phone, getWelcomeMessage(member.fullName, member.memberId));
                             }}
-                            className="h-8 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold transition-colors border border-emerald-200 flex items-center gap-1"
+                            className="h-8 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition-colors border border-emerald-200 flex items-center gap-1.5"
                             title="Chat on WhatsApp"
                           >
-                            <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                            <WhatsAppIcon className="w-3.5 h-3.5" />
                             <span>WhatsApp</span>
                           </button>
                         )}
@@ -602,10 +602,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                                 className="group inline-flex items-center gap-1.5 h-7.5 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-700 hover:text-emerald-700 bg-white hover:bg-emerald-50/50 border border-slate-200 hover:border-emerald-300 transition-all active:scale-95 shadow-2xs hover:shadow-xs"
                                 title="Send WhatsApp Reminder"
                               >
-                                <div className="w-5 h-5 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
-                                  <MessageCircle className="w-3 h-3" />
+                                <div className="w-5 h-5 rounded bg-emerald-50 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
+                                  <WhatsAppIcon className="w-3.5 h-3.5" />
                                 </div>
-                                <span>WhatsApp</span>
+                                <span className="font-semibold text-slate-800 group-hover:text-emerald-800">WhatsApp</span>
                               </button>
                             )}
                           </div>

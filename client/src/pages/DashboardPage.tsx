@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   AlertCircle,
   UserPlus,
-  MessageCircle,
   Clock,
   UserCheck,
   Search,
@@ -23,6 +22,7 @@ import { formatINR, formatDateIN, formatDisplayPhoneIN } from '../utils/formatte
 import { sendWhatsAppReminder, sendWhatsAppExpiredNotice } from '../utils/whatsapp';
 import { ArchiveMemberModal } from '../components/modals/ArchiveMemberModal';
 import { Avatar } from '../components/Avatar';
+import { WhatsAppIcon } from '../components/WhatsAppIcon';
 
 
 
@@ -336,9 +336,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               }}
               className="p-3 rounded-xl bg-slate-50 hover:bg-amber-50/70 border border-slate-200 hover:border-amber-300 text-left transition-all active:scale-[0.98] group cursor-pointer min-h-[44px]"
             >
-              <div className="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-amber-800">
-                <div className="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                  <MessageCircle className="w-3.5 h-3.5" />
+              <div className="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-emerald-800">
+                <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
+                  <WhatsAppIcon className="w-4 h-4" />
                 </div>
                 <span>WhatsApp Alerts</span>
               </div>
@@ -629,10 +629,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                                     : 'Send WhatsApp Expiry Reminder'
                                 }
                               >
-                                <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
-                                  <MessageCircle className="w-3 h-3 shrink-0" />
+                                <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
+                                  <WhatsAppIcon className="w-3.5 h-3.5" />
                                 </div>
-                                <span>WhatsApp</span>
+                                <span className="font-semibold text-slate-800 group-hover:text-emerald-800">WhatsApp</span>
                               </button>
                             )}
 
@@ -767,7 +767,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                           }}
                           className="flex-1 min-h-[44px] h-11 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 active:scale-95 transition-all shadow-2xs"
                         >
-                          <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <WhatsAppIcon className="w-4 h-4 shrink-0" />
                           <span>WhatsApp</span>
                         </button>
                       )}

@@ -13,7 +13,6 @@ import {
   Receipt,
   Snowflake,
   ShieldAlert,
-  MessageCircle,
   Camera,
   Trash2,
   Archive,
@@ -26,6 +25,7 @@ import { sendWhatsAppReminder, openWhatsApp, getWelcomeMessage, sendWhatsAppDueR
 import { formatINR, formatDateIN, formatTimeIN, formatDisplayPhoneIN } from '../../utils/formatters';
 import { DeleteMemberModal } from './DeleteMemberModal';
 import { Avatar } from '../Avatar';
+import { WhatsAppIcon } from '../WhatsAppIcon';
 
 interface MemberProfileModalProps {
   memberId: string | null;
@@ -385,10 +385,10 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
                             );
                           }
                         }}
-                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/40 text-[11px] font-semibold transition-colors shadow-xs"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/40 text-[11px] font-semibold transition-colors shadow-xs"
                         title="Chat on WhatsApp"
                       >
-                        <MessageCircle className="w-3 h-3 text-emerald-400" />
+                        <WhatsAppIcon className="w-3.5 h-3.5" />
                         <span>WhatsApp</span>
                       </button>
                     )}
@@ -517,8 +517,8 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
                     className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-800 bg-white/90 hover:bg-white border border-white/50 hover:border-white transition-all active:scale-95 shadow-sm"
                     title="Send WhatsApp Due Reminder"
                   >
-                    <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
-                      <MessageCircle className="w-3 h-3 shrink-0" />
+                    <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
+                      <WhatsAppIcon className="w-3.5 h-3.5" />
                     </div>
                     <span>Due Reminder</span>
                   </button>
