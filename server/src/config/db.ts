@@ -10,18 +10,20 @@ export const connectDB = async (): Promise<void> => {
   }
 
   try {
+    const isSrv = ENV.MONGODB_URI.startsWith('mongodb+srv:');
     const conn = await mongoose.connect(ENV.MONGODB_URI, {
       maxPoolSize: 25,
       minPoolSize: 2,
       socketTimeoutMS: 45000,
-      serverSelectionTimeoutMS: 10000,
-      family: 4,
+      serverSelectionTimeoutMS: 15000,
+      ...(isSrv ? {} : { family: 4 }),
     });
     isConnected = true;
     console.log(`[Database] MongoDB Connected successfully: ${conn.connection.host}/${conn.connection.name}`);
-  } catch (error) {
-    console.error('[Database] MongoDB connection error:', error);
-    console.warn('[Database] Note: Ensure MongoDB service is reachable at ' + ENV.MONGODB_URI);
+  } catch (error: any) {
+    console.error('[Database] MongoDB connection error:', error?.message || error);
+    if (error?.stack) console.error(error.stack);
+    console.warn('[Database] Target URI:', ENV.MONGODB_URI.replace(/:([^:@]+)@/, ':****@'));
     if (process.env.NODE_ENV === 'production' && !process.env.VERCEL) {
       process.exit(1);
     }

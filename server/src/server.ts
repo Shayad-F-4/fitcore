@@ -171,9 +171,9 @@ const startServer = async () => {
       }
     }, 30 * 60 * 1000);
 
-    const serverInstance = app.listen(ENV.PORT, () => {
-      console.log(`⚡ [Sagar Fitness Server] Running on http://localhost:${ENV.PORT}`);
-      console.log(`🚀 [API Docs & Health] http://localhost:${ENV.PORT}/api/health`);
+    const serverInstance = app.listen(ENV.PORT, '0.0.0.0', () => {
+      console.log(`⚡ [Sagar Fitness Server] Running on port ${ENV.PORT}`);
+      console.log(`🚀 [API Docs & Health] Port ${ENV.PORT} /api/health`);
     });
 
     const gracefulShutdown = async (signal: string) => {
@@ -198,6 +198,14 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL UNCAUGHT EXCEPTION]', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[UNHANDLED PROMISE REJECTION]', reason);
+});
 
 if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   startServer();
