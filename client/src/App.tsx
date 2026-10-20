@@ -208,6 +208,7 @@ export const App: React.FC = () => {
                   />
                 }
               />
+              <Route path="/login" element={<Navigate to="/" replace />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>

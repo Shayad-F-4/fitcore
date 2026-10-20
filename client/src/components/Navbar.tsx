@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import {
@@ -37,6 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const { user, activeBranch, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -677,6 +678,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => {
                       setShowUserMenu(false);
                       logout();
+                      navigate('/', { replace: true });
                     }}
                     className="w-full text-left h-9 px-3 rounded-xl text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition-colors font-semibold cursor-pointer"
                   >

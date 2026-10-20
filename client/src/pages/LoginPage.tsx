@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Mail,
   Lock,
@@ -20,6 +21,7 @@ import { api } from '../api/client';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -38,14 +40,18 @@ export const LoginPage: React.FC = () => {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotMsg, setForgotMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Restore remembered identifier on initial load if present
+  // Restore remembered identifier on initial load if present & reset landing route to dashboard
   useEffect(() => {
     const savedId = localStorage.getItem('fitcore_remember_id');
     if (savedId) {
       setIdentifier(savedId);
       setRememberMe(true);
     }
-  }, []);
+    // Ensure that upon reaching the login screen, URL resets to '/' so after login it lands cleanly on Dashboard
+    if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +75,9 @@ export const LoginPage: React.FC = () => {
         email: identifier.trim(),
         password,
       });
+
+      // Explicitly land on Dashboard ('/') after login
+      navigate('/', { replace: true });
     } catch (err: any) {
       setError(
         err.message || 'Invalid Email/ID or password credentials. Please check your details and try again.'
