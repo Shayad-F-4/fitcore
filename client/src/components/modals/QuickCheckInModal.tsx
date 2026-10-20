@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { QrCode, X, CheckCircle2, AlertTriangle, Clock, ArrowRightLeft, Sparkles, Check } from 'lucide-react';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { Avatar } from '../Avatar';
 
 interface QuickCheckInModalProps {
   isOpen: boolean;
@@ -169,10 +170,12 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
               )}
 
               <div className="flex items-center gap-3.5 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
-                <img
-                  src={result.member.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                  alt={result.member.fullName}
-                  className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs"
+                <Avatar
+                  src={result.member.photoUrl}
+                  name={result.member.fullName}
+                  sizeClassName="w-12 h-12"
+                  shape="rounded-xl"
+                  className="shrink-0 shadow-2xs"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
@@ -208,10 +211,12 @@ export const QuickCheckInModal: React.FC<QuickCheckInModalProps> = ({
                 <span>Workout Completed — Athlete Checked Out!</span>
               </div>
               <div className="flex items-center gap-3.5 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
-                <img
-                  src={result.member.photoUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
-                  alt={result.member.fullName}
-                  className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0 shadow-2xs"
+                <Avatar
+                  src={result.member.photoUrl}
+                  name={result.member.fullName}
+                  sizeClassName="w-12 h-12"
+                  shape="rounded-xl"
+                  className="shrink-0 shadow-2xs"
                 />
                 <div className="flex-1 min-w-0">
                   <h4 className="font-bold text-slate-900 text-sm">

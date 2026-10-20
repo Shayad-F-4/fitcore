@@ -40,6 +40,7 @@ import { useAuth } from '../context/AuthContext';
 import { api, getMediaUrl } from '../api/client';
 import { Branch } from '../types';
 import { formatDateIN } from '../utils/formatters';
+import { Avatar } from '../components/Avatar';
 
 export const SettingsPage: React.FC = () => {
   const { user, branches, activeBranch, setActiveBranch, updateCurrentUser } = useAuth();
@@ -1460,21 +1461,13 @@ export const SettingsPage: React.FC = () => {
                       <tr key={st._id} className="hover:bg-slate-50/75 transition-colors">
                         <td className="px-5 py-3.5 font-semibold text-slate-900">
                           <div className="flex items-center gap-3">
-                            {st.avatarUrl ? (
-                              <img
-                                src={getMediaUrl(st.avatarUrl)}
-                                alt={st.fullName}
-                                className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0"
-                                onError={(e) => {
-                                  (e.target as HTMLElement).style.display = 'none';
-                                }}
-                              />
-                            ) : null}
-                            {!st.avatarUrl && (
-                              <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">
-                                {st.fullName ? st.fullName.charAt(0) : 'S'}
-                              </div>
-                            )}
+                            <Avatar
+                              src={st.avatarUrl}
+                              name={st.fullName}
+                              sizeClassName="w-9 h-9"
+                              shape="rounded-full"
+                              badgeColor="bg-blue-100 text-blue-700 font-bold"
+                            />
                             <div>
                               <div className="font-bold text-slate-900">{st.fullName}</div>
                               <div className="text-xs text-slate-500 font-normal">{st.phone || 'No phone'}</div>
@@ -1571,17 +1564,14 @@ export const SettingsPage: React.FC = () => {
             {/* Profile Avatar Upload Widget */}
             <div className="pb-5 border-b border-[#E5E7EB] flex flex-col sm:flex-row items-center sm:items-start gap-4">
               <div className="relative group shrink-0">
-                {user?.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.fullName}
-                    className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md ring-2 ring-blue-500/20"
-                  />
-                ) : (
-                  <div className="w-20 h-20 rounded-full bg-blue-600 text-white font-bold text-2xl flex items-center justify-center shadow-md">
-                    {user?.fullName?.charAt(0) || 'U'}
-                  </div>
-                )}
+                <Avatar
+                  src={user?.avatarUrl}
+                  name={user?.fullName || 'U'}
+                  sizeClassName="w-20 h-20"
+                  shape="rounded-full"
+                  badgeColor="bg-blue-600 text-white font-bold text-2xl"
+                  className="border-2 border-white shadow-md ring-2 ring-blue-500/20"
+                />
 
                 <label
                   className={`absolute inset-0 bg-black/60 rounded-full flex flex-col items-center justify-center text-white cursor-pointer transition-opacity ${
@@ -1922,17 +1912,13 @@ export const SettingsPage: React.FC = () => {
                         <tr key={log._id} className="hover:bg-gray-50/75 transition-colors">
                           <td className="px-5 py-3.5">
                             <div className="flex items-center gap-3">
-                              {avatar ? (
-                                <img
-                                  src={avatar}
-                                  alt={name}
-                                  className="w-8 h-8 rounded-full object-cover border border-gray-200 shrink-0"
-                                />
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">
-                                  {name.charAt(0)}
-                                </div>
-                              )}
+                              <Avatar
+                                src={avatar}
+                                name={name}
+                                sizeClassName="w-8 h-8"
+                                shape="rounded-full"
+                                badgeColor="bg-blue-100 text-blue-700 font-bold"
+                              />
                               <div>
                                 <div className="font-semibold text-xs text-[#202124]">{name}</div>
                                 <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-gray-100 text-gray-700">
@@ -2004,21 +1990,13 @@ export const SettingsPage: React.FC = () => {
 
               {/* Staff Avatar Upload */}
               <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                {staffForm.avatarUrl ? (
-                  <img
-                    src={getMediaUrl(staffForm.avatarUrl)}
-                    alt="Staff Avatar"
-                    className="w-14 h-14 rounded-full object-cover border border-gray-200 shrink-0"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
-                  />
-                ) : null}
-                {!staffForm.avatarUrl && (
-                  <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-700 font-bold text-lg flex items-center justify-center shrink-0 border border-dashed border-blue-300">
-                    <User className="w-6 h-6" />
-                  </div>
-                )}
+                <Avatar
+                  src={staffForm.avatarUrl}
+                  name={staffForm.fullName || 'Staff'}
+                  sizeClassName="w-14 h-14"
+                  shape="rounded-full"
+                  badgeColor="bg-blue-50 text-blue-700 font-bold text-lg border border-dashed border-blue-300"
+                />
 
                 <div>
                   <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-[#202124] rounded-md text-xs font-semibold cursor-pointer transition-colors">
@@ -2155,21 +2133,13 @@ export const SettingsPage: React.FC = () => {
             <form onSubmit={handleSaveEditStaff} className="p-6 space-y-3.5">
               {/* Photo Upload in Edit Staff */}
               <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                {editStaffForm.avatarUrl ? (
-                  <img
-                    src={getMediaUrl(editStaffForm.avatarUrl)}
-                    alt="Staff Avatar"
-                    className="w-14 h-14 rounded-full object-cover border border-gray-200 shrink-0"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = 'none';
-                    }}
-                  />
-                ) : null}
-                {!editStaffForm.avatarUrl && (
-                  <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-700 font-bold text-lg flex items-center justify-center shrink-0 border border-dashed border-blue-300">
-                    <User className="w-6 h-6" />
-                  </div>
-                )}
+                <Avatar
+                  src={editStaffForm.avatarUrl}
+                  name={editStaffForm.fullName || 'Staff'}
+                  sizeClassName="w-14 h-14"
+                  shape="rounded-full"
+                  badgeColor="bg-blue-50 text-blue-700 font-bold text-lg border border-dashed border-blue-300"
+                />
 
                 <div>
                   <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md text-xs font-semibold cursor-pointer transition-colors">

@@ -24,6 +24,7 @@ import { api } from '../api/client';
 import { Payment } from '../types';
 import { ReceiptModal } from '../components/modals/ReceiptModal';
 import { exportToCSV } from '../utils/csvExport';
+import { Avatar } from '../components/Avatar';
 import { sendWhatsAppDueReminder } from '../utils/whatsapp';
 import { formatINR, formatDateIN, formatTimeIN } from '../utils/formatters';
 
@@ -863,17 +864,14 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                           <tr key={d.membershipId} className="hover:bg-slate-50/60 transition-colors">
                             <td className="px-5 py-3.5">
                               <div className="flex items-center gap-3">
-                                {m.photoUrl ? (
-                                  <img
-                                    src={m.photoUrl}
-                                    alt={m.fullName}
-                                    className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0"
-                                  />
-                                ) : (
-                                  <div className="w-9 h-9 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center shrink-0">
-                                    {m.fullName?.charAt(0) || 'M'}
-                                  </div>
-                                )}
+                                <Avatar
+                                  src={m.photoUrl}
+                                  name={m.fullName}
+                                  sizeClassName="w-9 h-9"
+                                  shape="rounded-full"
+                                  badgeColor="bg-amber-100 text-amber-800"
+                                  className="shrink-0"
+                                />
                                 <div>
                                   <div className="font-semibold text-xs text-slate-900">{m.fullName}</div>
                                   <div className="text-[11px] text-slate-500 font-mono">
@@ -957,17 +955,14 @@ export const BillingPage: React.FC<BillingPageProps> = ({
                     return (
                       <div key={d.membershipId} className="p-4 space-y-3 bg-white">
                         <div className="flex items-start gap-3">
-                          {m.photoUrl ? (
-                            <img
-                              src={m.photoUrl}
-                              alt={m.fullName}
-                              className="w-11 h-11 rounded-full object-cover border border-slate-200 shrink-0"
-                            />
-                          ) : (
-                            <div className="w-11 h-11 rounded-full bg-amber-100 text-amber-800 font-bold text-sm flex items-center justify-center shrink-0 border border-amber-200">
-                              {m.fullName?.charAt(0) || 'M'}
-                            </div>
-                          )}
+                          <Avatar
+                            src={m.photoUrl}
+                            name={m.fullName}
+                            sizeClassName="w-11 h-11"
+                            shape="rounded-full"
+                            badgeColor="bg-amber-100 text-amber-800 border-amber-200"
+                            className="shrink-0"
+                          />
                           <div className="min-w-0 flex-1">
                             <h4 className="font-bold text-sm text-slate-900 truncate">
                               {m.fullName}

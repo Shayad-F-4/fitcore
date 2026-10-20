@@ -18,6 +18,7 @@ import { useAuth } from '../context/AuthContext';
 import { Attendance } from '../types';
 import { AttendanceRegisterModal } from '../components/modals/AttendanceRegisterModal';
 import { exportToCSV } from '../utils/csvExport';
+import { Avatar } from '../components/Avatar';
 
 export const AttendancePage: React.FC = () => {
   const { activeBranch } = useAuth();
@@ -320,17 +321,14 @@ export const AttendancePage: React.FC = () => {
         {identifiedMember && (
           <div className="p-4 bg-slate-50/75 border border-slate-200 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 mt-3">
             <div className="flex items-center gap-3.5">
-              {identifiedMember.photoUrl ? (
-                <img
-                  src={identifiedMember.photoUrl}
-                  alt={identifiedMember.fullName}
-                  className="w-14 h-14 rounded-full object-cover border border-slate-200 shrink-0 shadow-2xs"
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-700 font-bold text-lg flex items-center justify-center shrink-0">
-                  {identifiedMember.fullName.charAt(0)}
-                </div>
-              )}
+              <Avatar
+                src={identifiedMember.photoUrl}
+                name={identifiedMember.fullName}
+                sizeClassName="w-14 h-14"
+                shape="rounded-full"
+                badgeColor="bg-blue-100 text-blue-700"
+                className="shrink-0 shadow-2xs"
+              />
 
               <div>
                 <div className="flex items-center gap-2">
@@ -466,17 +464,14 @@ export const AttendancePage: React.FC = () => {
                       <tr key={log._id} className="hover:bg-slate-50/60 transition-colors">
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
-                            {memberObj.photoUrl ? (
-                              <img
-                                src={memberObj.photoUrl}
-                                alt={memberObj.fullName}
-                                className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-700 font-semibold text-xs flex items-center justify-center shrink-0">
-                                {memberObj.fullName ? memberObj.fullName.charAt(0) : 'M'}
-                              </div>
-                            )}
+                            <Avatar
+                              src={memberObj.photoUrl}
+                              name={memberObj.fullName}
+                              sizeClassName="w-8 h-8"
+                              shape="rounded-full"
+                              badgeColor="bg-blue-50 text-blue-700"
+                              className="shrink-0"
+                            />
                             <span className="font-semibold text-slate-900">
                               {memberObj.fullName || 'Member'}
                             </span>
@@ -558,17 +553,14 @@ export const AttendancePage: React.FC = () => {
                     {/* Header: Photo, Name, Member ID, Status */}
                     <div className="flex items-start justify-between gap-2.5">
                       <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        {memberObj.photoUrl ? (
-                          <img
-                            src={memberObj.photoUrl}
-                            alt={memberObj.fullName}
-                            className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0 border border-blue-100">
-                            {memberObj.fullName ? memberObj.fullName.charAt(0) : 'M'}
-                          </div>
-                        )}
+                        <Avatar
+                          src={memberObj.photoUrl}
+                          name={memberObj.fullName}
+                          sizeClassName="w-10 h-10"
+                          shape="rounded-full"
+                          badgeColor="bg-blue-50 text-blue-700 border-blue-100"
+                          className="shrink-0"
+                        />
                         <div className="min-w-0 flex-1">
                           <div className="font-bold text-sm text-slate-900 truncate">
                             {memberObj.fullName || 'Member'}

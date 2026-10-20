@@ -18,6 +18,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { sendWhatsAppReminder, openWhatsApp, getWelcomeMessage } from '../utils/whatsapp';
+import { Avatar } from './Avatar';
 
 interface NavbarProps {
   onToggleSidebar?: () => void;
@@ -416,17 +417,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                         }}
                         className="flex items-center gap-3 min-w-0 text-left flex-1"
                       >
-                        {member.photoUrl ? (
-                          <img
-                            src={member.photoUrl}
-                            alt={member.fullName}
-                            className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-xs shrink-0"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
-                            {member.fullName.charAt(0)}
-                          </div>
-                        )}
+                        <Avatar
+                          src={member.photoUrl}
+                          name={member.fullName}
+                          sizeClassName="w-10 h-10"
+                          shape="rounded-xl"
+                          badgeColor="bg-blue-50 text-blue-700"
+                          className="shrink-0 shadow-xs"
+                        />
                         <div className="min-w-0">
                           <div className="text-xs font-bold text-slate-900 truncate">
                             {member.fullName}
@@ -625,17 +623,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="h-10 sm:h-12 flex items-center gap-2 sm:gap-3 px-2 sm:px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:scale-95 transition-all text-left shrink-0 whitespace-nowrap shadow-2xs"
             >
-              {user?.avatarUrl ? (
-                <img
-                  src={user.avatarUrl}
-                  alt={user.fullName}
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-slate-200 shrink-0"
-                />
-              ) : (
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
-                  {user?.fullName?.charAt(0) || 'U'}
-                </div>
-              )}
+              <Avatar
+                src={user?.avatarUrl}
+                name={user?.fullName || 'U'}
+                sizeClassName="w-7 h-7 sm:w-8 sm:h-8"
+                shape="rounded-full"
+                badgeColor="bg-slate-900 text-white"
+                className="shrink-0"
+              />
               <div className="hidden lg:block shrink-0">
                 <div className="text-sm font-semibold text-slate-900 leading-tight whitespace-nowrap">
                   {user?.fullName || 'Staff User'}

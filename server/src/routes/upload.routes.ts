@@ -4,6 +4,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { sendSuccess, sendError } from '../utils/response.js';
 import { authenticate, AuthenticatedRequest } from '../middlewares/auth.js';
+import { UploadedFile } from '../models/UploadedFile.js';
 
 const router = Router();
 const UPLOAD_DIR = path.resolve(process.cwd(), 'uploads/photos');
@@ -50,6 +51,21 @@ router.post('/photo', authenticate, async (req: AuthenticatedRequest, res: Respo
     const filePath = path.join(UPLOAD_DIR, uniqueName);
 
     await fs.promises.writeFile(filePath, buffer);
+
+    try {
+      await UploadedFile.findOneAndUpdate(
+        { filename: uniqueName },
+        {
+          filename: uniqueName,
+          mimeType,
+          data: buffer,
+          size: buffer.length,
+        },
+        { upsert: true, new: true }
+      );
+    } catch (dbErr) {
+      console.warn('[MongoDB Image Backup Warning]', dbErr);
+    }
 
     const photoUrl = `/uploads/photos/${uniqueName}`;
 

@@ -1,19 +1,40 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const LIVE_BACKEND_URL = 'https://sagar-fitness-backend.onrender.com';
 
 export const getMediaUrl = (path?: string): string => {
   if (!path) return '';
-  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
-    return path;
+  const trimmed = path.trim();
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('blob:')
+  ) {
+    return trimmed;
   }
+
+  const cleanPath = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+
   if (API_BASE.startsWith('http')) {
     try {
       const parsed = new URL(API_BASE);
-      return `${parsed.origin}${path.startsWith('/') ? path : `/${path}`}`;
+      return `${parsed.origin}${cleanPath}`;
     } catch {
-      return path;
+      // Fall through below
     }
   }
-  return path;
+
+  // If in browser and not on localhost/127.0.0.1 (e.g. on Vercel deployment), point to Render backend
+  if (
+    typeof window !== 'undefined' &&
+    window.location.hostname &&
+    !window.location.hostname.includes('localhost') &&
+    !window.location.hostname.includes('127.0.0.1')
+  ) {
+    return `${LIVE_BACKEND_URL}${cleanPath}`;
+  }
+
+  return cleanPath;
 };
 
 const getHeaders = (hasBody = true): HeadersInit => {

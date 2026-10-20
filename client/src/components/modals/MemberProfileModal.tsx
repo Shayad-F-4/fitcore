@@ -23,6 +23,7 @@ import { Member, Membership, Payment } from '../../types';
 import { sendWhatsAppReminder, openWhatsApp, getWelcomeMessage, sendWhatsAppDueReminder } from '../../utils/whatsapp';
 import { formatINR, formatDateIN, formatTimeIN, formatDisplayPhoneIN } from '../../utils/formatters';
 import { DeleteMemberModal } from './DeleteMemberModal';
+import { Avatar } from '../Avatar';
 
 interface MemberProfileModalProps {
   memberId: string | null;
@@ -82,10 +83,19 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
       reader.onload = async () => {
         try {
           const base64 = reader.result as string;
+          // Set immediate local preview so the user sees their photo right away
+          setData((prev) =>
+            prev ? { ...prev, member: { ...prev.member, photoUrl: base64 } } : null
+          );
           const uploadRes = await api.uploadPhoto(base64, file.name);
           await api.updateMember(memberId, { photoUrl: uploadRes.url });
           setData((prev) =>
             prev ? { ...prev, member: { ...prev.member, photoUrl: uploadRes.url } } : null
+          );
+          window.dispatchEvent(
+            new CustomEvent('fitcore:data-changed', {
+              detail: { action: 'MEMBER_PHOTO_UPDATED', memberId },
+            })
           );
         } catch (uploadErr: any) {
           alert(uploadErr.message || 'Failed to upload photo');
@@ -308,17 +318,14 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
 
               <div className="relative z-10 flex items-center gap-4">
                 <div className="relative group shrink-0">
-                  {member.photoUrl ? (
-                    <img
-                      src={member.photoUrl}
-                      alt={member.fullName}
-                      className="w-16 h-16 rounded-2xl object-cover border-2 border-white/60 shadow-md shrink-0"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-2xl flex items-center justify-center shadow-md border-2 border-white/40 shrink-0">
-                      {member.fullName.charAt(0)}
-                    </div>
-                  )}
+                  <Avatar
+                    src={member.photoUrl}
+                    name={member.fullName}
+                    sizeClassName="w-16 h-16"
+                    shape="rounded-2xl"
+                    className="border-2 border-white/60 shadow-md shrink-0"
+                    badgeColor="bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-2xl border-white/40"
+                  />
 
                   <label
                     className={`absolute inset-0 bg-black/60 rounded-2xl flex flex-col items-center justify-center text-white cursor-pointer transition-opacity ${

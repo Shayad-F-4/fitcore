@@ -276,9 +276,10 @@ export const RegisterMemberModal: React.FC<RegisterMemberModalProps> = ({
             capturedImage,
             `${formData.fullName.replace(/\s+/g, '_')}.jpg`
           );
-          finalPhotoUrl = uploadRes.url;
+          finalPhotoUrl = uploadRes.url || capturedImage;
         } catch (uploadErr) {
-          console.warn('Photo upload warning:', uploadErr);
+          console.warn('Photo upload warning, falling back to direct image data:', uploadErr);
+          finalPhotoUrl = capturedImage;
         }
       }
 

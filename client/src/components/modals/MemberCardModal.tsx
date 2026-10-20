@@ -2,6 +2,7 @@ import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { X, Printer, Dumbbell, Calendar, Building, Phone } from 'lucide-react';
 import { Member } from '../../types';
+import { Avatar } from '../Avatar';
 
 interface MemberCardModalProps {
   member: Member | null;
@@ -63,17 +64,14 @@ export const MemberCardModal: React.FC<MemberCardModalProps> = ({
 
             {/* Middle: Photo & Details */}
             <div className="flex items-center gap-4 py-2">
-              {member.photoUrl ? (
-                <img
-                  src={member.photoUrl}
-                  alt={member.fullName}
-                  className="w-20 h-20 rounded-xl object-cover border border-slate-200 shadow-2xs shrink-0"
-                />
-              ) : (
-                <div className="w-20 h-20 rounded-xl bg-blue-50 text-blue-700 font-bold text-2xl flex items-center justify-center border border-blue-100 shadow-2xs shrink-0">
-                  {member.fullName.charAt(0)}
-                </div>
-              )}
+              <Avatar
+                src={member.photoUrl}
+                name={member.fullName}
+                sizeClassName="w-20 h-20"
+                shape="rounded-xl"
+                badgeColor="bg-blue-50 text-blue-700 font-bold text-2xl border-blue-100"
+                className="shadow-2xs shrink-0"
+              />
 
               <div className="flex-1 min-w-0 text-xs">
                 <h4 className="font-bold text-sm text-slate-900 truncate">

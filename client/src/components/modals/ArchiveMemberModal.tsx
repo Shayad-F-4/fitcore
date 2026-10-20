@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Archive, X, ShieldCheck, AlertCircle } from 'lucide-react';
 import { api } from '../../api/client';
+import { Avatar } from '../Avatar';
 
 interface ArchiveMemberModalProps {
   isOpen: boolean;
@@ -72,17 +73,14 @@ export const ArchiveMemberModal: React.FC<ArchiveMemberModalProps> = ({
 
           {/* Member Card Summary */}
           <div className="p-3.5 bg-gray-50 border border-[#E5E7EB] rounded-lg flex items-center gap-3">
-            {member.photoUrl ? (
-              <img
-                src={member.photoUrl}
-                alt={member.fullName}
-                className="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center shrink-0">
-                {member.fullName.charAt(0)}
-              </div>
-            )}
+            <Avatar
+              src={member.photoUrl}
+              name={member.fullName}
+              sizeClassName="w-10 h-10"
+              shape="rounded-full"
+              badgeColor="bg-slate-200 text-slate-700"
+              className="shrink-0"
+            />
             <div className="flex-1 min-w-0">
               <div className="text-sm font-bold text-gray-900 truncate">{member.fullName}</div>
               <div className="text-xs text-gray-500 font-mono flex items-center gap-2 mt-0.5">

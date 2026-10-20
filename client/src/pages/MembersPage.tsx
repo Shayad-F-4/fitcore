@@ -29,6 +29,7 @@ import { FreezeModal } from '../components/modals/FreezeModal';
 import { MemberCardModal } from '../components/modals/MemberCardModal';
 import { MemberProfileModal } from '../components/modals/MemberProfileModal';
 import { DeleteMemberModal } from '../components/modals/DeleteMemberModal';
+import { Avatar } from '../components/Avatar';
 import { exportToCSV } from '../utils/csvExport';
 import { sendWhatsAppReminder, openWhatsApp, getWelcomeMessage, sendWhatsAppDueReminder } from '../utils/whatsapp';
 import { formatINR, formatDateIN, formatDisplayPhoneIN } from '../utils/formatters';
@@ -481,17 +482,12 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
                           onClick={() => setSelectedProfileId(member._id)}
                           className="flex items-center gap-3 text-left group"
                         >
-                          {member.photoUrl ? (
-                            <img
-                              src={member.photoUrl}
-                              alt={member.fullName}
-                              className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0"
-                            />
-                          ) : (
-                            <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-700 font-semibold text-xs flex items-center justify-center shrink-0">
-                              {member.fullName ? member.fullName.charAt(0) : 'M'}
-                            </div>
-                          )}
+                          <Avatar
+                            src={member.photoUrl}
+                            name={member.fullName}
+                            sizeClassName="w-9 h-9"
+                            shape="rounded-full"
+                          />
                           <div>
                             <div className="font-semibold text-[#202124] group-hover:text-blue-600 transition-colors">
                               {member.fullName}
@@ -793,17 +789,13 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
                       onClick={() => setSelectedProfileId(member._id)}
                       className="flex items-center gap-2.5 text-left group min-w-0 flex-1"
                     >
-                      {member.photoUrl ? (
-                        <img
-                          src={member.photoUrl}
-                          alt={member.fullName}
-                          className="w-10 h-10 rounded-xl object-cover border border-slate-200 shadow-xs shrink-0"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0 border border-blue-100 shadow-xs">
-                          {member.fullName ? member.fullName.charAt(0) : 'M'}
-                        </div>
-                      )}
+                      <Avatar
+                        src={member.photoUrl}
+                        name={member.fullName}
+                        sizeClassName="w-10 h-10"
+                        shape="rounded-xl"
+                        className="border border-slate-200 shadow-xs shrink-0"
+                      />
                       <div className="min-w-0 flex-1">
                         <div className="font-bold text-sm text-slate-900 group-hover:text-blue-600 truncate">
                           {member.fullName}

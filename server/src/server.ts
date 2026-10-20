@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -7,6 +8,7 @@ import mongoose from 'mongoose';
 import { ENV } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { User } from './models/User.js';
+import { UploadedFile } from './models/UploadedFile.js';
 import { seedDatabase } from './scripts/seed.js';
 import { ensureCoreUsers } from './scripts/ensureUsers.js';
 import { migrateToSingleGym } from './scripts/migrateSingleGym.js';
@@ -100,7 +102,53 @@ if (ENV.NODE_ENV !== 'test') {
 }
 
 // Static file serving for uploads (member photographs)
-app.use('/uploads', express.static(path.resolve(process.cwd(), 'uploads')));
+app.use(
+  '/uploads',
+  express.static(path.resolve(process.cwd(), 'uploads'), {
+    setHeaders: (res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    },
+  })
+);
+
+// Fallback route for member/staff photos: if file was wiped on Render restart, restore from MongoDB!
+app.get(['/uploads/photos/:filename', '/api/upload/photo/:filename'], async (req, res, next) => {
+  const rawFilename = req.params.filename;
+  const filename = Array.isArray(rawFilename) ? rawFilename[0] : rawFilename;
+  if (!filename) return next();
+  const filePath = path.join(path.resolve(process.cwd(), 'uploads/photos'), filename);
+
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+
+  if (fs.existsSync(filePath)) {
+    return res.sendFile(filePath);
+  }
+
+  try {
+    const fileDoc = await UploadedFile.findOne({ filename });
+    if (fileDoc && fileDoc.data) {
+      try {
+        const uploadDir = path.resolve(process.cwd(), 'uploads/photos');
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        await fs.promises.writeFile(filePath, fileDoc.data);
+      } catch {
+        // Disk write failed, still serve from memory buffer
+      }
+      res.setHeader('Content-Type', fileDoc.mimeType || 'image/jpeg');
+      return res.end(fileDoc.data);
+    }
+  } catch (err) {
+    console.error('[UploadedFile MongoDB Restore Error]', err);
+  }
+
+  return next();
+});
 
 // Health check endpoint (both /health and /api/health for Render/cloud load balancers)
 app.get(['/health', '/api/health'], (_req, res) => {

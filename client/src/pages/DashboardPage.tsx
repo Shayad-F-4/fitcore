@@ -22,6 +22,7 @@ import { DashboardData, Membership } from '../types';
 import { formatINR, formatDateIN, formatDisplayPhoneIN } from '../utils/formatters';
 import { sendWhatsAppReminder, sendWhatsAppExpiredNotice } from '../utils/whatsapp';
 import { ArchiveMemberModal } from '../components/modals/ArchiveMemberModal';
+import { Avatar } from '../components/Avatar';
 
 
 
@@ -552,25 +553,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                             }}
                             className="flex items-center gap-3 text-left group"
                           >
-                            {memberObj.photoUrl ? (
-                              <img
-                                src={memberObj.photoUrl}
-                                alt={memberObj.fullName}
-                                className={`w-9 h-9 rounded-xl object-cover shrink-0 border ${
-                                  isExp ? 'border-rose-300' : 'border-slate-200'
-                                } shadow-xs`}
-                              />
-                            ) : (
-                              <div
-                                className={`w-9 h-9 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 border ${
-                                  isExp
-                                    ? 'bg-rose-100 text-rose-700 border-rose-200'
-                                    : 'bg-blue-50 text-blue-700 border-blue-100'
-                                } shadow-xs`}
-                              >
-                                {memberObj.fullName ? memberObj.fullName.charAt(0) : 'M'}
-                              </div>
-                            )}
+                            <Avatar
+                              src={memberObj.photoUrl}
+                              name={memberObj.fullName}
+                              sizeClassName="w-9 h-9"
+                              shape="rounded-xl"
+                              badgeColor={isExp ? 'bg-rose-100 text-rose-700 border-rose-200' : 'bg-blue-50 text-blue-700 border-blue-100'}
+                            />
                             <div>
                               <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
                                 <span>{memberObj.fullName || 'Member'}</span>
@@ -714,25 +703,20 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         }}
                         className="flex items-center gap-2.5 text-left group min-w-0 flex-1"
                       >
-                        {memberObj.photoUrl ? (
-                          <img
-                            src={memberObj.photoUrl}
-                            alt={memberObj.fullName}
-                            className={`w-10 h-10 rounded-xl object-cover shrink-0 border ${
-                              isExp ? 'border-rose-300' : 'border-slate-200'
-                            } shadow-xs`}
-                          />
-                        ) : (
-                          <div
-                            className={`w-10 h-10 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 border ${
-                              isExp
-                                ? 'bg-rose-100 text-rose-700 border-rose-200'
-                                : 'bg-blue-50 text-blue-700 border-blue-100'
-                            } shadow-xs`}
-                          >
-                            {memberObj.fullName ? memberObj.fullName.charAt(0) : 'M'}
-                          </div>
-                        )}
+                        <Avatar
+                          src={memberObj.photoUrl}
+                          name={memberObj.fullName}
+                          sizeClassName="w-10 h-10"
+                          shape="rounded-xl"
+                          badgeColor={
+                            isExp
+                              ? 'bg-rose-100 text-rose-700 border-rose-200'
+                              : 'bg-blue-50 text-blue-700 border-blue-100'
+                          }
+                          className={`shrink-0 border ${
+                            isExp ? 'border-rose-300' : 'border-slate-200'
+                          } shadow-xs`}
+                        />
                         <div className="min-w-0 flex-1">
                           <div className="font-bold text-sm text-slate-900 group-hover:text-blue-600 truncate flex items-center gap-1.5">
                             <span className="truncate">{memberObj.fullName || 'Member'}</span>
@@ -944,17 +928,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                             }}
                             className="flex items-center gap-3 text-left group"
                           >
-                            {member.photoUrl ? (
-                              <img
-                                src={member.photoUrl}
-                                alt={member.fullName}
-                                className="w-9 h-9 rounded-xl object-cover border border-slate-200 shadow-xs shrink-0"
-                              />
-                            ) : (
-                              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100 shadow-xs">
-                                {member.fullName ? member.fullName.charAt(0) : 'M'}
-                              </div>
-                            )}
+                            <Avatar
+                              src={member.photoUrl}
+                              name={member.fullName}
+                              sizeClassName="w-9 h-9"
+                              shape="rounded-xl"
+                              badgeColor="bg-emerald-50 text-emerald-700 border-emerald-100"
+                              className="border border-slate-200 shadow-xs shrink-0"
+                            />
                             <div>
                               <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                                 {member.fullName || 'Member'}
@@ -1033,17 +1014,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                         }}
                         className="flex items-center gap-2.5 text-left group min-w-0 flex-1"
                       >
-                        {member.photoUrl ? (
-                          <img
-                            src={member.photoUrl}
-                            alt={member.fullName}
-                            className="w-10 h-10 rounded-xl object-cover shrink-0 border border-slate-200 shadow-xs"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100 shadow-xs">
-                            {member.fullName ? member.fullName.charAt(0) : 'M'}
-                          </div>
-                        )}
+                        <Avatar
+                          src={member.photoUrl}
+                          name={member.fullName}
+                          sizeClassName="w-10 h-10"
+                          shape="rounded-xl"
+                          badgeColor="bg-emerald-50 text-emerald-700 border-emerald-100"
+                          className="shrink-0 border border-slate-200 shadow-xs"
+                        />
                         <div className="min-w-0 flex-1">
                           <div className="font-bold text-sm text-slate-900 group-hover:text-blue-600 truncate">
                             {member.fullName || 'Member'}
