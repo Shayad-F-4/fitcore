@@ -33,6 +33,12 @@ import {
   Download,
   RotateCcw,
   HardDrive,
+  Phone,
+  Mail,
+  MapPin,
+  CheckCircle2,
+  ShieldCheck,
+  Search,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
@@ -90,6 +96,7 @@ export const SettingsPage: React.FC = () => {
   const [staffList, setStaffList] = useState<any[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
   const [showAddStaffModal, setShowAddStaffModal] = useState(false);
+  const [staffSearchQuery, setStaffSearchQuery] = useState('');
   const [staffForm, setStaffForm] = useState({
     fullName: '',
     email: '',
@@ -562,91 +569,134 @@ export const SettingsPage: React.FC = () => {
     return 'Action recorded';
   };
 
+  const filteredStaff = staffList.filter((st) => {
+    if (!staffSearchQuery.trim()) return true;
+    const q = staffSearchQuery.toLowerCase();
+    return (
+      st.fullName?.toLowerCase().includes(q) ||
+      st.email?.toLowerCase().includes(q) ||
+      st.role?.toLowerCase().includes(q) ||
+      st.phone?.includes(q)
+    );
+  });
+
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-[#202124] tracking-tight">Settings & Administration</h2>
-        <p className="text-sm text-[#6B7280] mt-0.5">
-          Configure Sagar Fitness Gym defaults, staff accounts, security profile, and system audit logs.
-        </p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+              <SettingsIcon className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                Settings & Administration
+              </h1>
+              <p className="text-xs text-slate-500 font-medium">
+                Configure {gymSettings.gymName || 'Sagar Fitness Gym'} defaults, official branding, staff logins, and security.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* System Badges */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="px-3 py-1.5 bg-white border border-slate-200/80 rounded-lg shadow-2xs flex items-center gap-2 text-xs font-semibold text-slate-700">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>IST (UTC+5:30)</span>
+          </div>
+
+          <div className="px-3 py-1.5 bg-blue-50/80 border border-blue-200/80 rounded-lg text-xs font-semibold text-blue-700 flex items-center gap-1.5">
+            <span>₹ Direct Billing (Tax-Free)</span>
+          </div>
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-[#E5E7EB] gap-2 overflow-x-auto text-sm">
+      {/* Modern Segmented Navigation Bar */}
+      <div className="p-1.5 bg-slate-100/90 border border-slate-200/80 rounded-xl flex items-center gap-1 overflow-x-auto shadow-inner no-scrollbar">
         <button
           onClick={() => setActiveTab('general')}
-          className={`pb-3 px-3 font-semibold transition-colors border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
             activeTab === 'general'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
+              ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
-          <Building2 className="w-4 h-4" />
+          <Building2 className={`w-4 h-4 ${activeTab === 'general' ? 'text-blue-600' : 'text-slate-400'}`} />
           Gym Profile
         </button>
 
         <button
           onClick={() => setActiveTab('whatsapp')}
-          className={`pb-3 px-3 font-semibold transition-colors border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
             activeTab === 'whatsapp'
-              ? 'border-emerald-600 text-emerald-600'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
+              ? 'bg-white text-emerald-600 shadow-xs border border-slate-200/80'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
-          <MessageSquare className="w-4 h-4" />
+          <MessageSquare className={`w-4 h-4 ${activeTab === 'whatsapp' ? 'text-emerald-600' : 'text-slate-400'}`} />
           WhatsApp Automation
           {gymSettings.whatsappStatus?.isConfigured ? (
-            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
           ) : (
-            <span className="px-1.5 py-0.2 text-[10px] font-bold rounded bg-amber-100 text-amber-800">Setup Req</span>
+            <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-amber-100 text-amber-800">
+              Setup Req
+            </span>
           )}
         </button>
 
         <button
           onClick={() => setActiveTab('staff')}
-          className={`pb-3 px-3 font-semibold transition-colors border-b-2 whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
             activeTab === 'staff'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
+              ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
+          <Users className={`w-4 h-4 ${activeTab === 'staff' ? 'text-blue-600' : 'text-slate-400'}`} />
           Staff Accounts
+          {staffList.length > 0 && (
+            <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-200/70 text-slate-700">
+              {staffList.length}
+            </span>
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('security')}
-          className={`pb-3 px-3 font-semibold transition-colors border-b-2 whitespace-nowrap ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
             activeTab === 'security'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
+              ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
+          <Shield className={`w-4 h-4 ${activeTab === 'security' ? 'text-blue-600' : 'text-slate-400'}`} />
           Profile & Security
         </button>
 
         <button
           onClick={() => setActiveTab('activity')}
-          className={`pb-3 px-3 font-semibold transition-colors border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
             activeTab === 'activity'
-              ? 'border-blue-600 text-blue-600'
-              : 'border-transparent text-gray-500 hover:text-gray-900'
+              ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
           }`}
         >
-          <Activity className="w-4 h-4" />
+          <Activity className={`w-4 h-4 ${activeTab === 'activity' ? 'text-blue-600' : 'text-slate-400'}`} />
           Desk Activity & Logins
         </button>
 
         {isAdmin && (
           <button
             onClick={() => setActiveTab('backup')}
-            className={`pb-3 px-3 font-semibold transition-colors border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               activeTab === 'backup'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-900'
+                ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
             }`}
           >
-            <Database className="w-4 h-4" />
+            <Database className={`w-4 h-4 ${activeTab === 'backup' ? 'text-blue-600' : 'text-slate-400'}`} />
             Database Backup & Restore
           </button>
         )}
@@ -654,574 +704,919 @@ export const SettingsPage: React.FC = () => {
 
       {/* Tab 1: General & Indian Gym Profile */}
       {activeTab === 'general' && (
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 shadow-subtle max-w-3xl space-y-6">
-          <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
-            <div>
-              <h3 className="text-base font-bold text-[#202124]">
-                Sagar Fitness Gym Business Profile
-              </h3>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                Details appear on member receipts, printable receipts, and official communication.
-              </p>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Main Form: 8 cols */}
+          <div className="lg:col-span-8 space-y-6">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="p-2 rounded-lg bg-blue-50 text-blue-600">
+                      <Building2 className="w-5 h-5" />
+                    </span>
+                    <h2 className="text-lg font-bold text-slate-900">
+                      Sagar Fitness Gym Business Profile
+                    </h2>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Official business details rendered on member receipts, PDF bills, and automated WhatsApp communication.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 text-xs font-bold rounded-full bg-blue-50 text-blue-700 border border-blue-200/80 shrink-0">
+                    India Edition (INR • Asia/Kolkata)
+                  </span>
+                </div>
+              </div>
+
+              {/* Status alerts */}
+              {generalSaved && (
+                <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2.5 animate-fadeIn">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="font-semibold">Gym business profile updated successfully across all receipts and desk modules.</span>
+                </div>
+              )}
+
+              {generalError && (
+                <div className="p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2.5 animate-fadeIn">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span className="font-semibold">{generalError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSaveGeneral} className="space-y-6">
+                {/* Brand Identity Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                    Brand Identity & Receipt Header
+                  </div>
+
+                  {/* Sagar Fitness Logo showcase card */}
+                  <div className="p-4 bg-slate-50/80 border border-slate-200/80 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-xs shrink-0">
+                        <img
+                          src="/logo.png"
+                          alt="Sagar Fitness Gym"
+                          className="h-10 w-auto max-w-[140px] object-contain"
+                        />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                          Official Sagar Fitness Gym Brand Logo
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Displays automatically on the login portal, invoice headers, and desk printouts.
+                        </p>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 text-[11px] font-semibold bg-white border border-slate-200 rounded-lg text-slate-600 shrink-0">
+                      Primary Brand Asset
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                        Gym Business Name <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Building2 className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                        <input
+                          type="text"
+                          required
+                          value={gymSettings.gymName || ''}
+                          onChange={(e) => setGymSettings({ ...gymSettings, gymName: e.target.value })}
+                          className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-slate-900 border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                          placeholder="e.g. Sagar Fitness GYM"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                        Tagline / Motto
+                      </label>
+                      <div className="relative">
+                        <Sparkles className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                        <input
+                          type="text"
+                          value={gymSettings.tagline || ''}
+                          onChange={(e) => setGymSettings({ ...gymSettings, tagline: e.target.value })}
+                          className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-slate-900 border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                          placeholder="e.g. Strength • Transformation • Health Center"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Section */}
+                <div className="space-y-4 pt-3 border-t border-slate-100">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <Phone className="w-3.5 h-3.5 text-blue-600" />
+                    Desk Communication & Inquiries
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                        Front Desk Contact Phone (+91) <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                        <input
+                          type="tel"
+                          required
+                          value={gymSettings.phone || ''}
+                          onChange={(e) => setGymSettings({ ...gymSettings, phone: e.target.value })}
+                          className="w-full pl-9 pr-3 py-2 text-xs font-mono font-semibold text-slate-900 border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                          placeholder="+91 98220 10001"
+                        />
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1">Appears on receipts for member customer support inquiries</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                        Official Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                        <input
+                          type="email"
+                          required
+                          value={gymSettings.email || ''}
+                          onChange={(e) => setGymSettings({ ...gymSettings, email: e.target.value })}
+                          className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-slate-900 border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                          placeholder="info@sagarfitness.com"
+                        />
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1">Official inbox for gym correspondence and administrative alerts</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Facility & Location Section */}
+                <div className="space-y-4 pt-3 border-t border-slate-100">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                    Physical Facility & Postal Address
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                      Gym Street Address & Landmark <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                      <input
+                        type="text"
+                        required
+                        value={gymSettings.address || ''}
+                        onChange={(e) => setGymSettings({ ...gymSettings, address: e.target.value })}
+                        className="w-full pl-9 pr-3 py-2 text-xs font-semibold text-slate-900 border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                        placeholder="e.g. Main Road, Baner, Pune"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">City</label>
+                      <input
+                        type="text"
+                        value={gymSettings.city || ''}
+                        onChange={(e) => setGymSettings({ ...gymSettings, city: e.target.value })}
+                        className="w-full px-3 py-2 text-xs font-semibold text-slate-900 border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                        placeholder="e.g. Pune"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">State</label>
+                      <input
+                        type="text"
+                        value={gymSettings.state || ''}
+                        onChange={(e) => setGymSettings({ ...gymSettings, state: e.target.value })}
+                        className="w-full px-3 py-2 text-xs font-semibold text-slate-900 border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                        placeholder="e.g. Maharashtra"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Pincode</label>
+                      <input
+                        type="text"
+                        value={gymSettings.pincode || ''}
+                        onChange={(e) => setGymSettings({ ...gymSettings, pincode: e.target.value })}
+                        className="w-full px-3 py-2 text-xs font-mono font-semibold text-slate-900 border border-slate-200 rounded-xl focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                        placeholder="e.g. 411045"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tax-Free Billing Policy */}
+                <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50/40 border border-emerald-200/80 rounded-2xl space-y-1.5 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                      <span className="text-xs font-bold text-emerald-950">Tax-Free Billing Policy</span>
+                    </div>
+                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300/50">
+                      Flat Rates • 0% Tax
+                    </span>
+                  </div>
+                  <p className="text-xs text-emerald-800 leading-relaxed font-normal">
+                    Sagar Fitness Gym operates on a direct, tax-free billing structure. No GST or tax surcharges are added to transactions. Remaining Balance is strictly calculated as Total Membership Fee minus Total Valid Payments.
+                  </p>
+                </div>
+
+                {/* Indian Operational Standards (Read-Only) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                      Operating Currency
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-900">Indian Rupee (INR)</span>
+                      <span className="font-extrabold text-sm text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">₹</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1">Formatted with en-IN standards (e.g. ₹1,29,999)</p>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                      Timezone Standard
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-900">Asia/Kolkata (IST)</span>
+                      <span className="font-mono text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">UTC+5:30</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1">Receipts & records use DD/MM/YYYY formatting</p>
+                  </div>
+                </div>
+
+                {/* Save Button */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <div className="text-xs text-slate-400 font-medium">
+                    {isAdmin ? 'Changes apply immediately across all modules.' : 'Only administrators can save settings.'}
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={savingSettings || !isAdmin}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-blue-500/20 active:scale-98"
+                  >
+                    {savingSettings ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Saving Profile...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Save Gym Profile
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
-            <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-              India Edition (INR • Asia/Kolkata)
-            </span>
           </div>
 
-          {generalSaved && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-md text-xs text-green-700 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 shrink-0" />
-              <span>Gym settings saved successfully.</span>
-            </div>
-          )}
-
-          {generalError && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-xs text-red-700 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{generalError}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleSaveGeneral} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#202124] mb-1">
-                  Gym Business Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={gymSettings.gymName || ''}
-                  onChange={(e) => setGymSettings({ ...gymSettings, gymName: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#202124] mb-1">
-                  Tagline / Motto
-                </label>
-                <input
-                  type="text"
-                  value={gymSettings.tagline || ''}
-                  onChange={(e) => setGymSettings({ ...gymSettings, tagline: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#202124] mb-1">
-                  Front Desk Contact Phone (+91) *
-                </label>
-                <input
-                  type="tel"
-                  required
-                  value={gymSettings.phone || ''}
-                  onChange={(e) => setGymSettings({ ...gymSettings, phone: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none font-mono"
-                  placeholder="+91 98765 43210"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#202124] mb-1">
-                  Official Email Address *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={gymSettings.email || ''}
-                  onChange={(e) => setGymSettings({ ...gymSettings, email: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
-                  placeholder="desk@fitcore.in"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-3 pt-2 border-t border-gray-100">
-              <label className="block text-xs font-semibold text-[#202124]">
-                Gym Address & Location
-              </label>
-              <div>
-                <input
-                  type="text"
-                  required
-                  value={gymSettings.address || ''}
-                  onChange={(e) => setGymSettings({ ...gymSettings, address: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
-                  placeholder="Plot / Street / Building Address"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[11px] font-medium text-gray-500 mb-1">City</label>
-                  <input
-                    type="text"
-                    value={gymSettings.city || ''}
-                    onChange={(e) => setGymSettings({ ...gymSettings, city: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
-                    placeholder="e.g. Noida"
-                  />
+          {/* Right Column: Live Receipt Header & Gym Overview Preview (4 cols) */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Live Receipt Preview Card */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+              <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Receipt className="w-4 h-4 text-blue-600" />
+                  <span className="text-xs font-bold text-slate-900">Live Customer Receipt Header</span>
                 </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-gray-500 mb-1">State</label>
-                  <input
-                    type="text"
-                    value={gymSettings.state || ''}
-                    onChange={(e) => setGymSettings({ ...gymSettings, state: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
-                    placeholder="e.g. Uttar Pradesh"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-gray-500 mb-1">Pincode</label>
-                  <input
-                    type="text"
-                    value={gymSettings.pincode || ''}
-                    onChange={(e) => setGymSettings({ ...gymSettings, pincode: e.target.value })}
-                    className="w-full px-3 py-1.5 text-xs border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none font-mono"
-                    placeholder="e.g. 201301"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Tax-Free Billing Policy */}
-            <div className="p-4 bg-emerald-50/60 border border-emerald-200/80 rounded-lg space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-emerald-900">Tax-Free Billing Policy</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
-                  Flat Rates • 0% Tax
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Real-time Preview
                 </span>
               </div>
-              <p className="text-[11px] text-emerald-700 leading-relaxed">
-                Sagar Fitness Gym operates on a direct, tax-free billing structure. No GST or tax surcharges are added to transactions. Remaining Balance is strictly calculated as Total Membership Fee minus Total Valid Payments.
-              </p>
+
+              {/* Realistic Receipt Canvas */}
+              <div className="p-5 bg-gradient-to-b from-white to-slate-50/50 space-y-3.5">
+                <div className="p-4 bg-white border border-slate-200 rounded-xl shadow-xs space-y-3">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <img
+                      src="/logo.png"
+                      alt="Logo"
+                      className="h-8 w-auto max-w-[100px] object-contain"
+                    />
+                    <div className="text-right">
+                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Official Bill</div>
+                      <div className="text-[11px] font-mono font-bold text-slate-800">#SFG-REC-1042</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 tracking-tight leading-snug">
+                      {gymSettings.gymName || 'Sagar Fitness GYM'}
+                    </h3>
+                    <p className="text-[10px] font-semibold text-blue-600 mt-0.5">
+                      {gymSettings.tagline || 'Strength • Transformation • Health Center'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1 text-[10px] text-slate-500 pt-1 border-t border-slate-50">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span className="truncate">
+                        {gymSettings.address || 'Main Road, Baner'}, {gymSettings.city || 'Pune'} - {gymSettings.pincode || '411045'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span>{gymSettings.phone || '+91 98220 10001'}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span className="truncate">{gymSettings.email || 'info@sagarfitness.com'}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-2 bg-slate-50 rounded-lg flex items-center justify-between text-[10px] font-semibold text-slate-700">
+                    <span>Tax Policy: Flat 0% (Tax-Free)</span>
+                    <span className="text-emerald-700 font-bold">✓ Official Receipt</span>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-slate-400 leading-normal text-center">
+                  This header dynamically updates whenever you print member bills, generate PDF receipts, or send WhatsApp receipts.
+                </p>
+              </div>
             </div>
 
-            {/* Indian Operational Standards (Read-Only) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div>
-                <label className="block text-xs font-semibold text-[#202124] mb-1">
-                  Operating Currency
-                </label>
-                <div className="px-3 py-2 text-xs bg-gray-100 border border-gray-200 rounded-md text-gray-700 font-semibold flex items-center justify-between">
-                  <span>Indian Rupee (INR)</span>
-                  <span className="font-bold text-sm text-blue-700">₹</span>
-                </div>
-                <p className="text-[10px] text-gray-500 mt-1">Formatted using en-IN standards (e.g. ₹1,29,999)</p>
+            {/* System Status / Quick Info Card */}
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-3.5">
+              <div className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                Gym System Operations
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#202124] mb-1">
-                  Timezone Standard
-                </label>
-                <div className="px-3 py-2 text-xs bg-gray-100 border border-gray-200 rounded-md text-gray-700 font-semibold flex items-center justify-between">
-                  <span>Asia/Kolkata (IST • UTC+5:30)</span>
-                  <span className="font-mono text-[11px] text-emerald-700">IST</span>
+              <div className="space-y-2.5 text-xs">
+                <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                  <span className="text-slate-500 font-medium">Software License</span>
+                  <span className="font-bold text-slate-800">Sagar Fitness Pro (v2.4)</span>
                 </div>
-                <p className="text-[10px] text-gray-500 mt-1">Calendar dates use DD/MM/YYYY formatting</p>
+                <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                  <span className="text-slate-500 font-medium">Primary Facility</span>
+                  <span className="font-bold text-slate-800">Baner, Pune</span>
+                </div>
+                <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                  <span className="text-slate-500 font-medium">Auto-Backups</span>
+                  <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Nightly Active</span>
+                </div>
+                <div className="flex items-center justify-between py-1.5">
+                  <span className="text-slate-500 font-medium">Active Staff Logins</span>
+                  <span className="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">{staffList.length} Accounts</span>
+                </div>
               </div>
             </div>
-
-            <div className="pt-4 flex justify-end">
-              <button
-                type="submit"
-                disabled={savingSettings || !isAdmin}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold rounded-md flex items-center gap-2 transition-colors shadow-subtle"
-              >
-                <Save className="w-3.5 h-3.5" />
-                {savingSettings ? 'Saving...' : 'Save Gym Profile'}
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
       )}
 
       {/* Tab 2: WhatsApp Cloud API & Automation */}
       {activeTab === 'whatsapp' && (
-        <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 shadow-subtle max-w-3xl space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E5E7EB]">
-            <div>
-              <h3 className="text-base font-bold text-[#202124] flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-emerald-600" />
-                WhatsApp Cloud API & Automatic Expiry Reminders
-              </h3>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                Official Meta WhatsApp Business Cloud API integration for automated customer notifications.
-              </p>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Main Credentials & Test Form (7 cols) */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="p-2 rounded-lg bg-emerald-50 text-emerald-600">
+                      <MessageSquare className="w-5 h-5" />
+                    </span>
+                    <h2 className="text-lg font-bold text-slate-900">
+                      WhatsApp Cloud API Automation
+                    </h2>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    Official Meta WhatsApp Business Cloud API integration for automated 2-day membership reminders.
+                  </p>
+                </div>
 
-            <div>
-              {gymSettings.whatsappStatus?.isConfigured ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Configured & Live ({gymSettings.whatsappStatus.source === 'ENVIRONMENT_VARIABLES' ? 'ENV' : 'Database'})
-                </span>
+                <div>
+                  {gymSettings.whatsappStatus?.isConfigured ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      Configured & Live ({gymSettings.whatsappStatus.source === 'ENVIRONMENT_VARIABLES' ? 'ENV' : 'Database'})
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300">
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                      Setup Required
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Status Banner */}
+              {!gymSettings.whatsappStatus?.isConfigured ? (
+                <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-2">
+                  <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    WhatsApp Cloud API is not yet configured.
+                  </div>
+                  <p className="leading-relaxed">
+                    To send automated 2-day membership expiry reminders directly to Indian gym members (+91), enter your official Meta WhatsApp Cloud API credentials below or define <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">WHATSAPP_ACCESS_TOKEN</code> and <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">WHATSAPP_PHONE_NUMBER_ID</code> in backend environment variables.
+                  </p>
+                  <p className="text-[11px] text-amber-700">
+                    ⚠️ Without credentials, the system records skipped reminders as &ldquo;Setup Required&rdquo; and does not pretend messages were delivered.
+                  </p>
+                </div>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-300">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                  Setup Required
-                </span>
+                <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-emerald-800">WhatsApp Automation Active</span>
+                    <p className="text-emerald-700 text-[11px] mt-0.5">
+                      Scheduled daily job scans memberships and dispatches automated reminders 2 days prior to expiry in Asia/Kolkata timezone.
+                    </p>
+                  </div>
+                  <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
+                </div>
               )}
+
+              {/* Form */}
+              <form onSubmit={handleSaveGeneral} className="space-y-4">
+                {/* 2-Day Automation Toggle Switch */}
+                <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-slate-900">
+                      Automatic 2-Day Expiry Reminders
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">
+                      Delivers WhatsApp reminder automatically to active members whose membership expires in 2 days.
+                    </div>
+                  </div>
+
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={gymSettings.whatsapp?.autoReminder2DaysEnabled ?? true}
+                      onChange={(e) =>
+                        setGymSettings({
+                          ...gymSettings,
+                          whatsapp: {
+                            ...(gymSettings.whatsapp || {}),
+                            autoReminder2DaysEnabled: e.target.checked,
+                          },
+                        })
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                  </label>
+                </div>
+
+                {/* API Credentials */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                      WhatsApp Phone Number ID
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 109283948291029"
+                      value={gymSettings.whatsapp?.phoneNumberId || ''}
+                      onChange={(e) =>
+                        setGymSettings({
+                          ...gymSettings,
+                          whatsapp: {
+                            ...(gymSettings.whatsapp || {}),
+                            phoneNumberId: e.target.value,
+                          },
+                        })
+                      }
+                      className="w-full px-3 py-2 text-xs font-mono border border-slate-200 rounded-xl focus:border-blue-600 focus:outline-none"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">Found in Meta Developer Portal under WhatsApp &gt; API Setup</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                      Meta System User Access Token
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="EAA..."
+                      value={gymSettings.whatsapp?.accessToken || ''}
+                      onChange={(e) =>
+                        setGymSettings({
+                          ...gymSettings,
+                          whatsapp: {
+                            ...(gymSettings.whatsapp || {}),
+                            accessToken: e.target.value,
+                          },
+                        })
+                      }
+                      className="w-full px-3 py-2 text-xs font-mono border border-slate-200 rounded-xl focus:border-blue-600 focus:outline-none"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">Never exposed to frontend; masked securely</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                      Approved WhatsApp Template Name
+                    </label>
+                    <input
+                      type="text"
+                      value={gymSettings.whatsapp?.templateName || 'membership_expiry_reminder'}
+                      onChange={(e) =>
+                        setGymSettings({
+                          ...gymSettings,
+                          whatsapp: {
+                            ...(gymSettings.whatsapp || {}),
+                            templateName: e.target.value,
+                          },
+                        })
+                      }
+                      className="w-full px-3 py-2 text-xs font-mono border border-slate-200 rounded-xl focus:border-blue-600 focus:outline-none"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1">Approved template with 3 parameters: name, gym, date</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                      Meta Business Account ID (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 782910293847"
+                      value={gymSettings.whatsapp?.businessAccountId || ''}
+                      onChange={(e) =>
+                        setGymSettings({
+                          ...gymSettings,
+                          whatsapp: {
+                            ...(gymSettings.whatsapp || {}),
+                            businessAccountId: e.target.value,
+                          },
+                        })
+                      }
+                      className="w-full px-3 py-2 text-xs font-mono border border-slate-200 rounded-xl focus:border-blue-600 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={savingSettings || !isAdmin}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-emerald-600/20"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    {savingSettings ? 'Saving...' : 'Save WhatsApp Configuration'}
+                  </button>
+                </div>
+              </form>
+
+              {/* Test WhatsApp Connection Tool */}
+              <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-3">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-emerald-600" />
+                  <h4 className="text-xs font-bold text-slate-900">
+                    Test WhatsApp Cloud API Connection
+                  </h4>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Dispatch a test message using the configured Meta Cloud API to verify credentials and template delivery.
+                </p>
+
+                <form onSubmit={handleTestWhatsApp} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <input
+                    type="tel"
+                    placeholder="Indian Mobile (e.g. 9876543210)"
+                    value={testPhone}
+                    onChange={(e) => setTestPhone(e.target.value)}
+                    className="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-xl focus:border-emerald-600 focus:outline-none font-mono bg-white"
+                  />
+                  <button
+                    type="submit"
+                    disabled={testingWhatsApp || !testPhone.trim()}
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors disabled:opacity-50 shadow-xs"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    {testingWhatsApp ? 'Testing...' : 'Send Test WhatsApp'}
+                  </button>
+                </form>
+
+                {testResult && (
+                  <div
+                    className={`p-3 rounded-xl text-xs ${
+                      testResult.success
+                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                        : 'bg-amber-50 text-amber-800 border border-amber-200'
+                    }`}
+                  >
+                    <div className="font-bold flex items-center gap-1">
+                      {testResult.success ? '✅ Test Message Dispatched' : '⚠️ API Response:'}
+                    </div>
+                    <div className="text-[11px] mt-1 font-mono">{testResult.error || 'Message sent successfully via Meta Cloud API.'}</div>
+                    {testResult.waMessageId && (
+                      <div className="text-[10px] text-slate-500 mt-0.5">Meta Message ID: {testResult.waMessageId}</div>
+                    )}
+                  </div>
+                )}
+
+                {testError && (
+                  <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-xl text-xs">
+                    {testError}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Status Details Alert Box */}
-          {!gymSettings.whatsappStatus?.isConfigured ? (
-            <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-lg text-xs text-amber-900 space-y-2">
-              <div className="font-bold flex items-center gap-1.5 text-amber-800">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                WhatsApp Cloud API is not yet configured.
+          {/* Right Column: Live WhatsApp Message Mockup (5 cols) */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+              <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-emerald-600" />
+                  <span className="text-xs font-bold text-slate-900">Member WhatsApp Experience</span>
+                </div>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Live Mockup
+                </span>
               </div>
-              <p className="leading-relaxed">
-                To send automated 2-day membership expiry reminders directly to Indian gym members (+91), enter your official Meta WhatsApp Cloud API credentials below or define <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">WHATSAPP_ACCESS_TOKEN</code> and <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-[11px]">WHATSAPP_PHONE_NUMBER_ID</code> in your backend environment variables.
-              </p>
-              <p className="text-[11px] text-amber-700">
-                ⚠️ Without credentials, the system will record skipped reminders as &ldquo;Setup Required&rdquo; and will not pretend messages were delivered.
-              </p>
-            </div>
-          ) : (
-            <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-lg text-xs text-emerald-900 flex items-center justify-between">
-              <div>
-                <span className="font-bold text-emerald-800">WhatsApp Automation Active</span>
-                <p className="text-emerald-700 text-[11px] mt-0.5">
-                  Scheduled daily job will scan memberships and send automated reminders 2 days prior to expiry in Asia/Kolkata timezone.
+
+              {/* WhatsApp App Mockup */}
+              <div className="p-4 bg-slate-100 flex justify-center">
+                <div className="w-full max-w-[340px] rounded-2xl overflow-hidden shadow-md border border-slate-300/80 bg-[#ECE5DD]">
+                  {/* WhatsApp App Header */}
+                  <div className="bg-[#075E54] text-white px-3.5 py-2.5 flex items-center gap-2.5 shadow-xs">
+                    <div className="w-8 h-8 rounded-full bg-white p-0.5 flex items-center justify-center shrink-0">
+                      <img src="/logo.png" alt="Sagar Fitness" className="h-6 w-auto object-contain" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-bold truncate flex items-center gap-1">
+                        {gymSettings.gymName || 'Sagar Fitness Gym'}
+                        <span className="w-3 h-3 bg-white text-[#075E54] rounded-full text-[8px] flex items-center justify-center font-bold">✓</span>
+                      </div>
+                      <div className="text-[10px] text-emerald-100 truncate">Official Business Account</div>
+                    </div>
+                  </div>
+
+                  {/* Chat Area */}
+                  <div className="p-3.5 space-y-3 min-h-[220px]">
+                    <div className="flex justify-center">
+                      <span className="text-[9px] font-semibold text-slate-600 bg-white/80 px-2 py-0.5 rounded-md shadow-2xs">
+                        Today
+                      </span>
+                    </div>
+
+                    {/* WhatsApp Message Bubble */}
+                    <div className="bg-white rounded-lg rounded-tl-none p-3 shadow-2xs max-w-[90%] space-y-1.5 border border-slate-200/60 text-slate-800">
+                      <div className="text-[11px] font-bold text-[#075E54] flex items-center gap-1">
+                        <span>🔔 Sagar Fitness Gym Expiry Alert</span>
+                      </div>
+                      <p className="text-[11px] leading-snug">
+                        Dear <strong className="text-slate-900">Rahul Sharma</strong>,
+                      </p>
+                      <p className="text-[11px] leading-snug">
+                        Your <strong className="text-slate-900">3 Month Strength & Cardio</strong> membership expires in <strong className="text-emerald-700">2 days</strong> on <strong className="text-slate-900">22 Oct 2026</strong>.
+                      </p>
+                      <p className="text-[11px] leading-snug text-slate-600">
+                        Kindly visit the front desk to renew and keep your workout routine active!
+                      </p>
+                      <div className="pt-1 border-t border-slate-100 text-[10px] text-slate-500">
+                        📞 Desk: {gymSettings.phone || '+91 98220 10001'}
+                      </div>
+                      <div className="flex items-center justify-end gap-1 text-[9px] text-slate-400 pt-0.5">
+                        <span>09:00 AM</span>
+                        <span className="text-blue-500 font-bold">✓✓</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
+                <p className="text-[11px] text-slate-500">
+                  Delivered automatically at <strong>09:00 AM IST</strong> to active members whose plan expires in 2 days.
                 </p>
               </div>
-              <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
             </div>
-          )}
-
-          {/* WhatsApp Settings Form */}
-          <form onSubmit={handleSaveGeneral} className="space-y-4">
-            {/* 2-Day Automation Toggle Switch */}
-            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
-              <div>
-                <div className="text-xs font-bold text-[#202124]">
-                  Automatic 2-Day Expiry Reminders
-                </div>
-                <div className="text-[11px] text-[#6B7280] mt-0.5">
-                  Automatically delivers WhatsApp reminder to active members whose membership expires in 2 days.
-                </div>
-              </div>
-
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={gymSettings.whatsapp?.autoReminder2DaysEnabled ?? true}
-                  onChange={(e) =>
-                    setGymSettings({
-                      ...gymSettings,
-                      whatsapp: {
-                        ...(gymSettings.whatsapp || {}),
-                        autoReminder2DaysEnabled: e.target.checked,
-                      },
-                    })
-                  }
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-              </label>
-            </div>
-
-            {/* API Credentials */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#202124] mb-1">
-                  WhatsApp Phone Number ID
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 109283948291029"
-                  value={gymSettings.whatsapp?.phoneNumberId || ''}
-                  onChange={(e) =>
-                    setGymSettings({
-                      ...gymSettings,
-                      whatsapp: {
-                        ...(gymSettings.whatsapp || {}),
-                        phoneNumberId: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full px-3 py-2 text-xs font-mono border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
-                />
-                <p className="text-[10px] text-gray-500 mt-1">Found in Meta Developer Portal under WhatsApp &gt; API Setup</p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#202124] mb-1">
-                  Meta System User Access Token
-                </label>
-                <input
-                  type="password"
-                  placeholder="EAA..."
-                  value={gymSettings.whatsapp?.accessToken || ''}
-                  onChange={(e) =>
-                    setGymSettings({
-                      ...gymSettings,
-                      whatsapp: {
-                        ...(gymSettings.whatsapp || {}),
-                        accessToken: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full px-3 py-2 text-xs font-mono border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
-                />
-                <p className="text-[10px] text-gray-500 mt-1">Never exposed in frontend; masked securely</p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#202124] mb-1">
-                  Approved WhatsApp Template Name
-                </label>
-                <input
-                  type="text"
-                  value={gymSettings.whatsapp?.templateName || 'membership_expiry_reminder'}
-                  onChange={(e) =>
-                    setGymSettings({
-                      ...gymSettings,
-                      whatsapp: {
-                        ...(gymSettings.whatsapp || {}),
-                        templateName: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full px-3 py-2 text-xs font-mono border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
-                />
-                <p className="text-[10px] text-gray-500 mt-1">Approved template with 3 parameters: name, gym, date</p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#202124] mb-1">
-                  Meta Business Account ID (Optional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. 782910293847"
-                  value={gymSettings.whatsapp?.businessAccountId || ''}
-                  onChange={(e) =>
-                    setGymSettings({
-                      ...gymSettings,
-                      whatsapp: {
-                        ...(gymSettings.whatsapp || {}),
-                        businessAccountId: e.target.value,
-                      },
-                    })
-                  }
-                  className="w-full px-3 py-2 text-xs font-mono border border-[#E5E7EB] rounded-md focus:border-blue-600 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                type="submit"
-                disabled={savingSettings || !isAdmin}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold rounded-md flex items-center gap-2 transition-colors shadow-subtle"
-              >
-                <Save className="w-3.5 h-3.5" />
-                {savingSettings ? 'Saving...' : 'Save WhatsApp Configuration'}
-              </button>
-            </div>
-          </form>
-
-          {/* Test WhatsApp Connection Tool */}
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
-            <div className="flex items-center gap-2">
-              <Smartphone className="w-4 h-4 text-blue-600" />
-              <h4 className="text-xs font-bold text-[#202124]">
-                Test WhatsApp Cloud API Connection
-              </h4>
-            </div>
-            <p className="text-[11px] text-[#6B7280]">
-              Dispatch a test message using the configured Meta Cloud API to verify credentials and template approval.
-            </p>
-
-            <form onSubmit={handleTestWhatsApp} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-              <input
-                type="tel"
-                placeholder="Indian Mobile (e.g. 9876543210)"
-                value={testPhone}
-                onChange={(e) => setTestPhone(e.target.value)}
-                className="flex-1 px-3 py-1.5 text-xs border border-gray-300 rounded-md focus:border-blue-600 focus:outline-none font-mono bg-white"
-              />
-              <button
-                type="submit"
-                disabled={testingWhatsApp || !testPhone.trim()}
-                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md transition-colors disabled:opacity-50"
-              >
-                <Send className="w-3 h-3" />
-                {testingWhatsApp ? 'Testing...' : 'Send Test WhatsApp'}
-              </button>
-            </form>
-
-            {testResult && (
-              <div
-                className={`p-3 rounded-md text-xs ${
-                  testResult.success
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    : 'bg-amber-50 text-amber-800 border border-amber-200'
-                }`}
-              >
-                <div className="font-bold flex items-center gap-1">
-                  {testResult.success ? '✅ Test Message Dispatched' : '⚠️ API Response:'}
-                </div>
-                <div className="text-[11px] mt-1 font-mono">{testResult.error || 'Message sent successfully via Meta Cloud API.'}</div>
-                {testResult.waMessageId && (
-                  <div className="text-[10px] text-gray-500 mt-0.5">Meta Message ID: {testResult.waMessageId}</div>
-                )}
-              </div>
-            )}
-
-            {testError && (
-              <div className="p-3 bg-red-50 text-red-700 border border-red-200 rounded-md text-xs">
-                {testError}
-              </div>
-            )}
           </div>
         </div>
       )}
 
       {/* Tab 3: Staff Accounts */}
       {activeTab === 'staff' && (
-        <div className="bg-white border border-[#E5E7EB] rounded-lg shadow-subtle overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-bold text-[#202124]">Staff Accounts & Desk Logins</h3>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                Staff member accounts, profiles, photos, and role access permissions.
-              </p>
+        <div className="space-y-6">
+          {/* Stat Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                Total Staff
+              </div>
+              <div className="text-2xl font-black text-slate-900">{staffList.length}</div>
+              <p className="text-[10px] text-slate-500 mt-0.5">Registered team accounts</p>
             </div>
 
-            <button
-              onClick={() => {
-                setStaffMsg(null);
-                setShowAddStaffModal(true);
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              + Add Staff Account
-            </button>
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                Active Logins
+              </div>
+              <div className="text-2xl font-black text-emerald-600">
+                {staffList.filter((s) => s.status === 'ACTIVE').length}
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5">Operational desk credentials</p>
+            </div>
+
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                Administrators
+              </div>
+              <div className="text-2xl font-black text-purple-600">
+                {staffList.filter((s) => s.role === 'SUPER_ADMIN' || s.role === 'GYM_ADMIN').length}
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5">Owners & Managers</p>
+            </div>
+
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                Front Desk
+              </div>
+              <div className="text-2xl font-black text-blue-600">
+                {staffList.filter((s) => s.role === 'RECEPTIONIST').length}
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5">Reception & Check-in Desk</p>
+            </div>
           </div>
 
-          {staffMsg && (
-            <div
-              className={`m-5 p-3 rounded-md text-xs ${
-                staffMsg.type === 'success'
-                  ? 'bg-green-50 text-green-700 border border-green-200'
-                  : 'bg-red-50 text-red-700 border border-red-200'
-              }`}
-            >
-              {staffMsg.text}
+          {/* Table Container */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Staff Accounts & Desk Logins</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Manage Sagar Fitness Gym staff accounts, role permissions, and desk login privileges.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={staffSearchQuery}
+                    onChange={(e) => setStaffSearchQuery(e.target.value)}
+                    placeholder="Search staff..."
+                    className="pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-xl focus:border-blue-600 focus:outline-none w-44 sm:w-56"
+                  />
+                </div>
+
+                <button
+                  onClick={() => {
+                    setStaffMsg(null);
+                    setShowAddStaffModal(true);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-xs shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  + Add Staff Account
+                </button>
+              </div>
             </div>
-          )}
 
-          {loadingStaff ? (
-            <div className="p-12 text-center text-sm text-[#6B7280]">Loading staff accounts...</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs font-semibold text-[#6B7280] uppercase tracking-wider border-b border-[#E5E7EB]">
-                  <tr>
-                    <th className="px-5 py-3">Staff Member</th>
-                    <th className="px-5 py-3">Email</th>
-                    <th className="px-5 py-3">Role</th>
-                    <th className="px-5 py-3">Status</th>
-                    <th className="px-5 py-3 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E5E7EB]">
-                  {staffList.map((st) => (
-                    <tr key={st._id} className="hover:bg-gray-50/75 transition-colors">
-                      <td className="px-5 py-3.5 font-semibold text-[#202124]">
-                        <div className="flex items-center gap-3">
-                          {st.avatarUrl ? (
-                            <img
-                              src={st.avatarUrl}
-                              alt={st.fullName}
-                              className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0"
-                            />
-                          ) : (
-                            <div className="w-9 h-9 rounded-full bg-blue-50 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">
-                              {st.fullName ? st.fullName.charAt(0) : 'S'}
-                            </div>
-                          )}
-                          <div>
-                            <div className="font-semibold text-[#202124]">{st.fullName}</div>
-                            <div className="text-xs text-[#6B7280] font-normal">{st.phone || 'No phone'}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5 text-xs text-[#6B7280]">{st.email}</td>
-                      <td className="px-5 py-3.5">
-                        <span
-                          className={`text-xs font-semibold px-2 py-0.5 rounded ${
-                            st.role === 'SUPER_ADMIN' || st.role === 'GYM_ADMIN'
-                              ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                              : 'bg-blue-50 text-blue-700 border border-blue-200'
-                          }`}
-                        >
-                          {st.role === 'RECEPTIONIST'
-                            ? '🏢 Front Desk'
-                            : st.role === 'SUPER_ADMIN'
-                            ? '👑 Gym Owner'
-                            : st.role === 'GYM_ADMIN'
-                            ? '🛡️ Manager'
-                            : st.role?.replace('_', ' ')}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                          {st.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => handleOpenEditStaff(st)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                            Edit / Photo
-                          </button>
+            {staffMsg && (
+              <div
+                className={`m-5 p-3 rounded-xl text-xs font-medium ${
+                  staffMsg.type === 'success'
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                    : 'bg-red-50 text-red-700 border border-red-200'
+                }`}
+              >
+                {staffMsg.text}
+              </div>
+            )}
 
-                          {isAdmin && (
-                            st._id === user?.id || (user as any)?._id === st._id || (st.email && user?.email && st.email.toLowerCase() === user.email.toLowerCase()) ? (
-                              <span className="text-[11px] font-medium text-gray-400 px-2 py-0.5 bg-gray-100 rounded" title="Your active account">
-                                (You)
-                              </span>
-                            ) : (
-                              <button
-                                onClick={() => setDeleteTargetStaff(st)}
-                                title={
-                                  user?.role === 'GYM_ADMIN' && st.role === 'SUPER_ADMIN'
-                                    ? 'Only Gym Owner can delete Owner account'
-                                    : 'Delete staff account'
-                                }
-                                disabled={user?.role === 'GYM_ADMIN' && st.role === 'SUPER_ADMIN'}
-                                className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded transition-colors ${
-                                  user?.role === 'GYM_ADMIN' && st.role === 'SUPER_ADMIN'
-                                    ? 'text-gray-300 bg-gray-50 cursor-not-allowed'
-                                    : 'text-red-600 hover:text-red-800 hover:bg-red-50'
-                                }`}
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                Delete
-                              </button>
-                            )
-                          )}
-                        </div>
-                      </td>
+            {loadingStaff ? (
+              <div className="p-12 text-center text-sm text-slate-500">Loading staff accounts...</div>
+            ) : filteredStaff.length === 0 ? (
+              <div className="p-12 text-center text-sm text-slate-400">
+                {staffSearchQuery ? `No staff accounts match "${staffSearchQuery}".` : 'No staff accounts found.'}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                    <tr>
+                      <th className="px-5 py-3">Staff Member</th>
+                      <th className="px-5 py-3">Email Address</th>
+                      <th className="px-5 py-3">Role & Permissions</th>
+                      <th className="px-5 py-3">Status</th>
+                      <th className="px-5 py-3 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredStaff.map((st) => (
+                      <tr key={st._id} className="hover:bg-slate-50/75 transition-colors">
+                        <td className="px-5 py-3.5 font-semibold text-slate-900">
+                          <div className="flex items-center gap-3">
+                            {st.avatarUrl ? (
+                              <img
+                                src={st.avatarUrl}
+                                alt={st.fullName}
+                                className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0"
+                              />
+                            ) : (
+                              <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0">
+                                {st.fullName ? st.fullName.charAt(0) : 'S'}
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-bold text-slate-900">{st.fullName}</div>
+                              <div className="text-xs text-slate-500 font-normal">{st.phone || 'No phone'}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3.5 text-xs text-slate-600 font-mono">{st.email}</td>
+                        <td className="px-5 py-3.5">
+                          <span
+                            className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
+                              st.role === 'SUPER_ADMIN' || st.role === 'GYM_ADMIN'
+                                ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                : 'bg-blue-50 text-blue-700 border-blue-200'
+                            }`}
+                          >
+                            {st.role === 'RECEPTIONIST'
+                              ? '🏢 Front Desk'
+                              : st.role === 'SUPER_ADMIN'
+                              ? '👑 Gym Owner'
+                              : st.role === 'GYM_ADMIN'
+                              ? '🛡️ Manager'
+                              : st.role?.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span
+                            className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                              st.status === 'ACTIVE'
+                                ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                                : st.status === 'SUSPENDED'
+                                ? 'text-red-700 bg-red-50 border border-red-200'
+                                : 'text-slate-600 bg-slate-100 border border-slate-200'
+                            }`}
+                          >
+                            {st.status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => handleOpenEditStaff(st)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                              Edit / Photo
+                            </button>
+
+                            {isAdmin && (
+                              st._id === user?.id || (user as any)?._id === st._id || (st.email && user?.email && st.email.toLowerCase() === user.email.toLowerCase()) ? (
+                                <span className="text-[11px] font-bold text-slate-400 px-2.5 py-0.5 bg-slate-100 rounded-full" title="Your logged-in administrator account">
+                                  (You)
+                                </span>
+                              ) : (
+                                <button
+                                  onClick={() => setDeleteTargetStaff(st)}
+                                  title={
+                                    user?.role === 'GYM_ADMIN' && st.role === 'SUPER_ADMIN'
+                                      ? 'Only Gym Owner can delete Owner account'
+                                      : 'Delete staff account'
+                                  }
+                                  disabled={user?.role === 'GYM_ADMIN' && st.role === 'SUPER_ADMIN'}
+                                  className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                                    user?.role === 'GYM_ADMIN' && st.role === 'SUPER_ADMIN'
+                                      ? 'text-slate-300 bg-slate-50 cursor-not-allowed'
+                                      : 'text-red-600 hover:text-red-800 hover:bg-red-50'
+                                  }`}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  Delete
+                                </button>
+                              )
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
