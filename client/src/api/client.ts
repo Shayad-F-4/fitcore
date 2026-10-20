@@ -135,6 +135,14 @@ export const api = {
     return handleResponse<any>(res);
   },
 
+  async deleteStaff(id: string) {
+    const res = await fetch(`${API_BASE}/auth/staff/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return handleResponse<any>(res);
+  },
+
   async changePassword(data: { currentPassword: string; newPassword: string }) {
     const res = await fetch(`${API_BASE}/auth/change-password`, {
       method: 'POST',

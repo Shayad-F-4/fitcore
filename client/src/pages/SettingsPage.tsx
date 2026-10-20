@@ -7,6 +7,7 @@ import {
   Key,
   CheckCircle,
   AlertCircle,
+  AlertTriangle,
   Save,
   Plus,
   Camera,
@@ -111,6 +112,10 @@ export const SettingsPage: React.FC = () => {
     branch: '',
   });
   const [updatingStaffLoading, setUpdatingStaffLoading] = useState(false);
+
+  // Delete Staff Modal State (Admin only)
+  const [deleteTargetStaff, setDeleteTargetStaff] = useState<any | null>(null);
+  const [deletingStaffLoading, setDeletingStaffLoading] = useState(false);
 
   // Password & Profile State
   const [passwordForm, setPasswordForm] = useState({
@@ -410,6 +415,24 @@ export const SettingsPage: React.FC = () => {
       alert(err.message || 'Failed to update staff member');
     } finally {
       setUpdatingStaffLoading(false);
+    }
+  };
+
+  const handleDeleteStaff = async () => {
+    if (!deleteTargetStaff) return;
+    try {
+      setDeletingStaffLoading(true);
+      await api.deleteStaff(deleteTargetStaff._id);
+      setStaffMsg({
+        type: 'success',
+        text: `Staff account "${deleteTargetStaff.fullName}" was deleted successfully.`,
+      });
+      setDeleteTargetStaff(null);
+      fetchStaff();
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete staff member');
+    } finally {
+      setDeletingStaffLoading(false);
     }
   };
 
@@ -1157,13 +1180,41 @@ export const SettingsPage: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-5 py-3.5 text-right">
-                        <button
-                          onClick={() => handleOpenEditStaff(st)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                          Edit / Photo
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenEditStaff(st)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                            Edit / Photo
+                          </button>
+
+                          {isAdmin && (
+                            st._id === user?.id || (user as any)?._id === st._id || (st.email && user?.email && st.email.toLowerCase() === user.email.toLowerCase()) ? (
+                              <span className="text-[11px] font-medium text-gray-400 px-2 py-0.5 bg-gray-100 rounded" title="Your active account">
+                                (You)
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => setDeleteTargetStaff(st)}
+                                title={
+                                  user?.role === 'GYM_ADMIN' && st.role === 'SUPER_ADMIN'
+                                    ? 'Only Gym Owner can delete Owner account'
+                                    : 'Delete staff account'
+                                }
+                                disabled={user?.role === 'GYM_ADMIN' && st.role === 'SUPER_ADMIN'}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+                                  user?.role === 'GYM_ADMIN' && st.role === 'SUPER_ADMIN'
+                                    ? 'text-gray-300 bg-gray-50 cursor-not-allowed'
+                                    : 'text-red-600 hover:text-red-800 hover:bg-red-50'
+                                }`}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                Delete
+                              </button>
+                            )
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -2146,23 +2197,163 @@ export const SettingsPage: React.FC = () => {
                 </select>
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t">
-                <button
-                  type="button"
-                  onClick={() => setEditingStaff(null)}
-                  className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={updatingStaffLoading}
-                  className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded"
-                >
-                  {updatingStaffLoading ? 'Saving...' : 'Save Changes'}
-                </button>
+              <div className="pt-3 flex items-center justify-between border-t">
+                {isAdmin &&
+                !(
+                  editingStaff._id === user?.id ||
+                  (user as any)?._id === editingStaff._id ||
+                  (editingStaff.email && user?.email && editingStaff.email.toLowerCase() === user.email.toLowerCase())
+                ) ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const target = editingStaff;
+                      setEditingStaff(null);
+                      setDeleteTargetStaff(target);
+                    }}
+                    disabled={user?.role === 'GYM_ADMIN' && editingStaff.role === 'SUPER_ADMIN'}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded transition-colors ${
+                      user?.role === 'GYM_ADMIN' && editingStaff.role === 'SUPER_ADMIN'
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-red-600 hover:text-red-800 hover:bg-red-50'
+                    }`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete Account
+                  </button>
+                ) : (
+                  <div />
+                )}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingStaff(null)}
+                    className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={updatingStaffLoading}
+                    className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded"
+                  >
+                    {updatingStaffLoading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Staff Confirmation Modal */}
+      {deleteTargetStaff && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white border border-[#E5E7EB] rounded-xl shadow-modal overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-red-50/60">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#202124]">Delete Staff Account</h3>
+                  <p className="text-[11px] text-red-600 font-semibold uppercase tracking-wider">
+                    Admin Only Action
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDeleteTargetStaff(null)}
+                disabled={deletingStaffLoading}
+                className="p-1 rounded-md text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-xs text-gray-600 leading-relaxed">
+                Are you sure you want to permanently delete this staff member account? This will revoke their Sagar Fitness Gym desk login credentials and access immediately.
+              </p>
+
+              {/* Staff Member Card */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3.5 space-y-2.5">
+                <div className="flex items-center gap-3">
+                  {deleteTargetStaff.avatarUrl ? (
+                    <img
+                      src={deleteTargetStaff.avatarUrl}
+                      alt={deleteTargetStaff.fullName}
+                      className="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center shrink-0">
+                      {deleteTargetStaff.fullName ? deleteTargetStaff.fullName.charAt(0) : 'S'}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-bold text-[#202124] truncate">
+                      {deleteTargetStaff.fullName}
+                    </div>
+                    <div className="text-xs text-[#6B7280] truncate">{deleteTargetStaff.email}</div>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-gray-200/80 flex items-center justify-between text-xs text-[#6B7280]">
+                  <span>
+                    Role:{' '}
+                    <strong className="text-[#202124]">
+                      {deleteTargetStaff.role === 'RECEPTIONIST'
+                        ? '🏢 Front Desk'
+                        : deleteTargetStaff.role === 'SUPER_ADMIN'
+                        ? '👑 Gym Owner'
+                        : deleteTargetStaff.role === 'GYM_ADMIN'
+                        ? '🛡️ Manager'
+                        : deleteTargetStaff.role}
+                    </strong>
+                  </span>
+                  <span>
+                    Status:{' '}
+                    <strong className="text-emerald-700">{deleteTargetStaff.status}</strong>
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="text-[11px] text-amber-800 leading-normal">
+                  <strong>Warning:</strong> This action cannot be undone. System audit logs for historical actions performed by this user will remain preserved.
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 py-3.5 bg-gray-50 border-t border-gray-100 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setDeleteTargetStaff(null)}
+                disabled={deletingStaffLoading}
+                className="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-200/70 rounded-md transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteStaff}
+                disabled={deletingStaffLoading}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white text-xs font-semibold rounded-md shadow-sm transition-colors"
+              >
+                {deletingStaffLoading ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete Staff Account
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import crypto from 'crypto';
 import { User, UserRole } from '../models/User.js';
+import { Member } from '../models/Member.js';
 import { signToken } from '../utils/jwt.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 import { authenticate, requireRole, AuthenticatedRequest } from '../middlewares/auth.js';
@@ -313,6 +314,68 @@ router.put('/staff/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), 
     sendSuccess(res, 'Staff member updated successfully', staff);
   } catch (error: any) {
     sendError(res, error.message || 'Failed to update staff member', 500);
+  }
+});
+
+// Delete Staff Member (Admin only: SUPER_ADMIN and GYM_ADMIN)
+router.delete('/staff/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const staff = await User.findById(req.params.id);
+    if (!staff) {
+      sendError(res, 'Staff member not found', 404);
+      return;
+    }
+
+    // Safety Safeguard 1: Prevent an admin from deleting their own logged-in account
+    if (req.user?.userId === staff._id.toString()) {
+      sendError(res, 'Action rejected: You cannot delete your own active administrator account.', 400);
+      return;
+    }
+
+    // Safety Safeguard 2: Prevent GYM_ADMIN from deleting SUPER_ADMIN (Owner)
+    if (staff.role === 'SUPER_ADMIN' && req.user?.role !== 'SUPER_ADMIN') {
+      sendError(res, 'Permission denied: Only the Gym Owner (Super Admin) can delete another Super Admin account.', 403);
+      return;
+    }
+
+    // Safety Safeguard 3: Prevent deleting the last remaining active administrator
+    if (staff.role === 'SUPER_ADMIN' || staff.role === 'GYM_ADMIN') {
+      const activeAdminsCount = await User.countDocuments({
+        role: { $in: ['SUPER_ADMIN', 'GYM_ADMIN'] },
+        status: 'ACTIVE',
+        _id: { $ne: staff._id },
+      });
+      if (activeAdminsCount === 0) {
+        sendError(res, 'Action rejected: Cannot delete the last remaining active gym administrator.', 400);
+        return;
+      }
+    }
+
+    // Unlink any member profile attached to this user account
+    await Member.updateMany({ user: staff._id }, { $unset: { user: 1 } });
+
+    // Permanently delete user
+    await User.findByIdAndDelete(staff._id);
+
+    await recordAuditLog({
+      userId: req.user?.userId,
+      userName: req.user?.email,
+      userRole: req.user?.role,
+      action: 'STAFF_DELETED',
+      entity: 'User',
+      entityId: staff._id.toString(),
+      details: {
+        staffName: staff.fullName,
+        staffEmail: staff.email,
+        staffRole: staff.role,
+        deletedBy: req.user?.email,
+      },
+      ip: req.ip,
+    });
+
+    sendSuccess(res, `Staff member "${staff.fullName}" (${staff.email}) was deleted successfully.`);
+  } catch (error: any) {
+    sendError(res, error.message || 'Failed to delete staff member', 500);
   }
 });
 
