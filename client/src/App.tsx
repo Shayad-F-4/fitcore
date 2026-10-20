@@ -29,6 +29,9 @@ const ReportsPage = lazy(() =>
 const SettingsPage = lazy(() =>
   import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage }))
 );
+const AuditLogsPage = lazy(() =>
+  import('./pages/AuditLogsPage').then((m) => ({ default: m.AuditLogsPage }))
+);
 
 // Code-split heavy modals
 const RegisterMemberModal = lazy(() =>
@@ -39,6 +42,9 @@ const MemberProfileModal = lazy(() =>
 );
 const RenewModal = lazy(() =>
   import('./components/modals/RenewModal').then((m) => ({ default: m.RenewModal }))
+);
+const FreezeModal = lazy(() =>
+  import('./components/modals/FreezeModal').then((m) => ({ default: m.FreezeModal }))
 );
 const MemberCardModal = lazy(() =>
   import('./components/modals/MemberCardModal').then((m) => ({ default: m.MemberCardModal }))
@@ -67,6 +73,7 @@ export const App: React.FC = () => {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [selectedRenewSub, setSelectedRenewSub] = useState<Membership | null>(null);
+  const [selectedFreezeSub, setSelectedFreezeSub] = useState<Membership | null>(null);
   const [selectedCardMember, setSelectedCardMember] = useState<Member | null>(null);
   const [selectedReceiptPayment, setSelectedReceiptPayment] = useState<Payment | null>(null);
   const [selectedCollectDueItem, setSelectedCollectDueItem] = useState<any | null>(null);
@@ -183,6 +190,16 @@ export const App: React.FC = () => {
                 }
               />
               <Route
+                path="/audit-logs"
+                element={
+                  user?.role === 'SUPER_ADMIN' || user?.role === 'GYM_ADMIN' ? (
+                    <AuditLogsPage />
+                  ) : (
+                    <Navigate to="/members" replace />
+                  )
+                }
+              />
+              <Route
                 path="/branches"
                 element={
                   <Navigate
@@ -225,6 +242,7 @@ export const App: React.FC = () => {
             onClose={() => setSelectedProfileId(null)}
             onOpenCardModal={(m) => setSelectedCardMember(m)}
             onOpenRenewModal={(sub) => setSelectedRenewSub(sub)}
+            onOpenFreezeModal={(sub) => setSelectedFreezeSub(sub)}
             onOpenCollectDue={(item) => setSelectedCollectDueItem(item)}
             onOpenReceipt={(payment) => setSelectedReceiptPayment(payment)}
           />
@@ -237,6 +255,15 @@ export const App: React.FC = () => {
             onClose={() => setSelectedRenewSub(null)}
             onSuccess={() => {}}
             onOpenReceipt={(payment) => setSelectedReceiptPayment(payment)}
+          />
+        )}
+
+        {selectedFreezeSub && (
+          <FreezeModal
+            membership={selectedFreezeSub}
+            isOpen={Boolean(selectedFreezeSub)}
+            onClose={() => setSelectedFreezeSub(null)}
+            onSuccess={() => {}}
           />
         )}
 

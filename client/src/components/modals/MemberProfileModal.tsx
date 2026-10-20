@@ -120,6 +120,21 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
     }
   };
 
+  const [thawing, setThawing] = useState(false);
+
+  const handleThaw = async (subId: string) => {
+    try {
+      setThawing(true);
+      await api.thawMembership(subId);
+      window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'MEMBERSHIP_THAWED' } }));
+      await fetchProfile();
+    } catch (err: any) {
+      alert(err.message || 'Failed to unfreeze membership');
+    } finally {
+      setThawing(false);
+    }
+  };
+
   useEffect(() => {
     if (isOpen && memberId) {
       setIsEditing(false);
@@ -418,6 +433,38 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
                       <CreditCard className="w-3 h-3 text-white" />
                     </div>
                     <span>Renew</span>
+                  </button>
+                )}
+
+                {currentSub && currentSub.status === 'ACTIVE' && onOpenFreezeModal && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onOpenFreezeModal(currentSub);
+                      onClose();
+                    }}
+                    className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-800 bg-white/90 hover:bg-white border border-white/50 hover:border-white transition-all active:scale-95 shadow-sm"
+                    title="Freeze Membership"
+                  >
+                    <div className="w-5.5 h-5.5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 transition-colors group-hover:bg-blue-100">
+                      <Snowflake className="w-3 h-3 shrink-0" />
+                    </div>
+                    <span>Freeze</span>
+                  </button>
+                )}
+
+                {currentSub && currentSub.status === 'FROZEN' && (
+                  <button
+                    type="button"
+                    disabled={thawing}
+                    onClick={() => handleThaw(currentSub._id)}
+                    className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-emerald-800 bg-white/90 hover:bg-white border border-emerald-300 hover:border-emerald-400 transition-all active:scale-95 shadow-sm"
+                    title="Unfreeze Membership"
+                  >
+                    <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
+                      <Snowflake className={`w-3 h-3 shrink-0 ${thawing ? 'animate-spin' : ''}`} />
+                    </div>
+                    <span>{thawing ? 'Unfreezing...' : 'Unfreeze'}</span>
                   </button>
                 )}
 

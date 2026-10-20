@@ -444,7 +444,7 @@ router.delete('/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), asy
       Attendance.countDocuments({ member: member._id }),
       Membership.countDocuments({ member: member._id }),
       FollowUp.countDocuments({ member: member._id }),
-      NotificationLog.countDocuments({ memberId: member._id }),
+      NotificationLog.countDocuments({ member: member._id }),
     ]);
 
     const totalLinkedRecords = paymentCount + attendanceCount + membershipCount + followUpCount + notificationCount;
