@@ -106,8 +106,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onO
       >
         <div className="flex flex-col min-h-0 flex-1 overflow-y-auto">
           {/* Brand Header */}
-          <div className="h-16 sm:h-20 px-4 border-b border-slate-200/70 flex items-center justify-between shrink-0">
-            <NavLink to="/" onClick={onCloseMobile} className="flex items-center group py-1">
+          <div className="h-16 sm:h-20 px-4 border-b border-slate-200/70 flex items-center justify-center relative shrink-0">
+            <NavLink to="/" onClick={onCloseMobile} className="flex items-center justify-center group py-1">
               <img
                 src="/logo.png"
                 alt="Sagar Fitness Gym"
@@ -118,7 +118,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onO
             {/* Mobile close button */}
             <button
               onClick={onCloseMobile}
-              className="lg:hidden h-9 w-9 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center transition-colors"
+              className="lg:hidden absolute right-3 h-9 w-9 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center transition-colors"
               aria-label="Close Navigation"
             >
               <X className="w-5 h-5" />
