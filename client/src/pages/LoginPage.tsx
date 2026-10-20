@@ -172,7 +172,7 @@ export const LoginPage: React.FC = () => {
       </div>
 
       {/* 3. Main Content: Responsive Two-Column Layout */}
-      <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-10 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12 min-h-screen">
+      <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-8 pb-12 sm:pb-16 flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12 min-h-screen">
         {/* Left Column (Desktop Only): Feature Highlights anchored at bottom left */}
         <div className="hidden lg:flex flex-col justify-end self-end w-full max-w-lg pb-6">
           <div className="flex items-center gap-10 xl:gap-14 pt-4">
@@ -209,8 +209,8 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Right Column: Floating Pristine White Login Card */}
-        <div className="w-full flex flex-col items-center lg:items-end justify-center my-auto">
-          <div className="w-full max-w-[440px] sm:max-w-[460px] bg-white rounded-3xl shadow-2xl shadow-black/60 border border-white/80 p-6 sm:p-9 text-slate-900 transition-all duration-200">
+        <div className="w-full flex flex-col items-center lg:items-end justify-center my-auto py-2">
+          <div className="w-full max-w-[440px] sm:max-w-[460px] bg-white rounded-3xl shadow-2xl shadow-black/60 border border-white/80 p-5 sm:p-7 text-slate-900 transition-all duration-200">
             {/* Sagar Fitness Gym Logo */}
             <div className="flex items-center justify-center">
               <img
@@ -373,9 +373,11 @@ export const LoginPage: React.FC = () => {
             </form>
           </div>
 
-          {/* Discreet Footer Text */}
-          <div className="text-center text-xs text-slate-300 font-medium mt-4 drop-shadow-sm">
-            Sagar Fitness Gym • Official Gym Management System
+          {/* Discreet Footer Text with Proper Spacing and Centering */}
+          <div className="w-full max-w-[440px] sm:max-w-[460px] text-center text-xs text-slate-300/85 font-medium mt-3.5 mb-1 px-3 flex items-center justify-center gap-2 drop-shadow-sm select-none">
+            <span>Sagar Fitness Gym</span>
+            <span className="text-lime-400 font-bold">•</span>
+            <span>Pathardi, Maharashtra</span>
           </div>
         </div>
       </div>
