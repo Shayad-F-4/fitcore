@@ -53,6 +53,8 @@ const authLimiter = rateLimit({
 app.use(
   helmet({
     crossOriginResourcePolicy: false,
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
   })
 );
 
@@ -104,6 +106,16 @@ if (ENV.NODE_ENV !== 'test') {
 // Static file serving for uploads (member photographs)
 app.use(
   '/uploads',
+  (req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(204);
+    }
+    next();
+  },
   express.static(path.resolve(process.cwd(), 'uploads'), {
     setHeaders: (res) => {
       res.setHeader('Access-Control-Allow-Origin', '*');
@@ -131,17 +143,22 @@ app.get(['/uploads/photos/:filename', '/api/upload/photo/:filename'], async (req
   try {
     const fileDoc = await UploadedFile.findOne({ filename });
     if (fileDoc && fileDoc.data) {
+      const buffer = Buffer.isBuffer(fileDoc.data)
+        ? fileDoc.data
+        : Buffer.from((fileDoc.data as any).buffer || fileDoc.data);
+
       try {
         const uploadDir = path.resolve(process.cwd(), 'uploads/photos');
         if (!fs.existsSync(uploadDir)) {
           fs.mkdirSync(uploadDir, { recursive: true });
         }
-        await fs.promises.writeFile(filePath, fileDoc.data);
+        await fs.promises.writeFile(filePath, buffer);
       } catch {
         // Disk write failed, still serve from memory buffer
       }
       res.setHeader('Content-Type', fileDoc.mimeType || 'image/jpeg');
-      return res.end(fileDoc.data);
+      res.setHeader('Content-Length', buffer.length.toString());
+      return res.end(buffer);
     }
   } catch (err) {
     console.error('[UploadedFile MongoDB Restore Error]', err);

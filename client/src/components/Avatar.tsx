@@ -26,7 +26,17 @@ export const Avatar: React.FC<AvatarProps> = ({
     setHasError(false);
   }
 
-  const mediaUrl = src ? getMediaUrl(src) : '';
+  // Treat placeholder Unsplash URLs or invalid/empty strings as no image
+  const isInvalidOrPlaceholder =
+    !src ||
+    typeof src !== 'string' ||
+    src.trim() === '' ||
+    src === 'null' ||
+    src === 'undefined' ||
+    src.includes('unsplash.com') ||
+    src.includes('via.placeholder.com');
+
+  const mediaUrl = !isInvalidOrPlaceholder ? getMediaUrl(src) : '';
   const initial = (name || 'M').trim().charAt(0).toUpperCase() || 'M';
 
   if (mediaUrl && !hasError) {
@@ -37,6 +47,8 @@ export const Avatar: React.FC<AvatarProps> = ({
         onError={() => setHasError(true)}
         className={`${sizeClassName} ${shape} object-cover border border-slate-200 shadow-2xs shrink-0 ${className}`}
         loading="lazy"
+        crossOrigin="anonymous"
+        referrerPolicy="no-referrer"
       />
     );
   }

@@ -79,7 +79,7 @@ export const seedDatabase = async () => {
       role: 'SUPER_ADMIN',
       phone: '+91 98220 10001',
       status: 'ACTIVE',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: '',
     });
 
     await User.create({
@@ -90,7 +90,7 @@ export const seedDatabase = async () => {
       phone: '+91 98220 10001',
       branch: flagshipBranch._id,
       status: 'ACTIVE',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: '',
     });
 
     const managerUser = await User.create({
@@ -101,7 +101,7 @@ export const seedDatabase = async () => {
       phone: '+91 98220 10002',
       branch: flagshipBranch._id,
       status: 'ACTIVE',
-      avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: '',
     });
 
     const receptionistUser = await User.create({
@@ -112,7 +112,7 @@ export const seedDatabase = async () => {
       phone: '+91 98220 10003',
       branch: flagshipBranch._id,
       status: 'ACTIVE',
-      avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: '',
     });
 
     await User.create({
@@ -123,7 +123,7 @@ export const seedDatabase = async () => {
       phone: '+91 98220 10003',
       branch: flagshipBranch._id,
       status: 'ACTIVE',
-      avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: '',
     });
 
     const trainerUser = await User.create({
@@ -134,7 +134,7 @@ export const seedDatabase = async () => {
       phone: '+91 98220 10004',
       branch: flagshipBranch._id,
       status: 'ACTIVE',
-      avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: '',
     });
 
     // 3. Create Standard Indian Membership Plans (₹ standard Indian gym pricing)

@@ -171,6 +171,11 @@ router.post('/login', async (req, res: Response) => {
       ip: req.ip,
     });
 
+    if (user.avatarUrl && user.avatarUrl.includes('unsplash.com')) {
+      user.avatarUrl = '';
+      await user.save().catch(() => {});
+    }
+
     sendSuccess(res, 'Login successful', {
       token,
       user: {
@@ -199,6 +204,11 @@ router.get('/me', authenticate, async (req: AuthenticatedRequest, res: Response)
       return;
     }
 
+    if (user.avatarUrl && user.avatarUrl.includes('unsplash.com')) {
+      user.avatarUrl = '';
+      await user.save().catch(() => {});
+    }
+
     sendSuccess(res, 'User profile fetched', {
       user: {
         id: user._id,
@@ -220,7 +230,14 @@ router.get('/me', authenticate, async (req: AuthenticatedRequest, res: Response)
 router.get('/staff', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const staff = await User.find({}).populate('branch', 'name code').select('-password').sort({ createdAt: -1 });
-    sendSuccess(res, 'Staff list fetched', staff);
+    const sanitizedStaff = staff.map((s) => {
+      const obj = s.toObject();
+      if (obj.avatarUrl && obj.avatarUrl.includes('unsplash.com')) {
+        obj.avatarUrl = '';
+      }
+      return obj;
+    });
+    sendSuccess(res, 'Staff list fetched', sanitizedStaff);
   } catch (error: any) {
     sendError(res, error.message || 'Failed to fetch staff', 500);
   }

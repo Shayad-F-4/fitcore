@@ -58,6 +58,15 @@ export const AttendancePage: React.FC = () => {
     }
   }, [activeBranch, selectedDate]);
 
+  // Real-time synchronization across all tabs on member updates / check-ins
+  useEffect(() => {
+    const handleDataChanged = () => {
+      fetchAttendance(selectedDate);
+    };
+    window.addEventListener('fitcore:data-changed', handleDataChanged);
+    return () => window.removeEventListener('fitcore:data-changed', handleDataChanged);
+  }, [selectedDate, activeBranch]);
+
   // Handle member lookup
   const handleLookup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();

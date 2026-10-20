@@ -17,7 +17,7 @@ export async function ensureCoreUsers() {
       phone: '+91 98220 10001',
       branch: branchId,
       status: 'ACTIVE' as const,
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: '',
     },
     {
       email: 'shayadfakir7@gmail.com',
@@ -28,7 +28,7 @@ export async function ensureCoreUsers() {
       phone: '+91 98220 10001',
       branch: branchId,
       status: 'ACTIVE' as const,
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: '',
     },
     {
       email: 'admin@sagarfitness.com',
@@ -39,7 +39,7 @@ export async function ensureCoreUsers() {
       phone: '+91 98220 10001',
       branch: branchId,
       status: 'ACTIVE' as const,
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: '',
     },
     {
       email: 'desk@sagarfitness.com',
@@ -50,7 +50,7 @@ export async function ensureCoreUsers() {
       phone: '+91 98220 10003',
       branch: branchId,
       status: 'ACTIVE' as const,
-      avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: '',
     },
     {
       email: 'reception@sagarfitness.com',
@@ -61,7 +61,7 @@ export async function ensureCoreUsers() {
       phone: '+91 98220 10003',
       branch: branchId,
       status: 'ACTIVE' as const,
-      avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: '',
     },
     {
       email: 'manager@sagarfitness.com',
@@ -72,7 +72,7 @@ export async function ensureCoreUsers() {
       phone: '+91 98220 10002',
       branch: branchId,
       status: 'ACTIVE' as const,
-      avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+      avatarUrl: '',
     },
   ];
 
@@ -90,6 +90,10 @@ export async function ensureCoreUsers() {
       existing.role = u.role;
       existing.status = 'ACTIVE';
       if (!existing.branch && branchId) existing.branch = branchId;
+      // Clean up legacy unsplash placeholders
+      if (existing.avatarUrl && existing.avatarUrl.includes('unsplash.com')) {
+        existing.avatarUrl = '';
+      }
       await existing.save();
       console.log(`[Auth Setup] Verified active account: ${u.email} / username: ${u.username} (${u.role})`);
     }

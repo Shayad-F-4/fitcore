@@ -140,6 +140,7 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
 
     const enrichedMembers = members.map((m) => ({
       ...m,
+      photoUrl: m.photoUrl && m.photoUrl.includes('unsplash.com') ? '' : m.photoUrl,
       currentMembership: membershipMap.get(m._id.toString()) || null,
     }));
 
@@ -200,9 +201,13 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res: Response
     });
 
     const activeMembership = memberships.find((m) => m.status === 'ACTIVE' || m.status === 'FROZEN') || null;
+    const memberObj = member.toObject();
+    if (memberObj.photoUrl && memberObj.photoUrl.includes('unsplash.com')) {
+      memberObj.photoUrl = '';
+    }
 
     sendSuccess(res, 'Member profile retrieved', {
-      member,
+      member: memberObj,
       currentMembership: activeMembership,
       memberships,
       payments,

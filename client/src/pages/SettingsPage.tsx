@@ -251,6 +251,8 @@ export const SettingsPage: React.FC = () => {
       reader.onload = async () => {
         try {
           const base64 = reader.result as string;
+          // Set immediate local preview so the user sees their new photo instantly
+          updateCurrentUser({ avatarUrl: base64 });
           const uploadRes = await api.uploadPhoto(base64, file.name);
           await api.updateProfile({ avatarUrl: uploadRes.url });
           updateCurrentUser({ avatarUrl: uploadRes.url });
@@ -2303,17 +2305,14 @@ export const SettingsPage: React.FC = () => {
               {/* Staff Member Card */}
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-3.5 space-y-2.5">
                 <div className="flex items-center gap-3">
-                  {deleteTargetStaff.avatarUrl ? (
-                    <img
-                      src={deleteTargetStaff.avatarUrl}
-                      alt={deleteTargetStaff.fullName}
-                      className="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-bold text-sm flex items-center justify-center shrink-0">
-                      {deleteTargetStaff.fullName ? deleteTargetStaff.fullName.charAt(0) : 'S'}
-                    </div>
-                  )}
+                  <Avatar
+                    src={deleteTargetStaff.avatarUrl}
+                    name={deleteTargetStaff.fullName || 'S'}
+                    sizeClassName="w-10 h-10"
+                    shape="rounded-full"
+                    badgeColor="bg-blue-100 text-blue-700 font-bold text-sm"
+                    className="shrink-0"
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-bold text-[#202124] truncate">
                       {deleteTargetStaff.fullName}
