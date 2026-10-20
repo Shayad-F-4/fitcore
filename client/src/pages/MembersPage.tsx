@@ -29,6 +29,7 @@ import { FreezeModal } from '../components/modals/FreezeModal';
 import { MemberCardModal } from '../components/modals/MemberCardModal';
 import { MemberProfileModal } from '../components/modals/MemberProfileModal';
 import { DeleteMemberModal } from '../components/modals/DeleteMemberModal';
+import { ArchiveMemberModal } from '../components/modals/ArchiveMemberModal';
 import { Avatar } from '../components/Avatar';
 import { exportToCSV } from '../utils/csvExport';
 import { sendWhatsAppReminder, openWhatsApp, getWelcomeMessage, sendWhatsAppDueReminder } from '../utils/whatsapp';
@@ -60,11 +61,18 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
   // Active 3-dot menu dropdown
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
-  // Deletion state
+  // Deletion & Archival state
   const [deleteTargetMember, setDeleteTargetMember] = useState<{
     _id: string;
     memberId: string;
     fullName: string;
+  } | null>(null);
+  const [archiveTargetMember, setArchiveTargetMember] = useState<{
+    _id: string;
+    memberId: string;
+    fullName: string;
+    phone?: string;
+    photoUrl?: string;
   } | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -543,14 +551,30 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
                             </button>
 
                             {isAdmin && (
-                              <button
-                                onClick={() => handleRestore(member)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 transition-colors"
-                                title="Restore Member to Active Directory"
-                              >
-                                <RotateCcw className="w-3.5 h-3.5 text-green-600" />
-                                Restore
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => handleRestore(member)}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 transition-colors"
+                                  title="Restore Member to Active Directory"
+                                >
+                                  <RotateCcw className="w-3.5 h-3.5 text-green-600" />
+                                  Restore
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    setDeleteTargetMember({
+                                      _id: member._id,
+                                      memberId: member.memberId,
+                                      fullName: member.fullName,
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors"
+                                  title="Permanently Delete Member from Database"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                                  Delete
+                                </button>
+                              </>
                             )}
                           </div>
                         ) : (
@@ -741,20 +765,38 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
                                   )}
 
                                   {isAdmin && (
-                                    <button
-                                      onClick={() => {
-                                        setDeleteTargetMember({
-                                          _id: member._id,
-                                          memberId: member.memberId,
-                                          fullName: member.fullName,
-                                        });
-                                        setActiveMenuId(null);
-                                      }}
-                                      className="w-full px-3 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                                      Delete Member
-                                    </button>
+                                    <>
+                                      <button
+                                        onClick={() => {
+                                          setArchiveTargetMember({
+                                            _id: member._id,
+                                            memberId: member.memberId,
+                                            fullName: member.fullName,
+                                            phone: member.phone,
+                                            photoUrl: member.photoUrl,
+                                          });
+                                          setActiveMenuId(null);
+                                        }}
+                                        className="w-full px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium"
+                                      >
+                                        <Archive className="w-3.5 h-3.5 text-slate-500" />
+                                        Archive Member
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setDeleteTargetMember({
+                                            _id: member._id,
+                                            memberId: member.memberId,
+                                            fullName: member.fullName,
+                                          });
+                                          setActiveMenuId(null);
+                                        }}
+                                        className="w-full px-3 py-2 text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2 font-semibold"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                                        Delete Member (from DB)
+                                      </button>
+                                    </>
                                   )}
                                 </div>
                               )}
@@ -880,14 +922,30 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
                     )}
 
                     {viewMode === 'ARCHIVED' && isAdmin && (
-                      <button
-                        type="button"
-                        onClick={() => handleRestore(member)}
-                        className="flex-1 min-h-[44px] h-11 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 active:scale-95 transition-all"
-                      >
-                        <RotateCcw className="w-4 h-4 text-emerald-600" />
-                        <span>Restore</span>
-                      </button>
+                      <div className="flex items-center gap-2 flex-1">
+                        <button
+                          type="button"
+                          onClick={() => handleRestore(member)}
+                          className="flex-1 min-h-[44px] h-11 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 active:scale-95 transition-all"
+                        >
+                          <RotateCcw className="w-4 h-4 text-emerald-600" />
+                          <span>Restore</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setDeleteTargetMember({
+                              _id: member._id,
+                              memberId: member.memberId,
+                              fullName: member.fullName,
+                            })
+                          }
+                          className="flex-1 min-h-[44px] h-11 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200 active:scale-95 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4 text-rose-600" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -971,6 +1029,20 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
           onClose={() => setDeleteTargetMember(null)}
           onSuccess={(res) => {
             setActionSuccess(res.message);
+            fetchMembers(pagination.page);
+            fetchStats();
+          }}
+        />
+      )}
+
+      {/* Archive Member Confirmation Modal */}
+      {archiveTargetMember && (
+        <ArchiveMemberModal
+          isOpen={Boolean(archiveTargetMember)}
+          member={archiveTargetMember}
+          onClose={() => setArchiveTargetMember(null)}
+          onSuccess={(msg) => {
+            setActionSuccess(msg);
             fetchMembers(pagination.page);
             fetchStats();
           }}

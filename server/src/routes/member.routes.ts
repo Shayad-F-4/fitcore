@@ -429,7 +429,7 @@ router.put('/:id', authenticate, async (req: AuthenticatedRequest, res: Response
   }
 });
 
-// Delete member (Admin only) - Archive if linked history exists, or permanently delete if clean
+// Delete member permanently from DB (Admin only)
 router.delete('/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const member = await Member.findById(req.params.id);
@@ -438,60 +438,16 @@ router.delete('/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), asy
       return;
     }
 
-    // Check linked records across the database
-    const [paymentCount, attendanceCount, membershipCount, followUpCount, notificationCount] = await Promise.all([
-      Payment.countDocuments({ member: member._id }),
-      Attendance.countDocuments({ member: member._id }),
-      Membership.countDocuments({ member: member._id }),
-      FollowUp.countDocuments({ member: member._id }),
-      NotificationLog.countDocuments({ member: member._id }),
+    // Permanently remove the member and their linked records from the database
+    await Promise.all([
+      Member.findByIdAndDelete(member._id),
+      member.user ? User.findByIdAndDelete(member.user) : Promise.resolve(),
+      Membership.deleteMany({ member: member._id }),
+      Attendance.deleteMany({ member: member._id }),
+      Payment.deleteMany({ member: member._id }),
+      FollowUp.deleteMany({ member: member._id }),
+      NotificationLog.deleteMany({ member: member._id }),
     ]);
-
-    const totalLinkedRecords = paymentCount + attendanceCount + membershipCount + followUpCount + notificationCount;
-
-    if (totalLinkedRecords > 0) {
-      // Archive instead of permanently deleting to preserve financial & audit history
-      member.isArchived = true;
-      member.status = 'ARCHIVED';
-      await member.save();
-
-      // Synchronize isArchived flag on all memberships
-      await Membership.updateMany(
-        { member: member._id },
-        { $set: { isArchived: true } }
-      );
-
-      await recordAuditLog({
-        userId: req.user?.userId,
-        userName: req.user?.email,
-        userRole: req.user?.role,
-        action: 'MEMBER_ARCHIVED',
-        entity: 'Member',
-        entityId: member._id.toString(),
-        details: {
-          memberId: member.memberId,
-          fullName: member.fullName,
-          reason: 'Safely archived because historical records exist',
-          paymentCount,
-          attendanceCount,
-          membershipCount,
-        },
-      });
-
-      sendSuccess(res, `Member "${member.fullName}" (${member.memberId}) has existing linked records and was safely archived. All historical financial records are preserved.`, {
-        archived: true,
-        deleted: false,
-        member,
-        linkedCounts: { paymentCount, attendanceCount, membershipCount },
-      });
-      return;
-    }
-
-    // No linked records exist: safe to permanently delete
-    await Member.findByIdAndDelete(member._id);
-    if (member.user) {
-      await User.findByIdAndDelete(member.user);
-    }
 
     await recordAuditLog({
       userId: req.user?.userId,
@@ -503,10 +459,11 @@ router.delete('/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), asy
       details: {
         memberId: member.memberId,
         fullName: member.fullName,
+        permanentlyDeleted: true,
       },
     });
 
-    sendSuccess(res, `Member "${member.fullName}" (${member.memberId}) was permanently deleted as no historical records were linked.`, {
+    sendSuccess(res, `Member "${member.fullName}" (${member.memberId}) was permanently deleted from the database.`, {
       archived: false,
       deleted: true,
       memberId: member.memberId,
@@ -563,7 +520,7 @@ router.patch('/:id/restore', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN
   }
 });
 
-// Archive / Unarchive member (Admin only)
+// Archive member (Admin only)
 router.patch('/:id/archive', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const member = await Member.findById(req.params.id);
@@ -572,30 +529,21 @@ router.patch('/:id/archive', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN
       return;
     }
 
-    member.isArchived = !member.isArchived;
-    if (member.isArchived) {
-      member.status = 'ARCHIVED';
-    } else {
-      const activeSub = await Membership.findOne({
-        member: member._id,
-        status: 'ACTIVE',
-        expiryDate: { $gte: new Date() },
-      });
-      member.status = activeSub ? 'ACTIVE' : 'EXPIRED';
-    }
+    member.isArchived = true;
+    member.status = 'ARCHIVED';
     await member.save();
 
     // Synchronize isArchived flag on all memberships
     await Membership.updateMany(
       { member: member._id },
-      { $set: { isArchived: member.isArchived } }
+      { $set: { isArchived: true } }
     );
 
     await recordAuditLog({
       userId: req.user?.userId,
       userName: req.user?.email,
       userRole: req.user?.role,
-      action: member.isArchived ? 'MEMBER_ARCHIVED' : 'MEMBER_RESTORED',
+      action: 'MEMBER_ARCHIVED',
       entity: 'Member',
       entityId: member._id.toString(),
       details: {
@@ -604,7 +552,7 @@ router.patch('/:id/archive', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN
       },
     });
 
-    sendSuccess(res, `Member ${member.isArchived ? 'archived' : 'restored'} successfully`, member);
+    sendSuccess(res, `Member "${member.fullName}" (${member.memberId}) was archived successfully.`, member);
   } catch (error: any) {
     sendError(res, error.message || 'Failed to archive member', 500);
   }

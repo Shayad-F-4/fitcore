@@ -16,6 +16,8 @@ import {
   MessageCircle,
   Camera,
   Trash2,
+  Archive,
+  RotateCcw,
 } from 'lucide-react';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -523,17 +525,63 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
                 )}
 
                 {isAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => setShowDeleteModal(true)}
-                    className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-rose-700 bg-white/90 hover:bg-white border border-white/50 hover:border-rose-200 transition-all active:scale-95 shadow-sm"
-                    title="Delete or Archive Member"
-                  >
-                    <div className="w-5.5 h-5.5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100 transition-colors group-hover:bg-rose-100">
-                      <Trash2 className="w-3 h-3 shrink-0" />
-                    </div>
-                    <span>Delete</span>
-                  </button>
+                  <>
+                    {member.isArchived || member.status === 'ARCHIVED' ? (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!member._id) return;
+                          try {
+                            await api.restoreMember(member._id);
+                            window.dispatchEvent(new CustomEvent('fitcore:data-changed'));
+                            fetchProfile();
+                          } catch (err: any) {
+                            alert(err.message || 'Failed to restore member');
+                          }
+                        }}
+                        className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-emerald-800 bg-white/90 hover:bg-white border border-emerald-300 hover:border-emerald-400 transition-all active:scale-95 shadow-sm"
+                        title="Restore Member to Active Directory"
+                      >
+                        <div className="w-5.5 h-5.5 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 transition-colors group-hover:bg-emerald-100">
+                          <RotateCcw className="w-3 h-3 shrink-0" />
+                        </div>
+                        <span>Restore</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!member._id) return;
+                          try {
+                            await api.archiveMember(member._id);
+                            window.dispatchEvent(new CustomEvent('fitcore:data-changed'));
+                            onClose();
+                          } catch (err: any) {
+                            alert(err.message || 'Failed to archive member');
+                          }
+                        }}
+                        className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-800 bg-white/90 hover:bg-white border border-white/50 hover:border-slate-200 transition-all active:scale-95 shadow-sm"
+                        title="Archive Member (Move to Archived Directory)"
+                      >
+                        <div className="w-5.5 h-5.5 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 border border-slate-200 transition-colors group-hover:bg-slate-200">
+                          <Archive className="w-3 h-3 shrink-0" />
+                        </div>
+                        <span>Archive</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteModal(true)}
+                      className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-rose-700 bg-white/90 hover:bg-white border border-white/50 hover:border-rose-200 transition-all active:scale-95 shadow-sm"
+                      title="Permanently Delete Member from Database"
+                    >
+                      <div className="w-5.5 h-5.5 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100 transition-colors group-hover:bg-rose-100">
+                        <Trash2 className="w-3 h-3 shrink-0" />
+                      </div>
+                      <span>Delete</span>
+                    </button>
+                  </>
                 )}
               </div>
             </div>

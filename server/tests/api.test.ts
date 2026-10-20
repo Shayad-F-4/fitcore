@@ -461,16 +461,16 @@ describe('FitCore End-to-End API Suite (20 Acceptance Scenarios)', () => {
     expect(notFoundRes.status).toBe(404);
   });
 
-  // Scenario 26: Delete Member with Linked Records (Safe Archiving & Check-In Block)
-  it('26. Delete Member with Linked Records: safely archives member, preserves payments/receipts, and blocks attendance check-in', async () => {
-    // 1. Delete member who has payment & membership history
-    const deleteRes = await request(app)
-      .delete(`/api/members/${registeredMemberId}`)
+  // Scenario 26: Archive Member with Linked Records (Safe Archiving & Check-In Block)
+  it('26. Archive Member with Linked Records: safely archives member, preserves payments/receipts, and blocks attendance check-in', async () => {
+    // 1. Archive member who has payment & membership history
+    const archiveRes = await request(app)
+      .patch(`/api/members/${registeredMemberId}/archive`)
       .set('Authorization', `Bearer ${authToken}`);
-    expect(deleteRes.status).toBe(200);
-    expect(deleteRes.body.success).toBe(true);
-    expect(deleteRes.body.data.archived).toBe(true);
-    expect(deleteRes.body.message).toContain('safely archived');
+    expect(archiveRes.status).toBe(200);
+    expect(archiveRes.body.success).toBe(true);
+    expect(archiveRes.body.data.isArchived).toBe(true);
+    expect(archiveRes.body.message).toContain('archived');
 
     // 2. Member must be flagged as archived in DB
     const memberCheck = await Member.findById(registeredMemberId);

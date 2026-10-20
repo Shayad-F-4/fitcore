@@ -47,14 +47,14 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
       <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden relative animate-in fade-in zoom-in-95 duration-150">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-rose-50/40">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-rose-50/50">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 border border-rose-200 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+              <Trash2 className="w-4 h-4 text-rose-600 shrink-0" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Delete Member</h3>
-              <p className="text-xs text-rose-700/80 font-medium">Safe archival or permanent deletion</p>
+              <h3 className="text-sm font-bold text-slate-900">Permanently Delete Member</h3>
+              <p className="text-xs text-rose-700 font-medium">Delete member directly from database</p>
             </div>
           </div>
           <button
@@ -69,7 +69,7 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({
         {/* Body */}
         <div className="p-6 space-y-4">
           <p className="text-xs text-slate-600 font-medium leading-relaxed">
-            Are you sure you want to delete this gym member?
+            Are you sure you want to permanently delete this gym member from the database?
           </p>
 
           {/* Member Card Summary */}
@@ -90,14 +90,13 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({
             </div>
           </div>
 
-          {/* Safety Notice Box */}
-          <div className="p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl flex items-start gap-2.5 text-xs text-amber-900 leading-relaxed shadow-2xs">
-            <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+          {/* Deletion Warning Box */}
+          <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-900 leading-relaxed shadow-2xs">
+            <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold">Financial & Record Protection:</span> If this member
-              has payment history, receipts, attendance logs, or subscriptions, they will be{' '}
-              <span className="font-bold underline">safely archived</span> to protect audit
-              records and dues.
+              <span className="font-bold">Permanent Database Removal:</span> This member will be{' '}
+              <span className="font-bold underline">completely deleted from MongoDB</span>.
+              This member will <strong>NOT</strong> go to the archive. Only members you choose to archive will appear in the Archived Members list.
             </div>
           </div>
 
@@ -129,7 +128,7 @@ export const DeleteMemberModal: React.FC<DeleteMemberModalProps> = ({
             ) : (
               <Trash2 className="w-3.5 h-3.5 shrink-0" />
             )}
-            <span>{loading ? 'Processing...' : 'Confirm Delete'}</span>
+            <span>{loading ? 'Deleting...' : 'Delete from DB'}</span>
           </button>
         </div>
       </div>
