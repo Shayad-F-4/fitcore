@@ -135,11 +135,12 @@ export const sendPasswordResetEmail = async (
     const info = await transporter.sendMail({
       from: fromAddress,
       to: toEmail,
-      subject: 'Password Reset Instructions - Sagar Fitness Gym',
-      text: `Hello ${userName},\n\nWe received a request to reset your password for Sagar Fitness Gym.\n\nPlease reset your password using the following link:\n${resetUrl}\n\nOr using your single-use recovery token:\n${resetToken}\n\nThis token will expire in 15 minutes.\n\nSagar Fitness Gym • Pathardi, Maharashtra, India`,
+      subject: `[OTP: ${resetToken}] Sagar Fitness Gym Password Reset Verification`,
+      text: `Hello ${userName},\n\nWe received a request to reset your password for Sagar Fitness Gym.\n\nYour 6-Digit Password Reset OTP is: ${resetToken}\n\nPlease reset your password using the following link:\n${resetUrl}\n\nThis OTP will expire in 15 minutes.\n\nSagar Fitness Gym • Pathardi, Maharashtra, India`,
       html: htmlContent,
     });
 
+    console.log(`[Email Service] Password reset OTP email dispatched to ${toEmail}. Message ID: ${info.messageId}`);
     return {
       success: true,
       messageId: info.messageId,

@@ -436,23 +436,23 @@ export const LoginPage: React.FC = () => {
             {forgotStep === 'request' ? (
               <form onSubmit={handleForgotSubmit} className="space-y-4 pt-1">
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Enter your registered Gmail address. We will send a <strong>6-digit verification OTP code</strong> directly to your email inbox.
+                  Enter your registered email address or User ID (e.g. <strong>admin</strong>). We will send a <strong>6-digit verification OTP code</strong> directly to your email inbox.
                 </p>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                    Registered Email / Gmail Address
+                    Registered Email or User ID
                   </label>
                   <div className="relative flex items-center">
                     <div className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center">
                       <Mail className="w-4.5 h-4.5" />
                     </div>
                     <input
-                      type="email"
+                      type="text"
                       required
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
-                      placeholder="e.g. admin@sagarfitness.com"
+                      placeholder="e.g. admin or your Gmail address"
                       className="w-full h-12 pl-11 pr-4 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
                     />
                   </div>

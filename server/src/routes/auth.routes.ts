@@ -113,13 +113,14 @@ router.post('/login', async (req, res: Response) => {
     // Smart alias resolution if exact identifier not found
     if (!user) {
       const aliasMap: Record<string, string[]> = {
-        'admin': ['admin@sagarfitness.com', 'admin@fitcore.com'],
+        'admin': ['shayadfakir2006@gmail.com', 'admin@sagarfitness.com', 'admin@fitcore.com'],
         'desk': ['desk@sagarfitness.com', 'reception@sagarfitness.com', 'reception@fitcore.com'],
         'reception': ['desk@sagarfitness.com', 'reception@sagarfitness.com', 'reception@fitcore.com'],
         'frontdesk': ['desk@sagarfitness.com', 'reception@sagarfitness.com', 'reception@fitcore.com'],
         'manager': ['manager@sagarfitness.com', 'manager@fitcore.com'],
-        'admin@sagarfitness.com': ['admin@fitcore.com'],
-        'admin@fitcore.com': ['admin@sagarfitness.com'],
+        'admin@sagarfitness.com': ['shayadfakir2006@gmail.com', 'admin@fitcore.com'],
+        'admin@fitcore.com': ['shayadfakir2006@gmail.com', 'admin@sagarfitness.com'],
+        'shayadfakir2006@gmail.com': ['admin', 'admin@sagarfitness.com', 'admin@fitcore.com'],
         'desk@sagarfitness.com': ['reception@sagarfitness.com', 'reception@fitcore.com'],
         'reception@sagarfitness.com': ['desk@sagarfitness.com', 'reception@fitcore.com'],
         'reception@fitcore.com': ['desk@sagarfitness.com', 'reception@sagarfitness.com'],
@@ -451,14 +452,78 @@ router.post('/forgot-password', async (req, res: Response) => {
   try {
     const { email } = req.body;
     if (!email) {
-      sendError(res, 'Email address is required', 400);
+      sendError(res, 'Email address or User ID is required', 400);
       return;
     }
 
-    const cleanEmail = email.toLowerCase().trim();
-    const user = await User.findOne({ email: cleanEmail });
+    const cleanInput = email.toLowerCase().trim();
+    const adminSmtpEmail = (process.env.SMTP_USER || '').toLowerCase().trim();
+
+    // 1. Direct search by email or username
+    let user = await User.findOne({
+      $or: [{ email: cleanInput }, { username: cleanInput }]
+    });
+
+    // 2. Alias resolution for admin, receptionist, manager
+    if (!user) {
+      const adminAliases = [
+        'admin',
+        'admin@sagarfitness.com',
+        'admin@fitcore.com',
+        'shayadfakir2006@gmail.com',
+        adminSmtpEmail,
+      ].filter(Boolean);
+
+      const managerAliases = ['manager', 'manager@sagarfitness.com', 'manager@fitcore.com'];
+      const deskAliases = [
+        'desk',
+        'reception',
+        'receptionist',
+        'frontdesk',
+        'desk@sagarfitness.com',
+        'reception@sagarfitness.com',
+        'reception@fitcore.com',
+      ];
+
+      if (adminAliases.includes(cleanInput)) {
+        user = await User.findOne({
+          $or: [
+            { email: { $in: adminAliases } },
+            { username: 'admin' },
+            { role: 'SUPER_ADMIN' },
+          ],
+        });
+      } else if (managerAliases.includes(cleanInput)) {
+        user = await User.findOne({
+          $or: [
+            { email: { $in: managerAliases } },
+            { role: 'GYM_ADMIN' },
+          ],
+        });
+      } else if (deskAliases.includes(cleanInput)) {
+        user = await User.findOne({
+          $or: [
+            { email: { $in: deskAliases } },
+            { role: 'RECEPTIONIST' },
+          ],
+        });
+      }
+    }
 
     if (user && user.status === 'ACTIVE') {
+      // Determine destination email:
+      // If user typed a real external email address, send there;
+      // otherwise, deliver to user's registered email or verified admin SMTP email
+      const isPlaceholder = (addr: string) =>
+        !addr.includes('@') || addr.endsWith('@fitcore.com') || addr.endsWith('@sagarfitness.com');
+
+      let targetEmail = user.email;
+      if (cleanInput.includes('@') && !isPlaceholder(cleanInput)) {
+        targetEmail = cleanInput;
+      } else if (isPlaceholder(targetEmail) && adminSmtpEmail) {
+        targetEmail = adminSmtpEmail;
+      }
+
       // Generate a user-friendly, cryptographically secure 6-digit numeric OTP
       const otp = Math.floor(100000 + crypto.randomInt(900000)).toString();
       const hashedToken = crypto.createHash('sha256').update(otp).digest('hex');
@@ -478,24 +543,28 @@ router.post('/forgot-password', async (req, res: Response) => {
       });
 
       // Dispatch real transactional email via Nodemailer
-      await sendPasswordResetEmail(user.email, otp, user.fullName).catch((err) =>
-        console.warn('[Password Reset Email Failed]', err)
-      );
+      const emailResult = await sendPasswordResetEmail(targetEmail, otp, user.fullName);
+
+      if (!emailResult.success && !emailResult.isDevFallback) {
+        console.error('[Password Reset Delivery Failed]', emailResult.error);
+        sendError(
+          res,
+          `Failed to dispatch OTP email to ${targetEmail}. Please check SMTP configuration.`,
+          500
+        );
+        return;
+      }
 
       const isTest = process.env.NODE_ENV === 'test';
       sendSuccess(
         res,
-        `Password reset OTP has been sent to ${user.email}. Please check your inbox or spam folder.`,
+        `Password reset OTP has been sent to ${targetEmail}. Please check your Gmail inbox or spam folder.`,
         isTest ? { resetToken: otp } : undefined
       );
       return;
     }
 
-    // Always return safe generic success message to prevent user enumeration
-    sendSuccess(
-      res,
-      'If an account exists with this email, password reset instructions have been dispatched.'
-    );
+    sendError(res, `No active account found for "${cleanInput}". Please verify your email or username.`, 404);
   } catch (error: any) {
     sendError(res, error.message || 'Failed to process password reset request', 500);
   }
