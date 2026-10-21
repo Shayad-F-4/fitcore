@@ -317,11 +317,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
               <div className="flex items-center gap-2 min-w-0">
                 <Link to="/" className="lg:hidden shrink-0 flex items-center">
-                  <img
-                    src="/logo.png"
-                    alt="Sagar Fitness"
-                    className="h-8 w-auto max-w-[110px] object-contain"
-                  />
+                  <picture>
+                    <source srcSet="/logo.webp" type="image/webp" />
+                    <img
+                      src="/logo.png"
+                      alt="Sagar Fitness"
+                      className="h-8 w-auto max-w-[110px] object-contain"
+                      width="110"
+                      height="32"
+                    />
+                  </picture>
                 </Link>
                 <span className="hidden sm:inline-block lg:hidden text-slate-300">|</span>
                 <h1 className="text-base sm:text-2xl font-black text-slate-900 tracking-tight truncate">

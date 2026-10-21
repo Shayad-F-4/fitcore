@@ -67,6 +67,16 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
 
   // Unified Search & Filters
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search input (280ms) for responsive typing and deduplicated API requests
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const [genderFilter, setGenderFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('ALL');
@@ -151,14 +161,14 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
   };
 
   // Fetch filtered members from database
-  const fetchMembers = async (page = 1) => {
+  const fetchMembers = async (page = 1, searchQuery = debouncedSearch) => {
     try {
       setLoading(true);
       setError(null);
       const res = await api.getMembers({
         page,
         limit: 12,
-        search: search.trim(),
+        search: searchQuery.trim(),
         tab: activeTab,
         gender: genderFilter !== 'ALL' ? genderFilter : undefined,
         status: statusFilter !== 'ALL' ? statusFilter : undefined,
@@ -180,13 +190,12 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
     }
   };
 
-  // Re-fetch whenever any category tab or filter changes
+  // Re-fetch members whenever active tab or debounced filter criteria changes
   useEffect(() => {
-    fetchMembers(1);
-    fetchStats();
+    fetchMembers(1, debouncedSearch);
   }, [
     activeTab,
-    search,
+    debouncedSearch,
     genderFilter,
     statusFilter,
     paymentStatusFilter,
@@ -197,6 +206,11 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
     activeBranch,
     viewMode,
   ]);
+
+  // Load gym summary stats when active branch or directory mode changes
+  useEffect(() => {
+    fetchStats();
+  }, [activeBranch, viewMode]);
 
   // Real-time auto refresh without manual page reload
   useEffect(() => {
@@ -927,11 +941,9 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
 
       {/* 4. REUSABLE MEMBER TABLE (Desktop + Responsive Mobile) */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-        {loading ? (
-          <div className="p-12 text-center text-sm text-slate-500 font-medium">Loading member directory...</div>
-        ) : error ? (
+        {error ? (
           <div className="p-8 text-center text-sm text-rose-600 font-medium">{error}</div>
-        ) : members.length === 0 ? (
+        ) : !loading && members.length === 0 ? (
           <div className="p-12 text-center space-y-3">
             <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
               <Users className="w-6 h-6" />
@@ -974,7 +986,30 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {members.map((member) => {
+                  {loading && (
+                    [...Array(6)].map((_, i) => (
+                      <tr key={`skel-${i}`} className="animate-pulse">
+                        <td className="px-4 py-3.5"><div className="h-4 w-16 bg-slate-200 rounded" /></td>
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0" />
+                            <div className="space-y-1">
+                              <div className="h-3.5 w-28 bg-slate-200 rounded" />
+                              <div className="h-2.5 w-20 bg-slate-100 rounded" />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5"><div className="h-3.5 w-24 bg-slate-200 rounded" /></td>
+                        <td className="px-4 py-3.5"><div className="h-3.5 w-24 bg-slate-200 rounded" /></td>
+                        <td className="px-4 py-3.5"><div className="h-3.5 w-20 bg-slate-200 rounded" /></td>
+                        <td className="px-4 py-3.5"><div className="h-3.5 w-20 bg-slate-200 rounded" /></td>
+                        <td className="px-4 py-3.5"><div className="h-5 w-16 bg-slate-200 rounded-full" /></td>
+                        <td className="px-4 py-3.5"><div className="h-5 w-16 bg-slate-200 rounded-full" /></td>
+                        <td className="px-4 py-3.5 text-right"><div className="h-7 w-20 bg-slate-200 rounded-lg ml-auto" /></td>
+                      </tr>
+                    ))
+                  )}
+                  {!loading && members.map((member) => {
                     const sub = member.currentMembership;
                     const plan = sub?.plan as MembershipPlan | undefined;
 
@@ -1290,7 +1325,24 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
 
             {/* Mobile Card View (< 768px: Zero Sideways Scroll, Touch-Friendly 44px Buttons) */}
             <div className="block md:hidden divide-y divide-slate-100">
-              {members.map((member) => {
+              {loading ? (
+                [...Array(4)].map((_, i) => (
+                  <div key={`m-skel-${i}`} className="p-4 space-y-3 bg-white animate-pulse">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5 flex-1">
+                        <div className="w-9 h-9 rounded-full bg-slate-200 shrink-0" />
+                        <div className="space-y-1.5 flex-1">
+                          <div className="h-4 w-32 bg-slate-200 rounded" />
+                          <div className="h-3 w-24 bg-slate-100 rounded" />
+                        </div>
+                      </div>
+                      <div className="h-5 w-16 bg-slate-200 rounded-full" />
+                    </div>
+                    <div className="h-11 bg-slate-100 rounded-xl" />
+                  </div>
+                ))
+              ) : (
+                members.map((member) => {
                 const sub = member.currentMembership;
                 const plan = sub?.plan as MembershipPlan | undefined;
 
@@ -1388,8 +1440,9 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
                     </div>
                   </div>
                 );
-              })}
-            </div>
+              })
+            )}
+          </div>
 
             {/* Pagination Controls */}
             {pagination.totalPages > 1 && (

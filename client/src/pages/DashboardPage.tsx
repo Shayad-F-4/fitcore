@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Users,
@@ -70,8 +70,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [activeMembers, setActiveMembers] = useState<any[]>([]);
   const [activeMembersTotal, setActiveMembersTotal] = useState(0);
   const [activeSearch, setActiveSearch] = useState('');
+  const [debouncedActiveSearch, setDebouncedActiveSearch] = useState('');
   const [activeLoading, setActiveLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Debounce search input (280ms) for responsive typing and eliminating duplicate API hits
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedActiveSearch(activeSearch);
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [activeSearch]);
 
   // Fetch Dashboard summary statistics
   const fetchDashboardStats = useCallback(async () => {
@@ -90,9 +99,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     }
   }, [activeBranch]);
 
-  // Fetch Live Active Members list
+  // Fetch Live Active Members list (does not depend on activeSearch state directly)
   const fetchActiveMembers = useCallback(
-    async (searchTerm = activeSearch) => {
+    async (searchTerm: string = '') => {
       try {
         setActiveLoading(true);
         const res = await api.getMembers({
@@ -119,26 +128,40 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         setActiveLoading(false);
       }
     },
-    [activeBranch, activeSearch]
+    [activeBranch]
   );
 
-  // Initial load
+  // Initial load or branch change (loads dashboard once without flashing on search typing)
   useEffect(() => {
+    let isCancelled = false;
     setLoading(true);
-    Promise.all([fetchDashboardStats(), fetchActiveMembers()]).finally(() => {
-      setLoading(false);
+    Promise.all([fetchDashboardStats(), fetchActiveMembers('')]).finally(() => {
+      if (!isCancelled) setLoading(false);
     });
+    return () => {
+      isCancelled = true;
+    };
   }, [fetchDashboardStats, fetchActiveMembers]);
 
-  // Real-time auto refresh without manual page reload
+  // When debounced search term changes, search active members only (does NOT re-run stats or reload page)
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    fetchActiveMembers(debouncedActiveSearch);
+  }, [debouncedActiveSearch, fetchActiveMembers]);
+
+  // Real-time auto refresh on mutations without full page reloads
   useEffect(() => {
     const handleDataChanged = () => {
       fetchDashboardStats();
-      fetchActiveMembers(activeSearch);
+      fetchActiveMembers(debouncedActiveSearch);
     };
     window.addEventListener('fitcore:data-changed', handleDataChanged);
     return () => window.removeEventListener('fitcore:data-changed', handleDataChanged);
-  }, [activeSearch, fetchDashboardStats, fetchActiveMembers]);
+  }, [debouncedActiveSearch, fetchDashboardStats, fetchActiveMembers]);
 
   // Trigger search on submit or input change
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -154,7 +177,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   // Manual refresh action
   const handleRefreshAll = async () => {
     setIsRefreshing(true);
-    await Promise.all([fetchDashboardStats(), fetchActiveMembers(activeSearch)]);
+    await Promise.all([fetchDashboardStats(), fetchActiveMembers(debouncedActiveSearch)]);
     setIsRefreshing(false);
   };
 
@@ -197,9 +220,53 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   if (loading && !data) {
     return (
-      <div className="flex items-center justify-center py-28 text-gray-500 text-sm">
-        <RotateCw className="w-5 h-5 animate-spin mr-2 text-blue-600" />
-        Loading Sagar Fitness Gym Dashboard...
+      <div className="space-y-6">
+        {/* Banner Skeleton Shell */}
+        <div className="relative rounded-2xl overflow-hidden shadow-sm border border-slate-200/80 text-white min-h-[140px] h-36 sm:h-44 md:h-52 flex flex-col justify-end p-4 sm:p-6 md:p-8 bg-slate-950">
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url('/gym-hero.webp')` }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/60 to-slate-950/30" />
+          <div className="relative z-10 space-y-1.5 animate-pulse">
+            <div className="h-7 sm:h-9 w-64 bg-white/20 rounded-lg" />
+            <div className="h-3.5 sm:h-4 w-72 bg-white/10 rounded" />
+          </div>
+        </div>
+
+        {/* 5 Summary Cards Skeleton */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="bg-white border border-slate-200/80 rounded-xl p-3 sm:p-4 shadow-2xs space-y-3 animate-pulse">
+              <div className="flex items-center justify-between">
+                <div className="h-3 w-20 bg-slate-200 rounded" />
+                <div className="w-7 h-7 rounded-lg bg-slate-100" />
+              </div>
+              <div className="h-6 w-24 bg-slate-200 rounded" />
+              <div className="h-2.5 w-16 bg-slate-100 rounded" />
+            </div>
+          ))}
+        </div>
+
+        {/* Two-Column Grid Skeleton (Alerts & Live Active Members) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-4 animate-pulse">
+            <div className="h-4 w-44 bg-slate-200 rounded" />
+            <div className="space-y-2.5">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-12 bg-slate-100 rounded-xl" />
+              ))}
+            </div>
+          </div>
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-4 animate-pulse">
+            <div className="h-4 w-44 bg-slate-200 rounded" />
+            <div className="space-y-2.5">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-12 bg-slate-100 rounded-xl" />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -237,7 +304,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         {/* Background Image: Clean Photographic Gym Image */}
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url('/gym-hero.png')` }}
+          style={{ backgroundImage: `url('/gym-hero.webp')` }}
         />
         {/* Subtle Dark Blue-Black Overlay for natural contrast & readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-slate-950/45 to-slate-950/20" />
@@ -872,9 +939,21 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
         {/* Active Members Table */}
         {activeLoading ? (
-          <div className="p-8 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
-            <RotateCw className="w-4 h-4 animate-spin text-blue-600" />
-            <span>Loading active members...</span>
+          <div className="p-4 sm:p-6 space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 py-2 border-b border-slate-100 animate-pulse">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-slate-200 shrink-0" />
+                  <div className="space-y-1.5">
+                    <div className="h-3.5 w-28 bg-slate-200 rounded" />
+                    <div className="h-2.5 w-16 bg-slate-100 rounded" />
+                  </div>
+                </div>
+                <div className="h-3.5 w-20 bg-slate-200 rounded hidden sm:block" />
+                <div className="h-3.5 w-24 bg-slate-200 rounded hidden md:block" />
+                <div className="h-6 w-16 bg-slate-200 rounded-lg ml-auto" />
+              </div>
+            ))}
           </div>
         ) : activeMembers.length === 0 ? (
           <div className="p-8 text-center text-sm text-slate-500">

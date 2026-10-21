@@ -47,6 +47,16 @@ export const BillingPage: React.FC<BillingPageProps> = ({
 
   // Filters for Transactions
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search input (280ms) for smooth typing without firing rapid API requests
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 280);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const [methodFilter, setMethodFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
@@ -131,8 +141,8 @@ export const BillingPage: React.FC<BillingPageProps> = ({
       ]);
 
       let filtered = payRes.data || [];
-      if (search.trim()) {
-        const q = search.toLowerCase().trim();
+      if (debouncedSearch.trim()) {
+        const q = debouncedSearch.toLowerCase().trim();
         filtered = filtered.filter(
           (p: Payment) =>
             p.receiptNumber?.toLowerCase().includes(q) ||
@@ -185,7 +195,7 @@ export const BillingPage: React.FC<BillingPageProps> = ({
     } else if (activeTab === 'settlement') {
       fetchSettlementData(settlementDate);
     }
-  }, [activeTab, methodFilter, statusFilter, startDate, endDate, search, settlementDate]);
+  }, [activeTab, methodFilter, statusFilter, startDate, endDate, debouncedSearch, settlementDate]);
 
   // Auto-refresh when any payment, due, or membership changes across the app
   useEffect(() => {

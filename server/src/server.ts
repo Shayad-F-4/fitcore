@@ -33,8 +33,17 @@ import expiryRoutes from './routes/expiry.routes.js';
 import { runAutoExpiryReminders } from './services/whatsappService.js';
 
 import rateLimit from 'express-rate-limit';
+import compression from 'compression';
 
 const app = express();
+
+// High-performance gzip/deflate compression for all API and static responses
+app.use(
+  compression({
+    threshold: 1024,
+    level: 6,
+  })
+);
 
 // Rate limiter for authentication endpoints
 const authLimiter = rateLimit({

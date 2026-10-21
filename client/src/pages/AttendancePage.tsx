@@ -37,31 +37,31 @@ export const AttendancePage: React.FC = () => {
   const [identifiedSub, setIdentifiedSub] = useState<any | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
 
-  const fetchAttendance = async (date = selectedDate) => {
+  const fetchAttendance = async (date = selectedDate, silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await api.getTodayAttendance(activeBranch?._id, date);
       setAttendanceLogs(res || []);
     } catch (err) {
       console.error('Failed to load attendance:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAttendance(selectedDate);
-    // If viewing today, auto-refresh every 15s
+    fetchAttendance(selectedDate, false);
+    // If viewing today, auto-refresh every 15s silently without UI flicker
     if (selectedDate === todayStr) {
-      const interval = setInterval(() => fetchAttendance(todayStr), 15000);
+      const interval = setInterval(() => fetchAttendance(todayStr, true), 15000);
       return () => clearInterval(interval);
     }
   }, [activeBranch, selectedDate]);
 
-  // Real-time synchronization across all tabs on member updates / check-ins
+  // Real-time synchronization across all tabs on member updates / check-ins (silent)
   useEffect(() => {
     const handleDataChanged = () => {
-      fetchAttendance(selectedDate);
+      fetchAttendance(selectedDate, true);
     };
     window.addEventListener('fitcore:data-changed', handleDataChanged);
     return () => window.removeEventListener('fitcore:data-changed', handleDataChanged);

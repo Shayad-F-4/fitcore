@@ -153,9 +153,11 @@ router.get('/expiring', authenticate, async (req: AuthenticatedRequest, res: Res
       status: 'ACTIVE',
       expiryDate: { $gte: now, $lte: futureDate },
     })
+      .select('member plan startDate expiryDate status')
       .populate('member', 'fullName email phone memberId photoUrl isArchived')
       .populate('plan', 'name price type')
-      .sort({ expiryDate: 1 });
+      .sort({ expiryDate: 1 })
+      .lean();
 
     sendSuccess(res, `Memberships expiring within ${days} days`, expiring);
   } catch (error: any) {

@@ -46,15 +46,15 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
       $expr: { $gt: ['$amountDue', '$amountPaid'] },
     };
 
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+
     const [
       totalMembers,
       activeMembers,
       newMembersThisMonth,
       liveOccupancy,
       todayTotalCheckins,
-      todayRevenueAgg,
-      monthRevenueAgg,
-      totalRevenueAgg,
+      revenueSummaryAgg,
       pendingDuesAgg,
       expiringMemberships,
       recentMembersRaw,
@@ -63,6 +63,7 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
       branchInfo,
       expiredMemberships,
       expiredMembershipsCount,
+      monthlyAgg,
     ] = await Promise.all([
       Member.countDocuments({ isArchived: false, ...branchFilter }),
       Member.countDocuments({ status: 'ACTIVE', isArchived: false, ...branchFilter }),
@@ -76,29 +77,35 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
         checkInTime: { $gte: startOfToday },
         ...branchFilter,
       }),
-      Payment.aggregate([
-        { $match: { status: { $in: ['PAID', 'PARTIAL'] }, paymentDate: { $gte: startOfToday } } },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]),
-      Payment.aggregate([
-        { $match: { status: { $in: ['PAID', 'PARTIAL'] }, paymentDate: { $gte: startOfMonth } } },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]),
+      // Single consolidated payment aggregation for today, this month, and all time
       Payment.aggregate([
         { $match: { status: { $in: ['PAID', 'PARTIAL'] } } },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: '$amount' },
+            monthlyRevenue: {
+              $sum: { $cond: [{ $gte: ['$paymentDate', startOfMonth] }, '$amount', 0] },
+            },
+            todayRevenue: {
+              $sum: { $cond: [{ $gte: ['$paymentDate', startOfToday] }, '$amount', 0] },
+            },
+          },
+        },
       ]),
       Membership.aggregate([
         { $match: pendingDuesMatch },
         { $group: { _id: null, total: { $sum: { $subtract: ['$amountDue', '$amountPaid'] } }, count: { $sum: 1 } } },
       ]),
       Membership.find(expiringMembershipsQuery)
+        .select('member plan startDate expiryDate status isArchived')
         .populate('member', 'fullName memberId phone photoUrl isArchived branch')
         .populate('plan', 'name price durationDays')
         .sort({ expiryDate: 1 })
         .limit(20)
         .lean(),
       Member.find({ isArchived: false, ...branchFilter })
+        .select('fullName memberId email phone photoUrl joinDate status createdAt')
         .sort({ createdAt: -1 })
         .limit(5)
         .lean(),
@@ -106,12 +113,31 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
       AuditLog.find().sort({ createdAt: -1 }).limit(8).lean(),
       branchId ? Branch.findById(branchId).lean() : null,
       Membership.find(expiredMembershipsQuery)
+        .select('member plan startDate expiryDate status isArchived')
         .populate('member', 'fullName memberId phone photoUrl isArchived branch')
         .populate('plan', 'name price durationDays')
         .sort({ expiryDate: -1 })
         .limit(20)
         .lean(),
       Membership.countDocuments(expiredMembershipsQuery),
+      // Monthly revenue trend (past 6 months) queried in parallel
+      Payment.aggregate([
+        {
+          $match: {
+            status: { $in: ['PAID', 'PARTIAL'] },
+            paymentDate: { $gte: sixMonthsAgo },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: { date: '$paymentDate', timezone: 'Asia/Kolkata' } },
+              month: { $month: { date: '$paymentDate', timezone: 'Asia/Kolkata' } },
+            },
+            total: { $sum: '$amount' },
+          },
+        },
+      ]),
     ]);
 
     // Attach active membership plan to each recent member in memory (avoids N+1 query loop)
@@ -120,6 +146,7 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
       member: { $in: recentMemberIds },
       status: 'ACTIVE',
     })
+      .select('member plan')
       .populate('plan', 'name')
       .lean();
 
@@ -134,26 +161,6 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
       ...m,
       membershipPlanName: planByMemberId.get(m._id.toString()) || 'Standard Pass',
     }));
-
-    // Monthly revenue trend (past 6 months in a single high-performance aggregation)
-    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-    const monthlyAgg = await Payment.aggregate([
-      {
-        $match: {
-          status: { $in: ['PAID', 'PARTIAL'] },
-          paymentDate: { $gte: sixMonthsAgo },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: { date: '$paymentDate', timezone: 'Asia/Kolkata' } },
-            month: { $month: { date: '$paymentDate', timezone: 'Asia/Kolkata' } },
-          },
-          total: { $sum: '$amount' },
-        },
-      },
-    ]);
 
     const revenueMap = new Map<string, number>();
     monthlyAgg.forEach((item: any) => {
@@ -192,9 +199,9 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
         gymCapacity,
         occupancyPercentage,
         todayTotalCheckins,
-        todayRevenue: todayRevenueAgg[0]?.total || 0,
-        monthlyRevenue: monthRevenueAgg[0]?.total || 0,
-        totalRevenue: totalRevenueAgg[0]?.total || 0,
+        todayRevenue: revenueSummaryAgg[0]?.todayRevenue || 0,
+        monthlyRevenue: revenueSummaryAgg[0]?.monthlyRevenue || 0,
+        totalRevenue: revenueSummaryAgg[0]?.totalRevenue || 0,
         pendingDuesTotal: pendingDuesAgg[0]?.total || 0,
         pendingDuesCount: pendingDuesAgg[0]?.count || 0,
       },

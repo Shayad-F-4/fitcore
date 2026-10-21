@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Branch } from '../types';
-import { api } from '../api/client';
+import { api, clearApiCache } from '../api/client';
 
 interface AuthContextType {
   user: User | null;
@@ -94,6 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    clearApiCache();
     localStorage.removeItem('fitcore_token');
     setToken(null);
     setUser(null);

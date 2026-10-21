@@ -109,6 +109,7 @@ const MembershipSchema = new Schema<IMembership>(
 
 MembershipSchema.index({ member: 1, status: 1 });
 MembershipSchema.index({ expiryDate: 1, status: 1 });
-MembershipSchema.index({ isArchived: 1, status: 1 });
+MembershipSchema.index({ isArchived: 1, status: 1, expiryDate: 1 });
+MembershipSchema.index({ member: 1, isArchived: 1, expiryDate: -1 });
 
 export const Membership = mongoose.model<IMembership>('Membership', MembershipSchema);

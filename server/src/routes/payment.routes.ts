@@ -16,14 +16,18 @@ router.get('/stats', authenticate, async (_req, res: Response) => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-    const [totalRevenueAgg, monthRevenueAgg, methodBreakdown] = await Promise.all([
+    const [revenueAgg, methodBreakdown] = await Promise.all([
       Payment.aggregate([
         { $match: { status: { $in: ['PAID', 'PARTIAL'] } } },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]),
-      Payment.aggregate([
-        { $match: { status: { $in: ['PAID', 'PARTIAL'] }, paymentDate: { $gte: startOfMonth } } },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: '$amount' },
+            monthRevenue: {
+              $sum: { $cond: [{ $gte: ['$paymentDate', startOfMonth] }, '$amount', 0] },
+            },
+          },
+        },
       ]),
       Payment.aggregate([
         { $match: { status: { $in: ['PAID', 'PARTIAL'] } } },
@@ -31,8 +35,8 @@ router.get('/stats', authenticate, async (_req, res: Response) => {
       ]),
     ]);
 
-    const totalRevenue = totalRevenueAgg[0]?.total || 0;
-    const monthRevenue = monthRevenueAgg[0]?.total || 0;
+    const totalRevenue = revenueAgg[0]?.totalRevenue || 0;
+    const monthRevenue = revenueAgg[0]?.monthRevenue || 0;
 
     sendSuccess(res, 'Payment statistics retrieved', {
       totalRevenue,
@@ -59,7 +63,8 @@ router.get('/daily-settlement', authenticate, async (req: AuthenticatedRequest, 
     })
       .populate('member', 'fullName memberId phone')
       .populate('recordedBy', 'fullName email role')
-      .sort({ paymentDate: -1 });
+      .sort({ paymentDate: -1 })
+      .lean();
 
     let cashTotal = 0;
     let upiTotal = 0;
@@ -104,7 +109,8 @@ router.get('/dues', authenticate, async (req: AuthenticatedRequest, res: Respons
     })
       .populate('member', 'fullName memberId phone email photoUrl branch isArchived')
       .populate('plan', 'name price durationDays')
-      .sort({ updatedAt: -1 });
+      .sort({ updatedAt: -1 })
+      .lean();
 
     const filteredDues = duesMemberships.filter((m: any) => m.member && !m.member.isArchived);
 

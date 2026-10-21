@@ -101,6 +101,7 @@ const cachedGet = async <T>(url: string, ttlMs = 4000): Promise<T> => {
 export const api = {
   // Auth
   async login(credentials: { email?: string; identifier?: string; password: string }) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: getHeaders(),
@@ -306,79 +307,99 @@ export const api = {
     return handleResponse<any>(res);
   },
 
-  async getMemberStats(branchId?: string) {
-    const res = await fetch(`${API_BASE}/members/stats${branchId ? `?branchId=${branchId}` : ''}`, {
-      headers: getHeaders(false),
-    });
-    return handleResponse<any>(res);
+  async getMemberStats(branchId?: string, bypassCache = false) {
+    const url = `${API_BASE}/members/stats${branchId ? `?branchId=${branchId}` : ''}`;
+    if (bypassCache) {
+      const res = await fetch(url, { headers: getHeaders(false) });
+      return handleResponse<any>(res);
+    }
+    return cachedGet<any>(url, 3500);
   },
 
   async registerMember(data: any) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/members`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'MEMBER_REGISTERED', member: result } }));
+    return result;
   },
 
   async updateMember(id: string, data: any) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/members/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'MEMBER_UPDATED', member: result } }));
+    return result;
   },
 
   async archiveMember(id: string) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/members/${id}/archive`, {
       method: 'PATCH',
       headers: getHeaders(),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'MEMBER_ARCHIVED', id } }));
+    return result;
   },
 
   async deleteMember(id: string) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/members/${id}`, {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'MEMBER_DELETED', id } }));
+    return result;
   },
 
   async restoreMember(id: string) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/members/${id}/restore`, {
       method: 'PATCH',
       headers: getHeaders(),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'MEMBER_RESTORED', id } }));
+    return result;
   },
 
   // Memberships
   async getExpiringMemberships(days = 7) {
-    const res = await fetch(`${API_BASE}/memberships/expiring?days=${days}`, {
-      headers: getHeaders(false),
-    });
-    return handleResponse<any[]>(res);
+    return cachedGet<any[]>(`${API_BASE}/memberships/expiring?days=${days}`, 5000);
   },
 
   async assignMembership(data: { memberId: string; planId: string; startDate?: string; discount?: number; paymentMethod?: string }) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/memberships/assign`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'MEMBERSHIP_ASSIGNED', membership: result } }));
+    return result;
   },
 
   async renewMembership(id: string, data: { durationDays?: number; amountPaid?: number; paymentMethod?: string; newPlanId?: string }) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/memberships/${id}/renew`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'MEMBERSHIP_RENEWED', membership: result } }));
+    return result;
   },
 
   async freezeMembership(id: string, data: { fromDate: string; toDate: string; reason: string }) {
@@ -391,19 +412,22 @@ export const api = {
   },
 
   async thawMembership(id: string) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/memberships/${id}/thaw`, {
       method: 'POST',
       headers: getHeaders(),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'MEMBERSHIP_THAWED', id } }));
+    return result;
   },
 
   // Attendance
   async getLiveOccupancy(branchId?: string) {
-    const res = await fetch(`${API_BASE}/attendance/live${branchId ? `?branchId=${branchId}` : ''}`, {
-      headers: getHeaders(false),
-    });
-    return handleResponse<{ count: number; occupants: any[] }>(res);
+    return cachedGet<{ count: number; occupants: any[] }>(
+      `${API_BASE}/attendance/live${branchId ? `?branchId=${branchId}` : ''}`,
+      3000
+    );
   },
 
   async getTodayAttendance(branchId?: string, date?: string) {
@@ -418,27 +442,33 @@ export const api = {
   },
 
   async getAttendanceStats(branchId?: string) {
-    const res = await fetch(`${API_BASE}/attendance/stats${branchId ? `?branchId=${branchId}` : ''}`, {
-      headers: getHeaders(false),
-    });
-    return handleResponse<any>(res);
+    return cachedGet<any>(
+      `${API_BASE}/attendance/stats${branchId ? `?branchId=${branchId}` : ''}`,
+      5000
+    );
   },
 
   async checkIn(data: { identifier: string; method?: 'QR_CODE' | 'MANUAL'; branchId?: string }) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/attendance/check-in`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'CHECK_IN', result } }));
+    return result;
   },
 
   async checkOut(attendanceId: string) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/attendance/check-out/${attendanceId}`, {
       method: 'POST',
       headers: getHeaders(),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'CHECK_OUT', attendanceId } }));
+    return result;
   },
 
   // Payments & Billing
@@ -463,19 +493,19 @@ export const api = {
   },
 
   async getPaymentStats() {
-    const res = await fetch(`${API_BASE}/payments/stats`, {
-      headers: getHeaders(false),
-    });
-    return handleResponse<any>(res);
+    return cachedGet<any>(`${API_BASE}/payments/stats`, 3500);
   },
 
   async recordPayment(data: any) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/payments`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PAYMENT_RECORDED', payment: result } }));
+    return result;
   },
 
   async getReceipt(paymentId: string) {
@@ -503,14 +533,11 @@ export const api = {
   },
 
   async getPendingDues() {
-    const res = await fetch(`${API_BASE}/payments/dues`, {
-      headers: getHeaders(false),
-    });
-    return handleResponse<{
+    return cachedGet<{
       duesCount: number;
       totalDuesAmount: number;
       memberships: any[];
-    }>(res);
+    }>(`${API_BASE}/payments/dues`, 3500);
   },
 
   async collectDue(data: {
@@ -520,20 +547,25 @@ export const api = {
     notes?: string;
     transactionRef?: string;
   }) {
+    clearApiCache();
     const res = await fetch(`${API_BASE}/payments/collect-due`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'DUE_COLLECTED', membershipId: data.membershipId, payment: result } }));
+    return result;
   },
 
   // Dashboard
-  async getDashboardStats(branchId?: string) {
-    const res = await fetch(`${API_BASE}/dashboard/stats${branchId ? `?branchId=${branchId}` : ''}`, {
-      headers: getHeaders(false),
-    });
-    return handleResponse<any>(res);
+  async getDashboardStats(branchId?: string, bypassCache = false) {
+    const url = `${API_BASE}/dashboard/stats${branchId ? `?branchId=${branchId}` : ''}`;
+    if (bypassCache) {
+      const res = await fetch(url, { headers: getHeaders(false) });
+      return handleResponse<any>(res);
+    }
+    return cachedGet<any>(url, 3500);
   },
 
   // Photo Upload
@@ -556,10 +588,7 @@ export const api = {
 
   // Expiration Center
   async getExpirationCenter(filter = 'ALL') {
-    const res = await fetch(`${API_BASE}/memberships/expiration-center?filter=${filter}`, {
-      headers: getHeaders(false),
-    });
-    return handleResponse<{
+    return cachedGet<{
       summary: {
         expiringIn7Days: number;
         expiringToday: number;
@@ -567,7 +596,7 @@ export const api = {
         renewalsThisMonth: number;
       };
       members: any[];
-    }>(res);
+    }>(`${API_BASE}/memberships/expiration-center?filter=${filter}`, 4000);
   },
 
   // Notifications

@@ -126,54 +126,102 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
     // 1. Total non-archived members
     const total = branchMemberIds.length;
 
-    // 2. New Members: joinDate falls within previous 30 calendar days, including today (Asia/Kolkata)
-    const newMembers = await Member.countDocuments({
-      ...filter,
-      $or: [
-        { joinDate: { $gte: istDates.startOf30DaysAgoIST, $lte: istDates.endOfTodayIST } },
-        { joinDate: { $exists: false }, createdAt: { $gte: istDates.startOf30DaysAgoIST, $lte: istDates.endOfTodayIST } },
-      ],
-    });
+    // Run independent count and membership queries concurrently via Promise.all
+    const [
+      newMembers,
+      active,
+      femaleMembers,
+      archived,
+      frozen,
+      pending,
+      expiringSoonSubs,
+      validActiveSubs,
+      membersWithExpiredSubs,
+      memberStatusExpired,
+      duesFromMemberships,
+      duesFromPayments,
+    ] = await Promise.all([
+      // 2. New Members: joinDate falls within previous 30 calendar days (Asia/Kolkata)
+      Member.countDocuments({
+        ...filter,
+        $or: [
+          { joinDate: { $gte: istDates.startOf30DaysAgoIST, $lte: istDates.endOfTodayIST } },
+          { joinDate: { $exists: false }, createdAt: { $gte: istDates.startOf30DaysAgoIST, $lte: istDates.endOfTodayIST } },
+        ],
+      }),
 
-    // 3. Active Members (Member status: 'ACTIVE')
-    const active = await Member.countDocuments({ ...filter, status: 'ACTIVE' });
+      // 3. Active Members
+      Member.countDocuments({ ...filter, status: 'ACTIVE' }),
 
-    // 4. Expiring Soon: memberships expiring from today through next 7 calendar days inclusive (Asia/Kolkata)
-    const expiringSoonSubs = await Membership.find({
-      member: { $in: branchMemberIds },
-      isArchived: { $ne: true },
-      status: 'ACTIVE',
-      expiryDate: { $gte: istDates.startOfTodayIST, $lte: istDates.endOf7DaysLaterIST },
-    }).distinct('member');
+      // Female members count
+      Member.countDocuments({ ...filter, gender: 'FEMALE' }),
 
-    // Exclude members who have another active membership extending beyond 7 days
-    const futureActiveSubs = await Membership.find({
-      member: { $in: expiringSoonSubs },
-      isArchived: { $ne: true },
-      status: 'ACTIVE',
-      expiryDate: { $gt: istDates.endOf7DaysLaterIST },
-    }).distinct('member');
-    const futureSet = new Set(futureActiveSubs.map((id) => id.toString()));
-    const expiringSoonIds = expiringSoonSubs.filter((id) => !futureSet.has(id.toString()));
-    const expiringSoon = expiringSoonIds.length;
+      // Archived count
+      Member.countDocuments({
+        isArchived: true,
+        ...(branchId && branchId !== 'ALL' ? { branch: branchId } : {}),
+      }),
 
-    // 5. Expired Members: members whose applicable membership has expired and who do not have another valid membership
-    const validActiveSubs = await Membership.find({
-      member: { $in: branchMemberIds },
-      isArchived: { $ne: true },
-      status: { $in: ['ACTIVE', 'FROZEN'] },
-      expiryDate: { $gte: istDates.startOfTodayIST },
-    }).distinct('member');
+      // Frozen & Pending count
+      Member.countDocuments({ ...filter, status: 'FROZEN' }),
+      Member.countDocuments({ ...filter, status: 'PENDING' }),
+
+      // 4. Candidate Expiring Soon: memberships expiring from today through next 7 calendar days inclusive
+      Membership.find({
+        member: { $in: branchMemberIds },
+        isArchived: { $ne: true },
+        status: 'ACTIVE',
+        expiryDate: { $gte: istDates.startOfTodayIST, $lte: istDates.endOf7DaysLaterIST },
+      }).distinct('member'),
+
+      // 5. Valid active memberships (today and future)
+      Membership.find({
+        member: { $in: branchMemberIds },
+        isArchived: { $ne: true },
+        status: { $in: ['ACTIVE', 'FROZEN'] },
+        expiryDate: { $gte: istDates.startOfTodayIST },
+      }).distinct('member'),
+
+      // Expired memberships
+      Membership.find({
+        member: { $in: branchMemberIds },
+        isArchived: { $ne: true },
+        $or: [{ status: 'EXPIRED' }, { expiryDate: { $lt: istDates.startOfTodayIST } }],
+      }).distinct('member'),
+
+      // Members explicitly marked EXPIRED
+      Member.find({ ...filter, status: 'EXPIRED' }).distinct('_id'),
+
+      // 6. Dues from memberships and payments
+      Membership.find({
+        member: { $in: branchMemberIds },
+        isArchived: { $ne: true },
+        $expr: { $gt: ['$amountDue', '$amountPaid'] },
+      }).distinct('member'),
+
+      Payment.find({
+        member: { $in: branchMemberIds },
+        status: 'PARTIAL',
+        balanceRemaining: { $gt: 0 },
+      }).distinct('member'),
+    ]);
+
+    // Check if any candidate expiring soon has another valid membership extending beyond 7 days
+    let expiringSoon = 0;
+    if (expiringSoonSubs.length > 0) {
+      const futureActiveSubs = await Membership.find({
+        member: { $in: expiringSoonSubs },
+        isArchived: { $ne: true },
+        status: 'ACTIVE',
+        expiryDate: { $gt: istDates.endOf7DaysLaterIST },
+      }).distinct('member');
+      const futureSet = new Set(futureActiveSubs.map((id) => id.toString()));
+      const expiringSoonIds = expiringSoonSubs.filter((id) => !futureSet.has(id.toString()));
+      expiringSoon = expiringSoonIds.length;
+    }
+
+    // Expired calculation
     const validActiveSet = new Set(validActiveSubs.map((id) => id.toString()));
-
-    const membersWithExpiredSubs = await Membership.find({
-      member: { $in: branchMemberIds },
-      isArchived: { $ne: true },
-      $or: [{ status: 'EXPIRED' }, { expiryDate: { $lt: istDates.startOfTodayIST } }],
-    }).distinct('member');
-
-    const memberStatusExpired = await Member.find({ ...filter, status: 'EXPIRED' }).distinct('_id');
-
     const expiredIds = Array.from(
       new Set([
         ...membersWithExpiredSubs.map((id) => id.toString()),
@@ -182,19 +230,7 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
     ).filter((id) => !validActiveSet.has(id));
     const expired = expiredIds.length;
 
-    // 6. Pending Dues: members with outstanding balance due on membership or payment
-    const duesFromMemberships = await Membership.find({
-      member: { $in: branchMemberIds },
-      isArchived: { $ne: true },
-      $expr: { $gt: ['$amountDue', '$amountPaid'] },
-    }).distinct('member');
-
-    const duesFromPayments = await Payment.find({
-      member: { $in: branchMemberIds },
-      status: 'PARTIAL',
-      balanceRemaining: { $gt: 0 },
-    }).distinct('member');
-
+    // Pending dues calculation
     const pendingDuesIds = Array.from(
       new Set([
         ...duesFromMemberships.map((id) => id.toString()),
@@ -202,18 +238,6 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
       ])
     );
     const pendingDues = pendingDuesIds.length;
-
-    // Female members count
-    const femaleMembers = await Member.countDocuments({ ...filter, gender: 'FEMALE' });
-
-    // Archived count
-    const archived = await Member.countDocuments({
-      isArchived: true,
-      ...(branchId && branchId !== 'ALL' ? { branch: branchId } : {}),
-    });
-
-    const frozen = await Member.countDocuments({ ...filter, status: 'FROZEN' });
-    const pending = await Member.countDocuments({ ...filter, status: 'PENDING' });
 
     sendSuccess(res, 'Member statistics retrieved', {
       total,
@@ -519,13 +543,22 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
     // Attach current active membership summary, dues, and expiry details
     const memberIds = members.map((m) => m._id);
 
-    const memberships = await Membership.find({
-      member: { $in: memberIds },
-      isArchived: { $ne: true },
-    })
-      .populate('plan', 'name type price durationDays')
-      .sort({ expiryDate: -1 })
-      .lean();
+    const [memberships, payments] = await Promise.all([
+      Membership.find({
+        member: { $in: memberIds },
+        isArchived: { $ne: true },
+      })
+        .select('member plan startDate expiryDate originalPrice discount amountDue amountPaid status renewalHistory notes')
+        .populate('plan', 'name type price durationDays')
+        .sort({ expiryDate: -1 })
+        .lean(),
+      Payment.find({
+        member: { $in: memberIds },
+        status: { $in: ['PAID', 'PARTIAL'] },
+      })
+        .select('member balanceRemaining')
+        .lean(),
+    ]);
 
     const memberMembershipsMap = new Map<string, any[]>();
     for (const sub of memberships) {
@@ -535,11 +568,6 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
       }
       memberMembershipsMap.get(memId)!.push(sub);
     }
-
-    const payments = await Payment.find({
-      member: { $in: memberIds },
-      status: { $in: ['PAID', 'PARTIAL'] },
-    }).lean();
 
     const memberPaymentsMap = new Map<string, any[]>();
     for (const pay of payments) {
@@ -605,6 +633,7 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
 
     sendPaginated(res, enrichedMembers, total, page, limit, 'Members fetched');
   } catch (error: any) {
+    console.error('[Get Members Error]', error);
     sendError(res, error.message || 'Failed to fetch members', 500);
   }
 });

@@ -40,13 +40,11 @@ export const LoginPage: React.FC = () => {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotMsg, setForgotMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Restore remembered identifier on initial load if present & reset landing route to dashboard
+  // Ensure clean state on load and reset landing route to dashboard
   useEffect(() => {
-    const savedId = localStorage.getItem('fitcore_remember_id');
-    if (savedId) {
-      setIdentifier(savedId);
-      setRememberMe(true);
-    }
+    // Clear any previously saved email so the field starts blank by default
+    localStorage.removeItem('fitcore_remember_id');
+
     // Ensure that upon reaching the login screen, URL resets to '/' so after login it lands cleanly on Dashboard
     if (window.location.pathname !== '/' && window.location.pathname !== '/login') {
       navigate('/', { replace: true });
@@ -64,11 +62,7 @@ export const LoginPage: React.FC = () => {
     setError(null);
 
     try {
-      if (rememberMe) {
-        localStorage.setItem('fitcore_remember_id', identifier.trim());
-      } else {
-        localStorage.removeItem('fitcore_remember_id');
-      }
+      localStorage.removeItem('fitcore_remember_id');
 
       await login({
         identifier: identifier.trim(),
@@ -164,7 +158,7 @@ export const LoginPage: React.FC = () => {
       {/* 1. Full-Height Gym Background Image with Dark Overlay */}
       <div
         className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
-        style={{ backgroundImage: `url('/login-bg.png')` }}
+        style={{ backgroundImage: `url('/login-bg.webp')` }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/55 backdrop-blur-[0.5px]" />
       </div>
@@ -222,11 +216,16 @@ export const LoginPage: React.FC = () => {
           <div className="w-full max-w-[440px] sm:max-w-[460px] bg-white rounded-3xl shadow-2xl shadow-black/60 border border-white/80 p-5 sm:p-7 text-slate-900 transition-all duration-200">
             {/* Sagar Fitness Gym Logo */}
             <div className="flex items-center justify-center">
-              <img
-                src="/logo.png"
-                alt="Sagar Fitness Gym"
-                className="h-11 sm:h-12 w-auto max-w-[240px] object-contain"
-              />
+              <picture>
+                <source srcSet="/logo.webp" type="image/webp" />
+                <img
+                  src="/logo.png"
+                  alt="Sagar Fitness Gym"
+                  className="h-11 sm:h-12 w-auto max-w-[240px] object-contain"
+                  width="240"
+                  height="48"
+                />
+              </picture>
             </div>
 
             {/* Horizontal Divider with Gym Management System Subtitle */}
@@ -256,7 +255,7 @@ export const LoginPage: React.FC = () => {
             )}
 
             {/* Login Form */}
-            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+            <form onSubmit={handleSubmit} className="mt-4 space-y-4" autoComplete="off">
               {/* Email Address / User ID Input */}
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1.5 tracking-wide">
@@ -269,10 +268,10 @@ export const LoginPage: React.FC = () => {
                   <input
                     type="text"
                     required
-                    autoComplete="username"
+                    autoComplete="off"
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
-                    placeholder="admin@sagarfitness.com or admin"
+                    placeholder="Enter your email or user ID"
                     className="w-full h-12 pl-11 pr-4 text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
                   />
                 </div>
@@ -290,7 +289,7 @@ export const LoginPage: React.FC = () => {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
