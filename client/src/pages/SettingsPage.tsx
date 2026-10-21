@@ -375,10 +375,11 @@ export const SettingsPage: React.FC = () => {
       await api.deleteStaff(deleteTargetStaff._id);
       setStaffMsg({
         type: 'success',
-        text: `Staff account "${deleteTargetStaff.fullName}" was deleted successfully.`,
+        text: `Staff account "${deleteTargetStaff.fullName}" was permanently deleted from the database.`,
       });
+      setStaffList((prev) => prev.filter((s) => s._id !== deleteTargetStaff._id));
       setDeleteTargetStaff(null);
-      fetchStaff();
+      await fetchStaff();
     } catch (err: any) {
       alert(err.message || 'Failed to delete staff member');
     } finally {

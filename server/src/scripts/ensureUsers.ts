@@ -7,6 +7,12 @@ export async function ensureCoreUsers() {
   const branch = await Branch.findOne();
   const branchId = branch?._id;
 
+  // If users/admin already exist in the database, respect deletions and do not re-insert deleted accounts
+  const existingUsersCount = await User.countDocuments();
+  if (existingUsersCount > 0) {
+    return;
+  }
+
   const usersToEnsure = [
     {
       email: 'shayadfakir2006@gmail.com',

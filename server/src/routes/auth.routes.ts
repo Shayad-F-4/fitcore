@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import mongoose from 'mongoose';
 import crypto from 'crypto';
 import { User, UserRole } from '../models/User.js';
 import { Member } from '../models/Member.js';
@@ -230,6 +231,9 @@ router.get('/me', authenticate, async (req: AuthenticatedRequest, res: Response)
 // List all staff accounts for settings
 router.get('/staff', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     const staff = await User.find({}).populate('branch', 'name code').select('-password').sort({ createdAt: -1 });
     const sanitizedStaff = staff.map((s) => {
       const obj = s.toObject();
@@ -338,9 +342,16 @@ router.put('/staff/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), 
 // Delete Staff Member (Admin only: SUPER_ADMIN and GYM_ADMIN)
 router.delete('/staff/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const staff = await User.findById(req.params.id);
+    const rawParam = req.params.id;
+    const targetParam = (typeof rawParam === 'string' ? rawParam : String(rawParam || '')).trim();
+    const isObjectId = mongoose.Types.ObjectId.isValid(targetParam);
+
+    const staff = isObjectId
+      ? await User.findById(targetParam)
+      : await User.findOne({ email: targetParam.toLowerCase() });
+
     if (!staff) {
-      sendError(res, 'Staff member not found', 404);
+      sendError(res, 'Staff member not found in database', 404);
       return;
     }
 
@@ -372,8 +383,9 @@ router.delete('/staff/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'
     // Unlink any member profile attached to this user account
     await Member.updateMany({ user: staff._id }, { $unset: { user: 1 } });
 
-    // Permanently delete user
+    // Permanently remove user document from database
     await User.findByIdAndDelete(staff._id);
+    await User.deleteOne({ _id: staff._id });
 
     await recordAuditLog({
       userId: req.user?.userId,
@@ -391,9 +403,9 @@ router.delete('/staff/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'
       ip: req.ip,
     });
 
-    sendSuccess(res, `Staff member "${staff.fullName}" (${staff.email}) was deleted successfully.`);
+    sendSuccess(res, `Staff member "${staff.fullName}" (${staff.email}) was permanently deleted from the database.`);
   } catch (error: any) {
-    sendError(res, error.message || 'Failed to delete staff member', 500);
+    sendError(res, error.message || 'Failed to delete staff member from database', 500);
   }
 });
 

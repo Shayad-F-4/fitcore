@@ -149,8 +149,12 @@ export const api = {
   },
 
   async getStaff() {
-    const res = await fetch(`${API_BASE}/auth/staff`, {
-      headers: getHeaders(false),
+    const res = await fetch(`${API_BASE}/auth/staff?_t=${Date.now()}`, {
+      headers: {
+        ...getHeaders(false),
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+      },
     });
     return handleResponse<any[]>(res);
   },
@@ -178,7 +182,12 @@ export const api = {
       method: 'DELETE',
       headers: getHeaders(),
     });
-    return handleResponse<any>(res);
+    const result = await handleResponse<any>(res);
+    clearApiCache();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'STAFF_DELETED', id } }));
+    }
+    return result;
   },
 
   async changePassword(data: { currentPassword: string; newPassword: string }) {
