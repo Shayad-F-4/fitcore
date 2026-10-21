@@ -139,7 +139,6 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
       membersWithExpiredSubs,
       memberStatusExpired,
       duesFromMemberships,
-      duesFromPayments,
     ] = await Promise.all([
       // 2. New Members: joinDate falls within previous 30 calendar days (Asia/Kolkata)
       Member.countDocuments({
@@ -192,17 +191,11 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
       // Members explicitly marked EXPIRED
       Member.find({ ...filter, status: 'EXPIRED' }).distinct('_id'),
 
-      // 6. Dues from memberships and payments
+      // 6. Dues from active/unarchived memberships
       Membership.find({
         member: { $in: branchMemberIds },
         isArchived: { $ne: true },
         $expr: { $gt: ['$amountDue', '$amountPaid'] },
-      }).distinct('member'),
-
-      Payment.find({
-        member: { $in: branchMemberIds },
-        status: 'PARTIAL',
-        balanceRemaining: { $gt: 0 },
       }).distinct('member'),
     ]);
 
@@ -232,10 +225,7 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
 
     // Pending dues calculation
     const pendingDuesIds = Array.from(
-      new Set([
-        ...duesFromMemberships.map((id) => id.toString()),
-        ...duesFromPayments.map((id) => id.toString()),
-      ])
+      new Set(duesFromMemberships.map((id) => id.toString()))
     );
     const pendingDues = pendingDuesIds.length;
 
@@ -401,30 +391,13 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
         isArchived: { $ne: true },
         $expr: { $gt: ['$amountDue', '$amountPaid'] },
       }).distinct('member');
-      const duesFromPayments = await Payment.find({
-        status: 'PARTIAL',
-        balanceRemaining: { $gt: 0 },
-      }).distinct('member');
-      const allDuesIds = Array.from(
-        new Set([
-          ...duesFromSubs.map((id) => id.toString()),
-          ...duesFromPayments.map((id) => id.toString()),
-        ])
-      );
-      idConstraintSets.push(allDuesIds);
+      idConstraintSets.push(duesFromSubs.map((id) => id.toString()));
     } else if (paymentStatus === 'PAID') {
       const duesFromSubs = await Membership.find({
         isArchived: { $ne: true },
         $expr: { $gt: ['$amountDue', '$amountPaid'] },
       }).distinct('member');
-      const duesFromPayments = await Payment.find({
-        status: 'PARTIAL',
-        balanceRemaining: { $gt: 0 },
-      }).distinct('member');
-      const allDuesSet = new Set([
-        ...duesFromSubs.map((id) => id.toString()),
-        ...duesFromPayments.map((id) => id.toString()),
-      ]);
+      const allDuesSet = new Set(duesFromSubs.map((id) => id.toString()));
 
       const paidSubs = await Membership.find({
         isArchived: { $ne: true },
@@ -596,15 +569,13 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
         applicableSub = memberSubs[0];
       }
 
-      // Calculate dues
+      // Calculate dues - unarchived memberships are the canonical source of truth for outstanding dues
       const totalDue = memberSubs.reduce((acc, s) => acc + (s.amountDue || 0), 0);
       const totalPaid = memberSubs.reduce((acc, s) => acc + (s.amountPaid || 0), 0);
-      const subBalanceDue = memberSubs.reduce(
+      const balanceDue = memberSubs.reduce(
         (acc, s) => acc + Math.max(0, (s.amountDue || 0) - (s.amountPaid || 0)),
         0
       );
-      const paymentBalanceDue = memberPays.reduce((acc, p) => acc + (p.balanceRemaining || 0), 0);
-      const balanceDue = Math.max(subBalanceDue, paymentBalanceDue);
 
       let paymentStatus: 'PAID' | 'PENDING_PAYMENT' | 'NO_DUES' = 'NO_DUES';
       if (balanceDue > 0) {

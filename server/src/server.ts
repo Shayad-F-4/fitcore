@@ -8,6 +8,8 @@ import mongoose from 'mongoose';
 import { ENV } from './config/env.js';
 import { connectDB } from './config/db.js';
 import { User } from './models/User.js';
+import { Membership } from './models/Membership.js';
+import { Payment } from './models/Payment.js';
 import { UploadedFile } from './models/UploadedFile.js';
 import { seedDatabase } from './scripts/seed.js';
 import { ensureCoreUsers } from './scripts/ensureUsers.js';
@@ -262,6 +264,24 @@ const startServer = async () => {
       await runExpirationCheck();
       // Run automated 2-day expiry WhatsApp reminders (safely deduplicated)
       await runAutoExpiryReminders();
+    }
+
+    // Reconcile and synchronize any historical payment records for fully settled memberships
+    try {
+      const fullyPaidSubs = await Membership.find({
+        $expr: { $gte: ['$amountPaid', '$amountDue'] },
+      }).select('_id');
+      if (fullyPaidSubs.length > 0) {
+        await Payment.updateMany(
+          {
+            membership: { $in: fullyPaidSubs.map((m) => m._id) },
+            $or: [{ status: 'PARTIAL' }, { balanceRemaining: { $gt: 0 } }],
+          },
+          { $set: { balanceRemaining: 0, status: 'PAID' } }
+        );
+      }
+    } catch (syncErr) {
+      console.error('[Settled Payment Sync Error]', syncErr);
     }
 
     // Set periodic expiration & reminder monitor (every 30 mins)

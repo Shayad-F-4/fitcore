@@ -270,4 +270,55 @@ describe('Members Section Optimization - Comprehensive Integration Suite', () =>
     // Clean up test member
     await Member.findByIdAndDelete(res.body.data.member._id);
   });
+
+  // Test 11: Member page immediately reflects PAID and balanceDue 0 after paying due
+  it('11. Immediately updates member page status to PAID and balanceDue 0 when due is paid', async () => {
+    // 1. Get Priya Sharma's membership
+    const memberRes = await request(app)
+      .get(`/api/members?search=${encodeURIComponent('Priya Sharma')}`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    const member = memberRes.body.data.find((m: any) => m._id === testFemaleMemberId);
+    expect(member).toBeDefined();
+    expect(member.balanceDue).toBeGreaterThan(0);
+    expect(member.paymentStatus).toBe('PENDING_PAYMENT');
+    const membershipId = member.currentMembership._id;
+    const dueAmount = member.balanceDue;
+
+    // 2. Collect remaining due via POST /api/payments/collect-due
+    const collectRes = await request(app)
+      .post('/api/payments/collect-due')
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({
+        membershipId,
+        amountPaid: dueAmount,
+        paymentMethod: 'CASH',
+        notes: 'Full clearance of remaining dues',
+      });
+
+    expect(collectRes.status).toBe(201);
+    expect(collectRes.body.success).toBe(true);
+    expect(collectRes.body.data.balanceRemaining).toBe(0);
+
+    // 3. Verify member list endpoint now returns PAID and balanceDue: 0
+    const updatedMemberRes = await request(app)
+      .get(`/api/members?search=${encodeURIComponent('Priya Sharma')}`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    const updatedMember = updatedMemberRes.body.data.find((m: any) => m._id === testFemaleMemberId);
+    expect(updatedMember).toBeDefined();
+    expect(updatedMember.balanceDue).toBe(0);
+    expect(updatedMember.paymentStatus).toBe('PAID');
+
+    // 4. Verify member is now in paymentStatus=PAID filter and excluded from PENDING_PAYMENT
+    const paidListRes = await request(app)
+      .get('/api/members?paymentStatus=PAID')
+      .set('Authorization', `Bearer ${authToken}`);
+    expect(paidListRes.body.data.some((m: any) => m._id === testFemaleMemberId)).toBe(true);
+
+    const pendingListRes = await request(app)
+      .get('/api/members?paymentStatus=PENDING_PAYMENT')
+      .set('Authorization', `Bearer ${authToken}`);
+    expect(pendingListRes.body.data.some((m: any) => m._id === testFemaleMemberId)).toBe(false);
+  });
 });

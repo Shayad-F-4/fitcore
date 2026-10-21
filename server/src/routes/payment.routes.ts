@@ -204,6 +204,12 @@ router.post('/collect-due', authenticate, async (req: AuthenticatedRequest, res:
       paymentDate: new Date(),
     });
 
+    // Synchronize all previous payments for this membership so their balanceRemaining and status reflect the updated due balance
+    await Payment.updateMany(
+      { membership: membership._id, _id: { $ne: payment._id } },
+      { $set: { balanceRemaining: newBalanceRemaining, status: paymentStatus } }
+    );
+
     await recordAuditLog({
       userId: req.user?.userId,
       userName: req.user?.email,
