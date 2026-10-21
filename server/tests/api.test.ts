@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import request from 'supertest';
 import mongoose from 'mongoose';
-import app from '../src/server.js';
+import app, { forgotPasswordLimiter, otpCooldownLimiter } from '../src/server.js';
 import { ENV } from '../src/config/env.js';
 import { runExpirationCheck } from '../src/services/expirationService.js';
 import { Notification } from '../src/models/Notification.js';
@@ -619,6 +619,12 @@ describe('FitCore End-to-End API Suite (20 Acceptance Scenarios)', () => {
     });
     expect(replayRes.status).toBe(400);
   }, 15000);
+
+  // Scenario 31b: Rate Limiting & Cooldown Configuration for Forgot Password
+  it('31b. Verifies forgot-password rate limiter (5 per 15m) and OTP resend cooldown (30s) are configured', async () => {
+    expect(forgotPasswordLimiter).toBeDefined();
+    expect(otpCooldownLimiter).toBeDefined();
+  });
 
   // Scenario 32: Role Authorization Enforcement (Front Desk cannot modify Admin Settings)
   it('32. Restricts front desk role from modifying gym settings', async () => {

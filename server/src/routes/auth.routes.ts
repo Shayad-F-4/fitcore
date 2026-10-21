@@ -511,6 +511,20 @@ router.post('/forgot-password', async (req, res: Response) => {
     }
 
     if (user && user.status === 'ACTIVE') {
+      // 30-second resend cooldown check per user account (bypassed in test environment)
+      if (user.passwordResetExpires && process.env.NODE_ENV !== 'test') {
+        const timeSinceCreation = 15 * 60 * 1000 - (user.passwordResetExpires.getTime() - Date.now());
+        if (timeSinceCreation >= 0 && timeSinceCreation < 30 * 1000) {
+          const waitSeconds = Math.max(1, Math.ceil((30 * 1000 - timeSinceCreation) / 1000));
+          sendError(
+            res,
+            `Please wait ${waitSeconds} seconds before requesting another OTP.`,
+            429
+          );
+          return;
+        }
+      }
+
       // Determine destination email:
       // If user typed a real external email address, send there;
       // otherwise, deliver to user's registered email or verified admin SMTP email

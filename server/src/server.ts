@@ -45,8 +45,8 @@ app.use(
   })
 );
 
-// Rate limiter for authentication endpoints
-const authLimiter = rateLimit({
+// Rate limiter for general authentication endpoints (login)
+export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 50, // 50 attempts
   standardHeaders: true,
@@ -54,6 +54,32 @@ const authLimiter = rateLimit({
   message: {
     success: false,
     message: 'Too many authentication attempts. Please try again after 15 minutes.',
+  },
+  skip: () => ENV.NODE_ENV === 'test',
+});
+
+// Rate limiter for forgot-password OTP requests: 5 requests per 15 minutes
+export const forgotPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 requests per 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many password reset requests. Please try again after 15 minutes.',
+  },
+  skip: () => ENV.NODE_ENV === 'test',
+});
+
+// Cooldown limiter for OTP resend: 30-second cooldown between consecutive requests
+export const otpCooldownLimiter = rateLimit({
+  windowMs: 30 * 1000, // 30 seconds
+  max: 1, // 1 request per 30 seconds
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Please wait 30 seconds before requesting another OTP.',
   },
   skip: () => ENV.NODE_ENV === 'test',
 });
@@ -103,7 +129,7 @@ app.use(
 );
 
 app.use('/api/auth/login', authLimiter);
-app.use('/api/auth/forgot-password', authLimiter);
+app.use('/api/auth/forgot-password', forgotPasswordLimiter, otpCooldownLimiter);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
