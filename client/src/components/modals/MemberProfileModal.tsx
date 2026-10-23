@@ -833,15 +833,6 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
                         <span>Assign Diet Plan</span>
                       </button>
                     )}
-
-                    <button
-                      type="button"
-                      onClick={() => setIsProgressModalOpen(true)}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
-                    >
-                      <Scale className="w-3 h-3" />
-                      <span>Log Weight</span>
-                    </button>
                   </div>
                 </div>
 
