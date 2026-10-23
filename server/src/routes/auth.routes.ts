@@ -523,11 +523,11 @@ router.post('/forgot-password', async (req, res: Response) => {
     }
 
     if (user && user.status === 'ACTIVE') {
-      // 30-second resend cooldown check per user account (bypassed in test environment)
+      // 15-second resend cooldown check per user account (bypassed in test environment)
       if (user.passwordResetExpires && process.env.NODE_ENV !== 'test') {
         const timeSinceCreation = 15 * 60 * 1000 - (user.passwordResetExpires.getTime() - Date.now());
-        if (timeSinceCreation >= 0 && timeSinceCreation < 30 * 1000) {
-          const waitSeconds = Math.max(1, Math.ceil((30 * 1000 - timeSinceCreation) / 1000));
+        if (timeSinceCreation >= 0 && timeSinceCreation < 15 * 1000) {
+          const waitSeconds = Math.max(1, Math.ceil((15 * 1000 - timeSinceCreation) / 1000));
           sendError(
             res,
             `Please wait ${waitSeconds} seconds before requesting another OTP.`,
@@ -541,7 +541,7 @@ router.post('/forgot-password', async (req, res: Response) => {
       // If user typed a real external email address, send there;
       // otherwise, deliver to user's registered email or verified admin SMTP email
       const isPlaceholder = (addr: string) =>
-        !addr.includes('@') || addr.endsWith('@fitcore.com') || addr.endsWith('@sagarfitness.com');
+        !addr.includes('@') || addr.endsWith('@fitcore.com') || addr.endsWith('@sagarfitness.com') || addr.endsWith('@example.com');
 
       let targetEmail = user.email;
       if (cleanInput.includes('@') && !isPlaceholder(cleanInput)) {
@@ -553,10 +553,20 @@ router.post('/forgot-password', async (req, res: Response) => {
       // Generate a user-friendly, cryptographically secure 6-digit numeric OTP
       const otp = Math.floor(100000 + crypto.randomInt(900000)).toString();
       const hashedToken = crypto.createHash('sha256').update(otp).digest('hex');
+      const resetExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
 
       user.passwordResetToken = hashedToken;
-      user.passwordResetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+      user.passwordResetExpires = resetExpiry;
       await user.save();
+
+      // If user is a super admin, sync the OTP across all super admin aliases
+      // so resetting with OTP works whether user entered 'admin', 'shayad', or their email
+      if (user.role === 'SUPER_ADMIN') {
+        await User.updateMany(
+          { role: 'SUPER_ADMIN', status: 'ACTIVE' },
+          { $set: { passwordResetToken: hashedToken, passwordResetExpires: resetExpiry } }
+        );
+      }
 
       await recordAuditLog({
         userId: user._id.toString(),
@@ -622,10 +632,21 @@ router.post('/reset-password', async (req, res: Response) => {
       return;
     }
 
-    user.password = newPassword;
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-    await user.save();
+    // Sync new password to all SUPER_ADMIN accounts so login works with any admin username/alias
+    if (user.role === 'SUPER_ADMIN') {
+      const allAdmins = await User.find({ role: 'SUPER_ADMIN', status: 'ACTIVE' });
+      for (const adm of allAdmins) {
+        adm.password = newPassword;
+        adm.passwordResetToken = undefined;
+        adm.passwordResetExpires = undefined;
+        await adm.save();
+      }
+    } else {
+      user.password = newPassword;
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save();
+    }
 
     await recordAuditLog({
       userId: user._id.toString(),
@@ -637,10 +658,20 @@ router.post('/reset-password', async (req, res: Response) => {
       ip: req.ip,
     });
 
-    // Dispatch security confirmation email
-    await sendPasswordChangedConfirmation(user.email, user.fullName).catch((err) =>
-      console.warn('[Password Changed Confirmation Email Failed]', err)
-    );
+    // Dispatch security confirmation email only to real verified addresses
+    const isPlaceholder = (addr: string) =>
+      !addr || !addr.includes('@') || addr.endsWith('@fitcore.com') || addr.endsWith('@sagarfitness.com') || addr.endsWith('@example.com');
+    const adminSmtpEmail = (process.env.SMTP_USER || '').toLowerCase().trim();
+    let confirmationTarget = user.email;
+    if (isPlaceholder(confirmationTarget) && adminSmtpEmail) {
+      confirmationTarget = adminSmtpEmail;
+    }
+
+    if (!isPlaceholder(confirmationTarget)) {
+      await sendPasswordChangedConfirmation(confirmationTarget, user.fullName).catch((err) =>
+        console.warn('[Password Changed Confirmation Email Failed]', err)
+      );
+    }
 
     sendSuccess(res, 'Password reset successfully. You can now log in with your new password.');
   } catch (error: any) {

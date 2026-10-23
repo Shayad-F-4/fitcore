@@ -63,6 +63,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   // Secondary routes where "More" is logically active
   const isMoreActive =
     location.pathname.startsWith('/plans') ||
+    location.pathname.startsWith('/pos') ||
+    location.pathname.startsWith('/inventory') ||
     location.pathname.startsWith('/reports') ||
     location.pathname.startsWith('/settings') ||
     isSidebarOpen;

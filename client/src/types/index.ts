@@ -210,3 +210,610 @@ export interface FollowUpItem {
   createdAt: string;
 }
 
+// ==========================================
+// INVENTORY, POS & SUPPLIER TYPES
+// ==========================================
+
+export interface Product {
+  _id: string;
+  name: string;
+  sku: string;
+  barcode?: string;
+  category: string;
+  brand?: string;
+  description?: string;
+  purchaseCost?: number; // Redacted for receptionists
+  sellingPrice: number;
+  currentStock: number;
+  minStockThreshold: number;
+  unit: string;
+  supplier?: {
+    _id: string;
+    name: string;
+    phone: string;
+  };
+  batchNumber?: string;
+  expiryDate?: string;
+  imageUrl?: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Supplier {
+  _id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  notes?: string;
+  totalPurchases: number;
+  totalPaid: number;
+  outstandingBalance: number;
+  status: 'ACTIVE' | 'INACTIVE';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PurchaseItem {
+  product: string | Product;
+  productName: string;
+  sku: string;
+  quantity: number;
+  purchaseCost: number;
+  lineTotal: number;
+  batchNumber?: string;
+  expiryDate?: string;
+}
+
+export interface Purchase {
+  _id: string;
+  invoiceNumber: string;
+  supplier: {
+    _id: string;
+    name: string;
+    phone: string;
+    email?: string;
+    address?: string;
+  };
+  purchaseDate: string;
+  items: PurchaseItem[];
+  overallTotal: number;
+  amountPaid: number;
+  outstandingBalance: number;
+  paymentStatus: 'PAID' | 'PARTIAL' | 'UNPAID';
+  paymentMethod: 'CASH' | 'UPI' | 'BANK_TRANSFER' | 'CARD';
+  notes?: string;
+  recordedBy?: {
+    _id: string;
+    fullName: string;
+    email: string;
+  };
+  status: 'CONFIRMED' | 'CANCELLED';
+  createdAt?: string;
+}
+
+export interface StockMovement {
+  _id: string;
+  product: {
+    _id: string;
+    name: string;
+    sku: string;
+    unit?: string;
+    sellingPrice?: number;
+  };
+  movementType:
+    | 'PURCHASE'
+    | 'SALE'
+    | 'RETURN'
+    | 'DAMAGE'
+    | 'EXPIRY'
+    | 'ADJUSTMENT_ADD'
+    | 'ADJUSTMENT_SUBTRACT';
+  quantity: number;
+  previousStock: number;
+  newStock: number;
+  unitCost?: number;
+  referenceType?: 'PURCHASE' | 'SALE' | 'ADJUSTMENT' | 'MANUAL';
+  referenceId?: string;
+  reason: string;
+  performedBy?: {
+    _id: string;
+    fullName: string;
+    email: string;
+  };
+  performedByName?: string;
+  createdAt: string;
+}
+
+export interface SaleItem {
+  product: string | Product;
+  name: string;
+  sku: string;
+  quantity: number;
+  unitCost?: number;
+  unitPrice: number;
+  lineTotal: number;
+  lineCostTotal?: number;
+}
+
+export interface InventorySale {
+  _id: string;
+  receiptNumber: string;
+  customerMember?: {
+    _id: string;
+    fullName: string;
+    memberId: string;
+    phone?: string;
+    email?: string;
+  };
+  customerName?: string;
+  customerPhone?: string;
+  items: SaleItem[];
+  subtotal: number;
+  discount: number;
+  grandTotal: number;
+  totalCost?: number; // Redacted for receptionists
+  grossProfit?: number; // Redacted for receptionists
+  paymentMethod: 'CASH' | 'UPI' | 'CARD' | 'NET_BANKING';
+  paymentStatus: 'PAID' | 'REFUNDED' | 'CANCELLED';
+  status: 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
+  notes?: string;
+  cashier?: {
+    _id: string;
+    fullName: string;
+    email?: string;
+  };
+  saleDate: string;
+  cancellationReason?: string;
+  cancelledAt?: string;
+  refundedAmount?: number;
+  refundReason?: string;
+  refundedAt?: string;
+  restockedOnRefund?: boolean;
+  createdAt?: string;
+}
+
+export interface InventoryDashboardStats {
+  totalActiveProducts: number;
+  totalStockUnits: number;
+  lowStockProducts: number;
+  outOfStockProducts: number;
+  todaySales: number;
+  todayGrossProfit?: number;
+  todaySalesCount: number;
+  monthSales: number;
+  monthGrossProfit?: number;
+  monthSalesCount: number;
+  inventoryValuation?: number;
+  productsApproachingExpiry: number;
+  lowStockList: {
+    _id: string;
+    name: string;
+    sku: string;
+    currentStock: number;
+    minStockThreshold: number;
+    unit: string;
+    sellingPrice: number;
+  }[];
+  expiringList: {
+    _id: string;
+    name: string;
+    sku: string;
+    currentStock: number;
+    expiryDate: string;
+    batchNumber?: string;
+  }[];
+}
+
+export interface InventoryReportData {
+  period: string;
+  dateRange: { start: string; end: string };
+  sales: {
+    totalRevenue: number;
+    totalCost?: number;
+    grossProfit?: number;
+    totalDiscount: number;
+    salesCount: number;
+  };
+  stock: {
+    totalActiveProducts: number;
+    totalUnits: number;
+    totalValuation?: number;
+    lowStockCount: number;
+    outOfStockCount: number;
+  };
+  productSales: {
+    productId: string;
+    name: string;
+    sku: string;
+    unitsSold: number;
+    revenue: number;
+    cost?: number;
+    profit?: number;
+  }[];
+  supplierBalances?: {
+    _id: string;
+    name: string;
+    phone: string;
+    totalPurchases: number;
+    totalPaid: number;
+    outstandingBalance: number;
+  }[];
+}
+
+/* ==========================================================================
+   Diet & Calorie Management Types
+   ========================================================================== */
+export type FoodCategory =
+  | 'PROTEINS'
+  | 'CARBOHYDRATES'
+  | 'HEALTHY_FATS'
+  | 'DAIRY'
+  | 'VEGETABLES'
+  | 'FRUITS'
+  | 'SUPPLEMENTS'
+  | 'SNACKS_OTHERS';
+
+export interface FoodItem {
+  _id: string;
+  name: string;
+  category: FoodCategory;
+  servingSize: number;
+  servingUnit: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number;
+  source: string;
+  notes?: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type FitnessGoal = 'WEIGHT_LOSS' | 'MUSCLE_GAIN' | 'MAINTENANCE' | 'ENDURANCE';
+
+export type MealType =
+  | 'BREAKFAST'
+  | 'MORNING_SNACK'
+  | 'LUNCH'
+  | 'EVENING_SNACK'
+  | 'DINNER';
+
+export interface MealItem {
+  _id?: string;
+  foodItem?: string | FoodItem;
+  foodName: string;
+  servingUnit: string;
+  servingSize: number;
+  quantity: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number;
+  notes?: string;
+}
+
+export interface MealSchedule {
+  _id?: string;
+  mealType: MealType;
+  name: string;
+  time?: string;
+  items: MealItem[];
+  mealCalories: number;
+  mealProtein: number;
+  mealCarbs: number;
+  mealFat: number;
+  mealFiber?: number;
+}
+
+export interface DietPlan {
+  _id: string;
+  name: string;
+  member: {
+    _id: string;
+    memberId: string;
+    fullName: string;
+    phone: string;
+    email?: string;
+    gender?: string;
+    dob?: string;
+    photoUrl?: string;
+  };
+  fitnessGoal: FitnessGoal;
+  startDate: string;
+  endDate?: string;
+  targetCalories: number;
+  targetProtein: number;
+  targetCarbs: number;
+  targetFat: number;
+  waterIntakeLiters?: number;
+  notes?: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'COMPLETED' | 'ARCHIVED';
+  approvalStatus?: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
+  version?: number;
+  source?: 'AI_GENERATED' | 'MANUAL';
+  shoppingList?: Array<{ item: string; quantity: string; category?: string }>;
+  allergyWarnings?: string[];
+  sevenDaySchedule?: Array<{
+    day: string;
+    dayCalories: number;
+    dayProtein: number;
+    dayCarbs: number;
+    dayFat: number;
+    meals: MealSchedule[];
+  }>;
+  meals: MealSchedule[];
+  dailyCalories: number;
+  dailyProtein: number;
+  dailyCarbs: number;
+  dailyFat: number;
+  dailyFiber?: number;
+  createdBy?: {
+    _id: string;
+    fullName: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface WeightProgress {
+  _id: string;
+  member: string | Member;
+  date: string;
+  weight: number;
+  height?: number;
+  bmi?: number;
+  waist?: number;
+  chest?: number;
+  arms?: number;
+  hips?: number;
+  bodyFat?: number;
+  notes?: string;
+  recordedBy?: {
+    _id: string;
+    fullName: string;
+  };
+  createdAt?: string;
+}
+
+export interface CalorieCalculationResult {
+  bmr: number;
+  tdee: number;
+  targetCalories: number;
+  targetProteinGrams: number;
+  targetCarbsGrams: number;
+  targetFatGrams: number;
+  waterIntakeLiters: number;
+  calorieAdjustment: number;
+  adjustmentDescription: string;
+  formulaUsed: string;
+  safetyNotice?: string;
+  disclaimer: string;
+  bmi?: number;
+  bmiCategory?: string;
+  bmiDescription?: string;
+}
+
+export interface DietDashboardData {
+  kpi: {
+    totalPlans: number;
+    activePlans: number;
+    weightLossPlans: number;
+    muscleGainPlans: number;
+    maintenancePlans: number;
+    membersRequiringUpdateCount: number;
+    totalFoodItems: number;
+  };
+  membersNeedingCheckIn: {
+    _id: string;
+    memberId: string;
+    fullName: string;
+    phone: string;
+    photoUrl?: string;
+  }[];
+  recentPlans: DietPlan[];
+}
+
+export type DietaryPreference =
+  | 'VEGETARIAN'
+  | 'NON_VEGETARIAN'
+  | 'EGGETARIAN'
+  | 'VEGAN'
+  | 'JAIN'
+  | 'OTHER';
+
+export type FitnessExperience = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+
+export type AvailableEquipment =
+  | 'FULL_GYM'
+  | 'DUMBBELLS_ONLY'
+  | 'BODYWEIGHT_HOME'
+  | 'RESISTANCE_BANDS';
+
+export interface FitnessProfile {
+  _id?: string;
+  member: string | Member;
+  age: number;
+  gender: 'MALE' | 'FEMALE';
+  heightCm: number;
+  currentWeightKg: number;
+  targetWeightKg?: number;
+  fitnessExperience: FitnessExperience;
+  fitnessGoal: FitnessGoal | 'STRENGTH';
+  activityLevel: string;
+  preferredWorkoutTime?: 'MORNING' | 'AFTERNOON' | 'EVENING';
+  workoutDaysPerWeek: number;
+  workoutDurationMins: number;
+  availableEquipment: AvailableEquipment;
+  exerciseLimitations?: string[];
+  dietaryPreference: DietaryPreference;
+  allergies?: string[];
+  likedFoods?: string[];
+  dislikedFoods?: string[];
+  mealTimings?: string[];
+  mealsPerDay: number;
+  foodBudget?: 'BUDGET' | 'MODERATE' | 'PREMIUM';
+  foodPreparationPreference?: 'HOME_COOKED' | 'MEAL_PREP' | 'QUICK_EASY';
+  sleepDurationHours?: number;
+  dailyStepsTarget?: number;
+  bmr: number;
+  tdee: number;
+  targetCalories: number;
+  targetProtein: number;
+  targetCarbs: number;
+  targetFat: number;
+  waterIntakeLiters: number;
+  bmi?: number;
+  status: 'ACTIVE' | 'ARCHIVED';
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface WorkoutExercise {
+  _id?: string;
+  exerciseName: string;
+  targetMuscle: string;
+  equipment?: string;
+  sets: number;
+  reps: string;
+  restSeconds: number;
+  tempo?: string;
+  techniqueNotes?: string;
+  alternatives?: string[];
+  estimatedCaloriesBurned?: number;
+}
+
+export interface WorkoutDaySchedule {
+  _id?: string;
+  dayName: string;
+  workoutTitle: string;
+  isRestDay: boolean;
+  targetMuscleGroups: string[];
+  warmUp?: string;
+  coolDown?: string;
+  estimatedDurationMins: number;
+  exercises: WorkoutExercise[];
+  notes?: string;
+}
+
+export interface WorkoutPlan {
+  _id: string;
+  name: string;
+  member: Member;
+  fitnessGoal: string;
+  experienceLevel: string;
+  availableEquipment: string;
+  daysPerWeek: number;
+  startDate: string;
+  endDate?: string;
+  schedule: WorkoutDaySchedule[];
+  approvalStatus: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
+  version: number;
+  source: 'AI_GENERATED' | 'MANUAL';
+  approvedBy?: any;
+  approvedAt?: string;
+  rejectionReason?: string;
+  limitationsConsidered?: string[];
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PremiumEntitlement {
+  _id: string;
+  member: Member;
+  planName: string;
+  features: {
+    personalizedDiet: boolean;
+    personalizedWorkout: boolean;
+    weeklyPdfReports: boolean;
+    progressTracking: boolean;
+    reminders: boolean;
+  };
+  startDate: string;
+  expiryDate: string;
+  status: 'ACTIVE' | 'EXPIRED' | 'SUSPENDED' | 'CANCELLED';
+  notes?: string;
+  createdAt?: string;
+}
+
+export interface PlanReview {
+  _id: string;
+  member: Member;
+  weekNumber: number;
+  reviewDate: string;
+  startingWeightKg?: number;
+  currentWeightKg?: number;
+  weightDeltaKg?: number;
+  adherencePercentage: number;
+  complianceNotes?: string;
+  suggestedCalorieDelta?: number;
+  suggestedWorkoutNotes?: string;
+  status: 'PENDING_REVIEW' | 'APPROVED' | 'DISMISSED';
+  reviewedBy?: any;
+  reviewedAt?: string;
+  createdAt?: string;
+}
+
+export interface SupplementItem {
+  id: string;
+  name: string;
+  category: string;
+  evidenceRating: 'STRONG' | 'MODERATE' | 'EMERGING';
+  suitableFor: string[];
+  primaryBenefit: string;
+  typicalDosage: string;
+  recommendedTiming: string;
+  scientificNotes: string;
+  safetyPrecautions: string[];
+  isEssential: boolean;
+}
+
+export interface AiCoachStatus {
+  isConfigured: boolean;
+  provider: 'GEMINI' | 'OPENAI' | 'INTELLIGENT_LOCAL';
+  modelName: string;
+  message: string;
+}
+
+export interface MlModelStatus {
+  isTrained: boolean;
+  algorithm: string;
+  totalTrainingSamples: number;
+  trainedAt: string;
+  nutritionR2Score: number;
+  workoutSplitAccuracy: number;
+  calorieMaeKcal: number;
+  proteinMaeG: number;
+  topPredictiveFeatures: Array<[string, number]>;
+  status: string;
+}
+
+export interface MlPredictionResult {
+  source: 'TRAINED_SCIKIT_LEARN_ML';
+  modelTrainedAt: string;
+  r2Accuracy: number;
+  nutrition: {
+    targetCalories: number;
+    targetProteinGrams: number;
+    targetCarbsGrams: number;
+    targetFatGrams: number;
+    waterIntakeLiters: number;
+  };
+  workout: {
+    recommendedSplit: 'FULL_BODY_3D' | 'UPPER_LOWER_4D' | 'PUSH_PULL_LEGS_5D' | 'PPL_SPLIT_6D';
+    splitAccuracy: number;
+    volumeMultiplier: number;
+    weeklyProgressionRatePct: number;
+  };
+  confidenceScore: number;
+  featureContributions: Array<{ feature: string; impact: string }>;
+}
+
+
+

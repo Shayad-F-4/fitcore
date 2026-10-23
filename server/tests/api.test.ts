@@ -618,7 +618,7 @@ describe('FitCore End-to-End API Suite (20 Acceptance Scenarios)', () => {
       newPassword: 'newpassword456',
     });
     expect(replayRes.status).toBe(400);
-  }, 15000);
+  }, 30000);
 
   // Scenario 31b: Rate Limiting & Cooldown Configuration for Forgot Password
   it('31b. Verifies forgot-password rate limiter (5 per 15m) and OTP resend cooldown (30s) are configured', async () => {

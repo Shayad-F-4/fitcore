@@ -51,7 +51,20 @@ export const openWhatsApp = (phone: string, message: string): boolean => {
 
   const encoded = encodeURIComponent(message);
   const url = `https://wa.me/${cleanPhone}?text=${encoded}`;
-  window.open(url, '_blank', 'noopener,noreferrer');
+  try {
+    const newWin = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  } catch {
+    window.location.href = url;
+  }
   return true;
 };
 
@@ -170,4 +183,175 @@ export const sendWhatsAppReceipt = (params: PaymentReceiptParams): boolean => {
   const message = getPaymentReceiptMessage(params);
   return openWhatsApp(params.phone, message);
 };
+
+export interface PosReceiptWhatsAppParams {
+  customerName: string;
+  phone: string;
+  receiptNumber: string;
+  items: { name: string; quantity: number; lineTotal: number }[];
+  grandTotal: number;
+  paymentMethod: string;
+  date?: string;
+  gymName?: string;
+}
+
+export const sendWhatsAppPosReceipt = (params: PosReceiptWhatsAppParams): boolean => {
+  const gymName = params.gymName || 'Sagar Fitness Gym';
+  const formattedDate = params.date ? formatDateIN(params.date) : formatDateIN(new Date().toISOString());
+  const formattedTotal = formatINR(params.grandTotal);
+
+  let msg = `*Product Purchase Receipt — ${gymName}* 🛍️\n\n`;
+  msg += `Dear *${params.customerName}*,\nThank you for your purchase at ${gymName}!\n\n`;
+  msg += `• *Receipt No:* #${params.receiptNumber}\n`;
+  msg += `• *Date:* ${formattedDate}\n`;
+  msg += `• *Payment Mode:* ${params.paymentMethod.toUpperCase()}\n\n`;
+  msg += `*Items Purchased:*\n`;
+  params.items.forEach((it, idx) => {
+    msg += `${idx + 1}. ${it.name} (x${it.quantity}) — ${formatINR(it.lineTotal)}\n`;
+  });
+  msg += `\n*Grand Total Paid:* ${formattedTotal} ✅\n`;
+  msg += `\nThank you for choosing *${gymName}*! Stay fit & healthy! 💪`;
+
+  return openWhatsApp(params.phone, msg);
+};
+
+export interface DietPlanWhatsAppParams {
+  memberName: string;
+  phone: string;
+  planName: string;
+  fitnessGoal: string;
+  dailyCalories: number;
+  dailyProtein: number;
+  dailyCarbs: number;
+  dailyFat: number;
+  waterIntakeLiters?: number;
+  notes?: string;
+  meals?: {
+    mealType?: string;
+    name?: string;
+    time?: string;
+    items?: { foodName: string; quantity: number; servingUnit: string }[];
+  }[];
+  gymName?: string;
+}
+
+export const sendWhatsAppDietPlan = (params: DietPlanWhatsAppParams): boolean => {
+  const gymName = params.gymName || 'Sagar Fitness Gym';
+  const goalFormatted = (params.fitnessGoal || 'FITNESS').replace(/_/g, ' ');
+
+  let msg = `🥗 *Your Personalized Diet Protocol — ${gymName}* 🏋️‍♂️\n\n`;
+  msg += `Dear *${params.memberName}*,\nHere is your custom nutrition & diet protocol prepared by ${gymName}, Pathardi:\n\n`;
+  msg += `📋 *Plan:* ${params.planName}\n`;
+  msg += `🎯 *Goal:* ${goalFormatted.toUpperCase()}\n`;
+  msg += `🔥 *Daily Target:* ${params.dailyCalories} kcal\n`;
+  msg += `🥩 *Protein:* ${params.dailyProtein}g  |  🍚 *Carbs:* ${params.dailyCarbs}g  |  🥑 *Fat:* ${params.dailyFat}g\n`;
+  if (params.waterIntakeLiters) {
+    msg += `💧 *Hydration:* ${params.waterIntakeLiters} Liters / day\n`;
+  }
+
+  if (params.notes && params.notes.trim()) {
+    msg += `\n*📋 Daily Meal Schedule & Kya Khana Hai:*\n${params.notes.trim()}\n`;
+  }
+
+  if (params.meals && params.meals.length > 0 && params.meals.some((m) => m.items && m.items.length > 0)) {
+    msg += `\n*Scheduled Foods:*\n`;
+    params.meals.forEach((m) => {
+      if (m.items && m.items.length > 0) {
+        msg += `\n• *${m.name}* ${m.time ? `(${m.time})` : ''}:\n`;
+        m.items.forEach((it) => {
+          msg += `   - ${it.foodName} (${it.quantity} ${it.servingUnit})\n`;
+        });
+      }
+    });
+  }
+
+  msg += `\n*Coaching Note:* Consistency is the key to physique transformation. Stay hydrated, sleep 7-8 hours, and track your weights regularly.\n\n`;
+  msg += `*${gymName}, Pathardi, Maharashtra* 💪`;
+
+  return openWhatsApp(params.phone, msg);
+};
+
+export interface WorkoutPlanWhatsAppParams {
+  memberName: string;
+  phone: string;
+  planName: string;
+  fitnessGoal: string;
+  daysPerWeek: number;
+  availableEquipment?: string;
+  schedule: {
+    dayName: string;
+    workoutTitle: string;
+    isRestDay?: boolean;
+    estimatedDurationMins?: number;
+    exercises?: {
+      exerciseName: string;
+      sets: number;
+      reps: string;
+      targetMuscleGroup?: string;
+    }[];
+  }[];
+  gymName?: string;
+}
+
+export const sendWhatsAppWorkoutPlan = (params: WorkoutPlanWhatsAppParams): boolean => {
+  const gymName = params.gymName || 'Sagar Fitness Gym';
+  const goalFormatted = (params.fitnessGoal || 'FITNESS').replace(/_/g, ' ');
+
+  let msg = `🏋️‍♂️ *Your Personalized Workout Routine — ${gymName}* 🔥\n\n`;
+  msg += `Dear *${params.memberName}*,\nHere is your custom 7-day training routine prepared by ${gymName}, Pathardi:\n\n`;
+  msg += `📋 *Routine:* ${params.planName}\n`;
+  msg += `🎯 *Goal:* ${goalFormatted.toUpperCase()}\n`;
+  msg += `📅 *Frequency:* ${params.daysPerWeek} Days / Week\n`;
+  if (params.availableEquipment) {
+    msg += `⚙️ *Equipment:* ${params.availableEquipment.replace(/_/g, ' ')}\n`;
+  }
+  msg += `\n*Weekly Training Schedule:*\n`;
+
+  (params.schedule || []).forEach((day) => {
+    if (day.isRestDay) {
+      msg += `\n🛌 *${day.dayName}:* Rest & Recovery (Active recovery / stretch)\n`;
+    } else {
+      msg += `\n💪 *${day.dayName} — ${day.workoutTitle}* (${day.estimatedDurationMins || 45} mins):\n`;
+      if (day.exercises && day.exercises.length > 0) {
+        day.exercises.forEach((ex, idx) => {
+          msg += `   ${idx + 1}. ${ex.exerciseName} — ${ex.sets} sets × ${ex.reps}\n`;
+        });
+      }
+    }
+  });
+
+  msg += `\n*Coach Tip:* Maintain progressive overload, focus on controlled execution, and warm up thoroughly before compound lifts.\n\n`;
+  msg += `*${gymName}, Pathardi, Maharashtra* 🚀`;
+
+  return openWhatsApp(params.phone, msg);
+};
+
+export interface MlPlanWhatsAppParams {
+  memberName: string;
+  phone: string;
+  targetCalories: number;
+  targetProtein: number;
+  targetCarbs: number;
+  targetFat: number;
+  waterLiters: number;
+  recommendedSplit: string;
+  volumeMultiplier: number;
+  progressionRate: number;
+  gymName?: string;
+}
+
+export const sendWhatsAppMlPlanSummary = (params: MlPlanWhatsAppParams): boolean => {
+  const gymName = params.gymName || 'Sagar Fitness Gym';
+  let msg = `⚡ *Sagar Fitness AI Coaching Targets — ${gymName}* 🎯\n\n`;
+  msg += `Namaste *${params.memberName}*! Your biometric machine learning fitness targets are ready:\n\n`;
+  msg += `🔥 *Daily Calorie Target:* ${params.targetCalories} kcal\n`;
+  msg += `🥩 *Protein:* ${params.targetProtein}g  |  🍚 *Carbs:* ${params.targetCarbs}g  |  🥑 *Fat:* ${params.targetFat}g\n`;
+  msg += `💧 *Hydration:* ${params.waterLiters} Liters/day\n\n`;
+  msg += `🏋️ *Recommended Routine Split:* ${params.recommendedSplit.replace(/_/g, ' ')}\n`;
+  msg += `📈 *Overload Scaling:* ${params.volumeMultiplier}x volume  |  +${params.progressionRate}% weekly rate\n\n`;
+  msg += `Visit the gym desk or message your trainer to receive your full 7-day meal and exercise schedule!\n`;
+  msg += `*${gymName}, Pathardi* 💪`;
+  return openWhatsApp(params.phone, msg);
+};
+
 

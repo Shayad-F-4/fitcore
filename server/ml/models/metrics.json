@@ -1,0 +1,36 @@
+{
+  "trained_at": "2026-10-23T02:42:08Z",
+  "total_training_samples": 12973,
+  "training_split": "80/20 train/test split",
+  "nutrition_r2_score": 0.8576,
+  "workout_split_accuracy": 1.0,
+  "calorie_mae_kcal": 118.58,
+  "protein_mae_g": 9.4,
+  "top_predictive_features": [
+    [
+      "days_per_week",
+      0.7781
+    ],
+    [
+      "exp_enc",
+      0.1282
+    ],
+    [
+      "duration_mins",
+      0.0528
+    ],
+    [
+      "daily_steps",
+      0.0068
+    ],
+    [
+      "sleep_hours",
+      0.0066
+    ],
+    [
+      "age",
+      0.0047
+    ]
+  ],
+  "status": "ACTIVE_IN_PRODUCTION"
+}

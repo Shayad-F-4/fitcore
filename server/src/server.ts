@@ -15,6 +15,8 @@ import { seedDatabase } from './scripts/seed.js';
 import { ensureCoreUsers } from './scripts/ensureUsers.js';
 import { migrateToSingleGym } from './scripts/migrateSingleGym.js';
 import { ensureDefaultPlans } from './scripts/ensurePlans.js';
+import { ensureDefaultProducts } from './scripts/ensureProducts.js';
+import { ensureVerifiedFoods } from './scripts/ensureFoods.js';
 import { runExpirationCheck } from './services/expirationService.js';
 
 // Route imports
@@ -32,6 +34,9 @@ import notificationRoutes from './routes/notification.routes.js';
 import followUpRoutes from './routes/followUp.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
 import expiryRoutes from './routes/expiry.routes.js';
+import inventoryRoutes from './routes/inventory.routes.js';
+import dietRoutes from './routes/diet.routes.js';
+import aiCoachRoutes from './routes/aiCoach.routes.js';
 import { runAutoExpiryReminders } from './services/whatsappService.js';
 
 import rateLimit from 'express-rate-limit';
@@ -60,10 +65,10 @@ export const authLimiter = rateLimit({
   skip: () => ENV.NODE_ENV === 'test',
 });
 
-// Rate limiter for forgot-password OTP requests: 5 requests per 15 minutes
+// Rate limiter for forgot-password OTP requests: 10 requests per 15 minutes
 export const forgotPasswordLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per 15 minutes
+  max: 10, // 10 requests per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -73,15 +78,15 @@ export const forgotPasswordLimiter = rateLimit({
   skip: () => ENV.NODE_ENV === 'test',
 });
 
-// Cooldown limiter for OTP resend: 30-second cooldown between consecutive requests
+// Cooldown limiter for OTP resend: 15-second cooldown between consecutive requests
 export const otpCooldownLimiter = rateLimit({
-  windowMs: 30 * 1000, // 30 seconds
-  max: 1, // 1 request per 30 seconds
+  windowMs: 15 * 1000, // 15 seconds
+  max: 1, // 1 request per 15 seconds
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     success: false,
-    message: 'Please wait 30 seconds before requesting another OTP.',
+    message: 'Please wait 15 seconds before requesting another OTP.',
   },
   skip: () => ENV.NODE_ENV === 'test',
 });
@@ -233,6 +238,9 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/expiry', expiryRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/diet', dietRoutes);
+app.use('/api/ai-coach', aiCoachRoutes);
 
 // Global Error Handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
@@ -253,6 +261,10 @@ const startServer = async () => {
     await migrateToSingleGym().catch((e) => console.error('[Single Gym Migration Error]', e));
     // Ensure standard Sagar Fitness Gym membership plans exist
     await ensureDefaultPlans().catch((e) => console.error('[Plans Setup Error]', e));
+    // Ensure default inventory products exist
+    await ensureDefaultProducts().catch((e) => console.error('[Inventory Setup Error]', e));
+    // Ensure verified gym nutrition foods exist
+    await ensureVerifiedFoods().catch((e) => console.error('[Diet Setup Error]', e));
 
     // Auto-seed if database is clean
     const userCount = await User.countDocuments();

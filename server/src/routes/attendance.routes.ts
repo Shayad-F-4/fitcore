@@ -53,7 +53,20 @@ router.get('/today', authenticate, async (req: AuthenticatedRequest, res: Respon
       .populate('branch', 'name code')
       .sort({ checkInTime: -1 });
 
-    sendSuccess(res, "Daily attendance log", logs);
+    const formattedLogs = logs.map((log) => {
+      const doc = log.toObject({ virtuals: true });
+      let durationMinutes = doc.durationMinutes ?? null;
+      if (durationMinutes === null && doc.checkInTime && doc.checkOutTime) {
+        const diffMs = new Date(doc.checkOutTime).getTime() - new Date(doc.checkInTime).getTime();
+        durationMinutes = Math.max(1, Math.round(diffMs / 60000));
+      }
+      return {
+        ...doc,
+        durationMinutes,
+      };
+    });
+
+    sendSuccess(res, "Daily attendance log", formattedLogs);
   } catch (error: any) {
     sendError(res, error.message || 'Failed to fetch attendance log', 500);
   }
@@ -255,7 +268,13 @@ router.post('/check-out/:attendanceId', authenticate, async (req: AuthenticatedR
     attendance.checkOutTime = new Date();
     await attendance.save();
 
-    sendSuccess(res, 'Check-out recorded successfully', attendance);
+    const diffMs = attendance.checkOutTime.getTime() - attendance.checkInTime.getTime();
+    const durationMinutes = Math.max(1, Math.round(diffMs / 60000));
+
+    sendSuccess(res, 'Check-out recorded successfully', {
+      ...attendance.toObject({ virtuals: true }),
+      durationMinutes,
+    });
   } catch (error: any) {
     sendError(res, error.message || 'Failed to record check-out', 500);
   }

@@ -5,6 +5,7 @@ export interface IAttendance extends Document {
   branch: mongoose.Types.ObjectId;
   checkInTime: Date;
   checkOutTime?: Date;
+  durationMinutes?: number | null;
   method: 'QR_CODE' | 'MANUAL';
   checkedInBy?: mongoose.Types.ObjectId;
   notes?: string;
@@ -49,8 +50,20 @@ const AttendanceSchema = new Schema<IAttendance>(
       type: String,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
+
+AttendanceSchema.virtual('durationMinutes').get(function (this: IAttendance) {
+  if (this.checkInTime && this.checkOutTime) {
+    const diffMs = this.checkOutTime.getTime() - this.checkInTime.getTime();
+    return Math.max(1, Math.round(diffMs / 60000));
+  }
+  return null;
+});
 
 AttendanceSchema.index({ member: 1, checkInTime: -1 });
 AttendanceSchema.index({ branch: 1, checkInTime: -1 });

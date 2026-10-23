@@ -19,6 +19,7 @@ import { Attendance } from '../types';
 import { AttendanceRegisterModal } from '../components/modals/AttendanceRegisterModal';
 import { exportToCSV } from '../utils/csvExport';
 import { Avatar } from '../components/Avatar';
+import { formatAttendanceDuration, getAttendanceDurationMinutes } from '../utils/formatters';
 
 export const AttendancePage: React.FC = () => {
   const { activeBranch } = useAuth();
@@ -181,7 +182,7 @@ export const AttendancePage: React.FC = () => {
         m.phone || '',
         new Date(log.checkInTime).toLocaleString(),
         log.checkOutTime ? new Date(log.checkOutTime).toLocaleString() : 'Inside',
-        log.durationMinutes ?? '',
+        getAttendanceDurationMinutes(log.checkInTime, log.checkOutTime, log.durationMinutes) ?? '',
         m.status || 'ACTIVE',
         log.method || 'MANUAL',
       ];
@@ -499,8 +500,8 @@ export const AttendancePage: React.FC = () => {
                           {checkOutTimeFormatted}
                         </td>
 
-                        <td className="px-5 py-3.5 text-sm text-slate-600">
-                          {log.durationMinutes ? `${log.durationMinutes} mins` : isCheckedIn ? 'Active' : '—'}
+                        <td className="px-5 py-3.5 text-sm font-semibold text-slate-700">
+                          {formatAttendanceDuration(log.checkInTime, log.checkOutTime, log.durationMinutes)}
                         </td>
 
                         <td className="px-5 py-3.5">
@@ -608,7 +609,7 @@ export const AttendancePage: React.FC = () => {
                       <div>
                         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Duration</span>
                         <span className="font-bold text-blue-700 mt-0.5 block">
-                          {log.durationMinutes ? `${log.durationMinutes}m` : isCheckedIn ? 'Active' : '—'}
+                          {formatAttendanceDuration(log.checkInTime, log.checkOutTime, log.durationMinutes, { short: true })}
                         </span>
                       </div>
                     </div>

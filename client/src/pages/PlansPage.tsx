@@ -540,7 +540,8 @@ const PlanFormModal: React.FC<PlanFormModalProps> = ({
                 min="1"
                 required
                 value={durationDays}
-                onChange={(e) => setDurationDays(e.target.value)}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setDurationDays(e.target.value.replace(/^0+(?=\d)/, ''))}
                 className="w-full px-3.5 py-2 text-sm border border-[#E5E7EB] rounded-xl focus:border-blue-600 focus:outline-none"
               />
             </div>
@@ -554,7 +555,8 @@ const PlanFormModal: React.FC<PlanFormModalProps> = ({
                 min="0"
                 required
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setPrice(e.target.value.replace(/^0+(?=\d)/, ''))}
                 className="w-full px-3.5 py-2 text-sm border border-[#E5E7EB] rounded-xl focus:border-blue-600 focus:outline-none"
               />
             </div>

@@ -17,13 +17,20 @@ import {
   Trash2,
   Archive,
   RotateCcw,
+  Utensils,
+  Scale,
+  Plus,
+  FileText,
 } from 'lucide-react';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
-import { Member, Membership, Payment } from '../../types';
+import { Member, Membership, Payment, DietPlan } from '../../types';
 import { sendWhatsAppReminder, openWhatsApp, getWelcomeMessage, sendWhatsAppDueReminder } from '../../utils/whatsapp';
-import { formatINR, formatDateIN, formatTimeIN, formatDisplayPhoneIN } from '../../utils/formatters';
+import { formatINR, formatDateIN, formatTimeIN, formatDisplayPhoneIN, formatAttendanceDuration } from '../../utils/formatters';
 import { DeleteMemberModal } from './DeleteMemberModal';
+import { DietPlanModal } from './DietPlanModal';
+import { WeightProgressModal } from './WeightProgressModal';
+import { DietReportModal } from './DietReportModal';
 import { Avatar } from '../Avatar';
 import { WhatsAppIcon } from '../WhatsAppIcon';
 
@@ -75,6 +82,13 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
   const [savingEdit, setSavingEdit] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
+  // Diet & Fitness Profile State
+  const [dietProfile, setDietProfile] = useState<any | null>(null);
+  const [isDietModalOpen, setIsDietModalOpen] = useState(false);
+  const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [dietPlanToEdit, setDietPlanToEdit] = useState<DietPlan | null>(null);
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !memberId) return;
@@ -125,6 +139,8 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
         email: res.member.email || '',
         address: res.member.address || '',
       });
+      // Fetch diet & fitness profile
+      api.getMemberDietProfile(memberId).then((dRes) => setDietProfile(dRes.data)).catch(() => {});
     } catch (err: any) {
       setError(err.message || 'Failed to load member profile');
     } finally {
@@ -247,7 +263,7 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
         type: 'ATTENDANCE',
         title: 'Gym Visit Check-In',
         description: att.checkOutTime
-          ? `Check-out at ${new Date(att.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${att.durationMinutes || 0} mins)`
+          ? `Check-out at ${new Date(att.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${formatAttendanceDuration(att.checkInTime, att.checkOutTime, att.durationMinutes)})`
           : 'Active check-in (no check-out recorded)',
       });
     });
@@ -768,11 +784,161 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
               </div>
             </div>
 
-            {/* Section 3: Activity History */}
+            {/* Section 3: Diet, Calories & Fitness Profile */}
+            <div className="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden">
+              <div className="p-5 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-md bg-lime-100 text-lime-800 flex items-center justify-center font-bold">
+                      <Utensils className="w-3.5 h-3.5" />
+                    </div>
+                    <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      3. Diet, Calories & Fitness Profile
+                    </h4>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {dietProfile?.activePlan ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setIsReportModalOpen(true)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                        >
+                          <Printer className="w-3 h-3" />
+                          <span>Print Diet</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDietPlanToEdit(dietProfile.activePlan);
+                            setIsDietModalOpen(true);
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white bg-lime-700 hover:bg-lime-800 rounded-md transition-colors"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                          <span>Edit Plan</span>
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDietPlanToEdit(null);
+                          setIsDietModalOpen(true);
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-white bg-lime-700 hover:bg-lime-800 rounded-md transition-colors"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Assign Diet Plan</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setIsProgressModalOpen(true)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition-colors"
+                    >
+                      <Scale className="w-3 h-3" />
+                      <span>Log Weight</span>
+                    </button>
+                  </div>
+                </div>
+
+                {dietProfile?.activePlan ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <div>
+                        <span className="font-bold text-slate-900 text-sm">
+                          {dietProfile.activePlan.name}
+                        </span>
+                        <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-lime-100 text-lime-900 border border-lime-300">
+                          {dietProfile.activePlan.fitnessGoal.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-slate-400">
+                        Valid: {formatDateIN(dietProfile.activePlan.startDate)}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                      <div className="p-2 bg-amber-50 border border-amber-100 rounded-lg text-center">
+                        <span className="text-[10px] font-bold text-amber-800 block">Daily Target</span>
+                        <span className="font-black text-amber-900 font-mono text-sm">
+                          {dietProfile.activePlan.dailyCalories || dietProfile.activePlan.targetCalories} kcal
+                        </span>
+                      </div>
+                      <div className="p-2 bg-blue-50 border border-blue-100 rounded-lg text-center">
+                        <span className="text-[10px] font-bold text-blue-800 block">Protein</span>
+                        <span className="font-black text-blue-900 font-mono text-sm">
+                          {dietProfile.activePlan.dailyProtein || dietProfile.activePlan.targetProtein}g
+                        </span>
+                      </div>
+                      <div className="p-2 bg-emerald-50 border border-emerald-100 rounded-lg text-center">
+                        <span className="text-[10px] font-bold text-emerald-800 block">Carbs</span>
+                        <span className="font-black text-emerald-900 font-mono text-sm">
+                          {dietProfile.activePlan.dailyCarbs || dietProfile.activePlan.targetCarbs}g
+                        </span>
+                      </div>
+                      <div className="p-2 bg-rose-50 border border-rose-100 rounded-lg text-center">
+                        <span className="text-[10px] font-bold text-rose-800 block">Fats</span>
+                        <span className="font-black text-rose-900 font-mono text-sm">
+                          {dietProfile.activePlan.dailyFat || dietProfile.activePlan.targetFat}g
+                        </span>
+                      </div>
+                      <div className="p-2 bg-cyan-50 border border-cyan-100 rounded-lg text-center">
+                        <span className="text-[10px] font-bold text-cyan-800 block">Hydration</span>
+                        <span className="font-black text-cyan-900 font-mono text-sm">
+                          {dietProfile.activePlan.waterIntakeLiters || 3.5}L
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-slate-50 border border-dashed border-slate-200 rounded-lg text-xs text-slate-500">
+                    No active diet protocol assigned to this member yet. Click "Assign Diet Plan" above to create one.
+                  </div>
+                )}
+
+                {/* Latest Weight & BMI Strip */}
+                {dietProfile?.latestProgress && (
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-3">
+                      <Scale className="w-4 h-4 text-blue-600" />
+                      <div>
+                        <span className="text-slate-500 text-[11px]">Latest Check-In:</span>{' '}
+                        <strong className="text-slate-900 font-bold font-mono">
+                          {dietProfile.latestProgress.weight} kg
+                        </strong>{' '}
+                        <span className="text-[10px] text-slate-400">
+                          ({formatDateIN(dietProfile.latestProgress.date)})
+                        </span>
+                      </div>
+                    </div>
+
+                    {dietProfile.latestProgress.bmi && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-500 text-[11px]">BMI:</span>
+                        <span className="font-mono font-bold text-slate-800 px-2 py-0.5 bg-white border border-slate-200 rounded">
+                          {dietProfile.latestProgress.bmi}
+                        </span>
+                        {dietProfile.bmiData?.category && (
+                          <span className="text-[10px] font-semibold text-slate-600">
+                            ({dietProfile.bmiData.category})
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Section 4: Activity History */}
             <div className="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden">
               <div className="p-5">
                 <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider pb-3 border-b border-slate-100">
-                  3. Activity History
+                  4. Activity History
                 </h4>
                 {activityList.length === 0 ? (
                   <p className="text-xs text-slate-400 mt-3">No activity records recorded yet.</p>
@@ -849,6 +1015,39 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
             onMemberDeleted?.();
             onClose();
           }}
+        />
+      )}
+
+      {/* Diet & Fitness Modals */}
+      {isDietModalOpen && data?.member && (
+        <DietPlanModal
+          isOpen={isDietModalOpen}
+          onClose={() => setIsDietModalOpen(false)}
+          onSuccess={() => {
+            fetchProfile();
+          }}
+          planToEdit={dietPlanToEdit}
+          defaultMember={data.member}
+        />
+      )}
+
+      {isProgressModalOpen && data?.member && (
+        <WeightProgressModal
+          isOpen={isProgressModalOpen}
+          onClose={() => setIsProgressModalOpen(false)}
+          onSuccess={() => {
+            fetchProfile();
+          }}
+          defaultMember={data.member}
+        />
+      )}
+
+      {isReportModalOpen && dietProfile?.activePlan && (
+        <DietReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          plan={dietProfile.activePlan}
+          recentProgress={dietProfile.progressHistory || []}
         />
       )}
     </div>

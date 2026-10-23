@@ -122,3 +122,79 @@ export const isValidIndianPhone = (phone: string): boolean => {
   const tenDigits = digits.length >= 10 ? digits.slice(-10) : digits;
   return /^[6-9]\d{9}$/.test(tenDigits);
 };
+
+/**
+ * Format attendance session duration cleanly.
+ * Computes difference between checkInTime and checkOutTime if durationMinutes is not provided.
+ * If active (no checkout yet), can return 'Active' or live elapsed time.
+ */
+export const formatAttendanceDuration = (
+  checkInTime?: string | Date | null,
+  checkOutTime?: string | Date | null,
+  durationMinutes?: number | null,
+  options?: { short?: boolean; showActiveTime?: boolean }
+): string => {
+  const short = options?.short ?? false;
+
+  // 1. If explicit durationMinutes provided as valid number >= 0
+  let mins: number | null =
+    typeof durationMinutes === 'number' && !isNaN(durationMinutes) ? durationMinutes : null;
+
+  // 2. Otherwise calculate dynamically from timestamps
+  if (mins === null && checkInTime && checkOutTime) {
+    const start = new Date(checkInTime).getTime();
+    const end = new Date(checkOutTime).getTime();
+    if (!isNaN(start) && !isNaN(end) && end >= start) {
+      mins = Math.round((end - start) / 60000);
+    }
+  }
+
+  // 3. Format completed duration
+  if (mins !== null) {
+    if (mins <= 0) {
+      return short ? '<1m' : '< 1 min';
+    }
+    if (mins < 60) {
+      return short ? `${mins}m` : `${mins} mins`;
+    }
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (m === 0) {
+      return short ? `${h}h` : `${h} hr`;
+    }
+    return short ? `${h}h ${m}m` : `${h} hr ${m} min`;
+  }
+
+  // 4. Currently inside gym (check-in exists, but no checkout)
+  if (checkInTime && !checkOutTime) {
+    if (options?.showActiveTime) {
+      const start = new Date(checkInTime).getTime();
+      const elapsedMins = Math.max(1, Math.round((Date.now() - start) / 60000));
+      return short ? `${elapsedMins}m (Active)` : `${elapsedMins} mins (Active)`;
+    }
+    return 'Active';
+  }
+
+  return '—';
+};
+
+/**
+ * Get numeric duration in minutes from attendance record (for CSV export or math)
+ */
+export const getAttendanceDurationMinutes = (
+  checkInTime?: string | Date | null,
+  checkOutTime?: string | Date | null,
+  durationMinutes?: number | null
+): number | null => {
+  if (typeof durationMinutes === 'number' && !isNaN(durationMinutes)) {
+    return durationMinutes;
+  }
+  if (checkInTime && checkOutTime) {
+    const start = new Date(checkInTime).getTime();
+    const end = new Date(checkOutTime).getTime();
+    if (!isNaN(start) && !isNaN(end) && end >= start) {
+      return Math.max(1, Math.round((end - start) / 60000));
+    }
+  }
+  return null;
+};

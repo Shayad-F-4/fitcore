@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Printer, Dumbbell, Calendar, Building2 } from 'lucide-react';
 import { Attendance, Branch } from '../../types';
+import { formatAttendanceDuration } from '../../utils/formatters';
 
 interface AttendanceRegisterModalProps {
   isOpen: boolean;
@@ -145,7 +146,7 @@ export const AttendanceRegisterModal: React.FC<AttendanceRegisterModalProps> = (
                           <td className="p-2.5 border-r border-slate-200 font-mono text-slate-700">{checkInFormatted}</td>
                           <td className="p-2.5 border-r border-slate-200 font-mono text-slate-700">{checkOutFormatted}</td>
                           <td className="p-2.5 border-r border-slate-200 font-medium text-slate-600">
-                            {log.durationMinutes ? `${log.durationMinutes} mins` : '—'}
+                            {formatAttendanceDuration(log.checkInTime, log.checkOutTime, log.durationMinutes)}
                           </td>
                           <td className="p-2.5 border-r border-slate-200">
                             <span className="font-semibold text-emerald-700">

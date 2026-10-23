@@ -792,5 +792,673 @@ export const api = {
     }>(res);
   },
 
+  // ==========================================
+  // INVENTORY & POS API METHODS
+  // ==========================================
+
+  async getInventoryDashboard() {
+    const res = await fetch(`${API_BASE}/inventory/dashboard`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async getProducts(params?: Record<string, string>) {
+    const query = new URLSearchParams(params || {});
+    const res = await fetch(`${API_BASE}/inventory/products?${query.toString()}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<{
+      products: any[];
+      pagination: { page: number; limit: number; total: number; totalPages: number };
+    }>(res);
+  },
+
+  async getProduct(id: string) {
+    const res = await fetch(`${API_BASE}/inventory/products/${id}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async createProduct(data: any) {
+    const res = await fetch(`${API_BASE}/inventory/products`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PRODUCT_CREATED', product: result } }));
+    return result;
+  },
+
+  async updateProduct(id: string, data: any) {
+    const res = await fetch(`${API_BASE}/inventory/products/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PRODUCT_UPDATED', product: result } }));
+    return result;
+  },
+
+  async deleteProduct(id: string) {
+    const res = await fetch(`${API_BASE}/inventory/products/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(false),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PRODUCT_DELETED', id } }));
+    return result;
+  },
+
+  async adjustStock(data: { productId: string; movementType: string; quantity: number; reason: string }) {
+    const res = await fetch(`${API_BASE}/inventory/stock/adjust`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'STOCK_ADJUSTED', result } }));
+    return result;
+  },
+
+  async getStockMovements(params?: Record<string, string>) {
+    const query = new URLSearchParams(params || {});
+    const res = await fetch(`${API_BASE}/inventory/stock/movements?${query.toString()}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<{
+      movements: any[];
+      pagination: { page: number; limit: number; total: number; totalPages: number };
+    }>(res);
+  },
+
+  async getSuppliers() {
+    const res = await fetch(`${API_BASE}/inventory/suppliers`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any[]>(res);
+  },
+
+  async getSupplier(id: string) {
+    const res = await fetch(`${API_BASE}/inventory/suppliers/${id}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async createSupplier(data: any) {
+    const res = await fetch(`${API_BASE}/inventory/suppliers`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'SUPPLIER_CREATED', supplier: result } }));
+    return result;
+  },
+
+  async updateSupplier(id: string, data: any) {
+    const res = await fetch(`${API_BASE}/inventory/suppliers/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'SUPPLIER_UPDATED', supplier: result } }));
+    return result;
+  },
+
+  async getPurchases(params?: Record<string, string>) {
+    const query = new URLSearchParams(params || {});
+    const res = await fetch(`${API_BASE}/inventory/purchases?${query.toString()}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<{
+      purchases: any[];
+      pagination: { page: number; limit: number; total: number; totalPages: number };
+    }>(res);
+  },
+
+  async getPurchase(id: string) {
+    const res = await fetch(`${API_BASE}/inventory/purchases/${id}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async createPurchase(data: any) {
+    const res = await fetch(`${API_BASE}/inventory/purchases`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PURCHASE_CREATED', purchase: result } }));
+    return result;
+  },
+
+  async createInventorySale(data: any) {
+    const res = await fetch(`${API_BASE}/inventory/sales`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'INVENTORY_SALE', sale: result } }));
+    return result;
+  },
+
+  async getInventorySales(params?: Record<string, string>) {
+    const query = new URLSearchParams(params || {});
+    const res = await fetch(`${API_BASE}/inventory/sales?${query.toString()}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<{
+      sales: any[];
+      pagination: { page: number; limit: number; total: number; totalPages: number };
+    }>(res);
+  },
+
+  async getInventorySale(id: string) {
+    const res = await fetch(`${API_BASE}/inventory/sales/${id}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async cancelInventorySale(id: string, reason: string) {
+    const res = await fetch(`${API_BASE}/inventory/sales/${id}/cancel`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ reason }),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'SALE_CANCELLED', id } }));
+    return result;
+  },
+
+  async refundInventorySale(id: string, data: { reason: string; restock?: boolean }) {
+    const res = await fetch(`${API_BASE}/inventory/sales/${id}/refund`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'SALE_REFUNDED', id } }));
+    return result;
+  },
+
+  async getInventoryReports(params?: Record<string, string>) {
+    const query = new URLSearchParams(params || {});
+    const res = await fetch(`${API_BASE}/inventory/reports?${query.toString()}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async downloadInventoryCsv(params: { type: string; period?: string; startDate?: string; endDate?: string }) {
+    const query = new URLSearchParams(params as any);
+    const res = await fetch(`${API_BASE}/inventory/reports/export?${query.toString()}`, {
+      headers: getHeaders(false),
+    });
+    if (!res.ok) throw new Error('Failed to download CSV export');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `inventory-${params.type}-${params.period || 'custom'}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  },
+
+  /* ==========================================================================
+     Diet & Calorie Management API
+     ========================================================================== */
+  async getDietDashboard() {
+    const res = await fetch(`${API_BASE}/diet/dashboard`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async calculateCalories(data: {
+    age: number;
+    gender: 'MALE' | 'FEMALE';
+    heightCm: number;
+    weightKg: number;
+    activityLevel: string;
+    fitnessGoal: string;
+  }) {
+    const res = await fetch(`${API_BASE}/diet/calculate-calories`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async getFoods(params?: Record<string, string>) {
+    const query = new URLSearchParams(params || {});
+    const res = await fetch(`${API_BASE}/diet/foods?${query.toString()}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async createFood(data: any) {
+    const res = await fetch(`${API_BASE}/diet/foods`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'FOOD_CREATED' } }));
+    return result;
+  },
+
+  async updateFood(id: string, data: any) {
+    const res = await fetch(`${API_BASE}/diet/foods/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'FOOD_UPDATED', id } }));
+    return result;
+  },
+
+  async deleteFood(id: string) {
+    const res = await fetch(`${API_BASE}/diet/foods/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(false),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'FOOD_DELETED', id } }));
+    return result;
+  },
+
+  async getDietPlans(params?: Record<string, string>) {
+    const query = new URLSearchParams(params || {});
+    const res = await fetch(`${API_BASE}/diet/plans?${query.toString()}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async createDietPlan(data: any) {
+    const res = await fetch(`${API_BASE}/diet/plans`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'DIET_PLAN_CREATED' } }));
+    return result;
+  },
+
+  async getDietPlan(id: string) {
+    const res = await fetch(`${API_BASE}/diet/plans/${id}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async updateDietPlan(id: string, data: any) {
+    const res = await fetch(`${API_BASE}/diet/plans/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'DIET_PLAN_UPDATED', id } }));
+    return result;
+  },
+
+  async duplicateDietPlan(id: string, data?: { targetMemberId?: string; newPlanName?: string }) {
+    const res = await fetch(`${API_BASE}/diet/plans/${id}/duplicate`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data || {}),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'DIET_PLAN_DUPLICATED', id } }));
+    return result;
+  },
+
+  async getMemberDietProfile(memberId: string) {
+    const res = await fetch(`${API_BASE}/diet/members/${memberId}/profile`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async getMemberProgress(memberId: string) {
+    const res = await fetch(`${API_BASE}/diet/members/${memberId}/progress`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async recordMemberProgress(memberId: string, data: any) {
+    const res = await fetch(`${API_BASE}/diet/members/${memberId}/progress`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PROGRESS_RECORDED', memberId } }));
+    return result;
+  },
+
+  async deleteMemberProgress(progressId: string) {
+    const res = await fetch(`${API_BASE}/diet/progress/${progressId}`, {
+      method: 'DELETE',
+      headers: getHeaders(false),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PROGRESS_DELETED', progressId } }));
+    return result;
+  },
+
+  async getDietPlanPrintData(id: string) {
+    const res = await fetch(`${API_BASE}/diet/plans/${id}/print`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  // ================= AI FITNESS COACH MODULE =================
+  async getAiCoachStatus() {
+    const res = await fetch(`${API_BASE}/ai-coach/status`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async getAiCoachDashboard() {
+    const res = await fetch(`${API_BASE}/ai-coach/dashboard`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async getFitnessProfiles(page = 1, limit = 20) {
+    const res = await fetch(`${API_BASE}/ai-coach/profiles?page=${page}&limit=${limit}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async getMemberFitnessProfile(memberId: string) {
+    const res = await fetch(`${API_BASE}/ai-coach/profiles/member/${memberId}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async saveFitnessProfile(data: any) {
+    const res = await fetch(`${API_BASE}/ai-coach/profiles`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'FITNESS_PROFILE_SAVED' } }));
+    return result;
+  },
+
+  async generateAiDietPlan(memberId: string) {
+    const res = await fetch(`${API_BASE}/ai-coach/generate/diet`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ memberId }),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'AI_DIET_PLAN_GENERATED', memberId } }));
+    return result;
+  },
+
+  async generateAiWorkoutPlan(memberId: string) {
+    const res = await fetch(`${API_BASE}/ai-coach/generate/workout`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ memberId }),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'AI_WORKOUT_PLAN_GENERATED', memberId } }));
+    return result;
+  },
+
+  async getWorkoutPlans(params?: { memberId?: string; status?: string }) {
+    const query = new URLSearchParams();
+    if (params?.memberId) query.set('memberId', params.memberId);
+    if (params?.status) query.set('status', params.status);
+    const res = await fetch(`${API_BASE}/ai-coach/workouts?${query.toString()}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async getWorkoutPlan(id: string) {
+    const res = await fetch(`${API_BASE}/ai-coach/workouts/${id}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async createWorkoutPlan(data: any) {
+    const res = await fetch(`${API_BASE}/ai-coach/workouts`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'WORKOUT_PLAN_CREATED' } }));
+    return result;
+  },
+
+  async updateWorkoutPlan(id: string, data: any) {
+    const res = await fetch(`${API_BASE}/ai-coach/workouts/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'WORKOUT_PLAN_UPDATED', id } }));
+    return result;
+  },
+
+  async deleteWorkoutPlan(id: string) {
+    const res = await fetch(`${API_BASE}/ai-coach/workouts/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(false),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'WORKOUT_PLAN_DELETED', id } }));
+    return result;
+  },
+
+  async getPendingPlanApprovals() {
+    const res = await fetch(`${API_BASE}/ai-coach/approvals/pending`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async approveDietPlan(id: string) {
+    const res = await fetch(`${API_BASE}/ai-coach/diet-plans/${id}/approve`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PLAN_APPROVED', id } }));
+    return result;
+  },
+
+  async rejectDietPlan(id: string, reason?: string) {
+    const res = await fetch(`${API_BASE}/ai-coach/diet-plans/${id}/reject`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ reason }),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'PLAN_REJECTED', id } }));
+    return result;
+  },
+
+  async approveWorkoutPlan(id: string) {
+    const res = await fetch(`${API_BASE}/ai-coach/workouts/${id}/approve`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'WORKOUT_APPROVED', id } }));
+    return result;
+  },
+
+  async rejectWorkoutPlan(id: string, reason?: string) {
+    const res = await fetch(`${API_BASE}/ai-coach/workouts/${id}/reject`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ reason }),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'WORKOUT_REJECTED', id } }));
+    return result;
+  },
+
+  async getWeeklyCalendar(memberId: string) {
+    const res = await fetch(`${API_BASE}/ai-coach/calendar/member/${memberId}`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async getPremiumEntitlements() {
+    const res = await fetch(`${API_BASE}/ai-coach/entitlements`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async createPremiumEntitlement(data: any) {
+    const res = await fetch(`${API_BASE}/ai-coach/entitlements`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'ENTITLEMENT_CREATED' } }));
+    return result;
+  },
+
+  async deletePremiumEntitlement(id: string) {
+    const res = await fetch(`${API_BASE}/ai-coach/entitlements/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(false),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'ENTITLEMENT_DELETED', id } }));
+    return result;
+  },
+
+  async getPlanReviews() {
+    const res = await fetch(`${API_BASE}/ai-coach/reviews`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async generateWeeklyReview(memberId: string) {
+    const res = await fetch(`${API_BASE}/ai-coach/reviews/generate/${memberId}`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'REVIEW_GENERATED', memberId } }));
+    return result;
+  },
+
+  async actionPlanReview(id: string, action: 'APPROVE' | 'DISMISS') {
+    const res = await fetch(`${API_BASE}/ai-coach/reviews/${id}/action`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ action }),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'REVIEW_ACTIONED', id } }));
+    return result;
+  },
+
+  async getEducationalSupplements() {
+    const res = await fetch(`${API_BASE}/ai-coach/supplements`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async getFitnessNotifications() {
+    const res = await fetch(`${API_BASE}/ai-coach/notifications`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async updateNotificationOptIn(data: any) {
+    const res = await fetch(`${API_BASE}/ai-coach/notifications/opt-in`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async sendManualNotification(data: any) {
+    const res = await fetch(`${API_BASE}/ai-coach/notifications/send-manual`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async getFitnessCoachSettings() {
+    const res = await fetch(`${API_BASE}/ai-coach/settings`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async getMlModelStatus() {
+    const res = await fetch(`${API_BASE}/ai-coach/ml/status`, {
+      headers: getHeaders(false),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async predictMlPlan(data: any) {
+    const res = await fetch(`${API_BASE}/ai-coach/ml/predict`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<any>(res);
+  },
+
+  async retrainMlModel() {
+    const res = await fetch(`${API_BASE}/ai-coach/ml/retrain`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    const result = await handleResponse<any>(res);
+    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'ML_MODEL_RETRAINED' } }));
+    return result;
+  },
 };
+
 

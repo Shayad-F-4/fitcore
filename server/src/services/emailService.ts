@@ -13,9 +13,24 @@ export const isEmailConfigured = (): boolean => {
   return Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
 };
 
-// Create Nodemailer transport based on environment variables
+export const isPlaceholderDomain = (addr: string): boolean => {
+  if (!addr || !addr.includes('@')) return true;
+  const lower = addr.toLowerCase().trim();
+  return (
+    lower.endsWith('@fitcore.com') ||
+    lower.endsWith('@sagarfitness.com') ||
+    lower.endsWith('@example.com') ||
+    lower.endsWith('@test.com') ||
+    lower.endsWith('.local')
+  );
+};
+
 // Create Nodemailer transport based on environment variables
 const createTransporter = () => {
+  if (process.env.NODE_ENV === 'test') {
+    return null;
+  }
+
   const host = process.env.SMTP_HOST;
   const port = parseInt(process.env.SMTP_PORT || '587', 10);
   const user = process.env.SMTP_USER;
@@ -57,8 +72,31 @@ export const sendPasswordResetEmail = async (
   resetToken: string,
   userName = 'Staff Member'
 ): Promise<EmailResult> => {
+  // Never send real emails in test mode
+  if (process.env.NODE_ENV === 'test') {
+    return {
+      success: true,
+      isDevFallback: true,
+      messageId: `<mock-test-${Date.now()}@gmail.com>`,
+    };
+  }
+
+  const adminEmail = (process.env.SMTP_USER || '').trim();
+  let destination = toEmail.trim();
+
+  // If destination is a non-existent placeholder domain, route to admin email to prevent bounce delivery failures
+  if (isPlaceholderDomain(destination)) {
+    if (adminEmail && !isPlaceholderDomain(adminEmail)) {
+      console.log(`[Email Service] Redirecting reset OTP from placeholder (${toEmail}) to verified admin (${adminEmail}) to prevent delivery failure.`);
+      destination = adminEmail;
+    } else {
+      console.warn(`[Email Service Warning] Target email ${toEmail} is a placeholder domain. Skipping real email dispatch.`);
+      return { success: true, isDevFallback: true };
+    }
+  }
+
   const frontendUrl = process.env.CLIENT_URL || ENV.CLIENT_URL || 'http://localhost:5173';
-  const resetUrl = `${frontendUrl}/login?token=${resetToken}&email=${encodeURIComponent(toEmail)}`;
+  const resetUrl = `${frontendUrl}/login?token=${resetToken}&email=${encodeURIComponent(destination)}`;
   const fromAddress = process.env.EMAIL_FROM || process.env.SMTP_USER || '"Sagar Fitness Gym" <security@sagarfitness.com>';
 
   const transporter = createTransporter();
@@ -134,13 +172,13 @@ export const sendPasswordResetEmail = async (
   try {
     const info = await transporter.sendMail({
       from: fromAddress,
-      to: toEmail,
+      to: destination,
       subject: `[OTP: ${resetToken}] Sagar Fitness Gym Password Reset Verification`,
       text: `Hello ${userName},\n\nWe received a request to reset your password for Sagar Fitness Gym.\n\nYour 6-Digit Password Reset OTP is: ${resetToken}\n\nPlease reset your password using the following link:\n${resetUrl}\n\nThis OTP will expire in 15 minutes.\n\nSagar Fitness Gym • Pathardi, Maharashtra, India`,
       html: htmlContent,
     });
 
-    console.log(`[Email Service] Password reset OTP email dispatched to ${toEmail}. Message ID: ${info.messageId}`);
+    console.log(`[Email Service] Password reset OTP email dispatched to ${destination}. Message ID: ${info.messageId}`);
     return {
       success: true,
       messageId: info.messageId,
@@ -163,8 +201,24 @@ export const sendStaffWelcomeEmail = async (
   role: string,
   temporaryPassword?: string
 ): Promise<EmailResult> => {
+  if (process.env.NODE_ENV === 'test') {
+    return { success: true, isDevFallback: true, messageId: `<mock-test-${Date.now()}@gmail.com>` };
+  }
+
+  const adminEmail = (process.env.SMTP_USER || '').trim();
+  let destination = toEmail.trim();
+
+  if (isPlaceholderDomain(destination)) {
+    if (adminEmail && !isPlaceholderDomain(adminEmail)) {
+      destination = adminEmail;
+    } else {
+      console.warn(`[Email Service Warning] Target email ${toEmail} is a placeholder domain. Skipping welcome email to avoid bounce.`);
+      return { success: true, isDevFallback: true };
+    }
+  }
+
   const frontendUrl = process.env.CLIENT_URL || ENV.CLIENT_URL || 'http://localhost:5173';
-  const fromAddress = process.env.EMAIL_FROM || '"Sagar Fitness Gym" <admin@sagarfitness.com>';
+  const fromAddress = process.env.EMAIL_FROM || process.env.SMTP_USER || '"Sagar Fitness Gym" <admin@sagarfitness.com>';
   const transporter = createTransporter();
 
   const roleTitle = role === 'RECEPTIONIST' ? 'Front Desk Staff' : role === 'GYM_ADMIN' ? 'Gym Manager' : role;
@@ -215,14 +269,14 @@ export const sendStaffWelcomeEmail = async (
   `;
 
   if (!transporter) {
-    console.log(`[Email Service] Staff Welcome Email (Simulated): ${toEmail} as ${roleTitle}`);
+    console.log(`[Email Service] Staff Welcome Email (Simulated): ${destination} as ${roleTitle}`);
     return { success: true, isDevFallback: true };
   }
 
   try {
     const info = await transporter.sendMail({
       from: fromAddress,
-      to: toEmail,
+      to: destination,
       subject: 'Welcome to Sagar Fitness Gym Staff Portal',
       html: htmlContent,
     });
@@ -240,7 +294,23 @@ export const sendPasswordChangedConfirmation = async (
   toEmail: string,
   userName = 'Staff Member'
 ): Promise<EmailResult> => {
-  const fromAddress = process.env.EMAIL_FROM || '"Sagar Fitness Gym" <security@sagarfitness.com>';
+  if (process.env.NODE_ENV === 'test') {
+    return { success: true, isDevFallback: true, messageId: `<mock-test-${Date.now()}@gmail.com>` };
+  }
+
+  const adminEmail = (process.env.SMTP_USER || '').trim();
+  let destination = toEmail.trim();
+
+  if (isPlaceholderDomain(destination)) {
+    if (adminEmail && !isPlaceholderDomain(adminEmail)) {
+      destination = adminEmail;
+    } else {
+      console.warn(`[Email Service Warning] Target email ${toEmail} is a placeholder domain. Skipping confirmation email to avoid bounce.`);
+      return { success: true, isDevFallback: true };
+    }
+  }
+
+  const fromAddress = process.env.EMAIL_FROM || process.env.SMTP_USER || '"Sagar Fitness Gym" <security@sagarfitness.com>';
   const transporter = createTransporter();
 
   const htmlContent = `
@@ -276,7 +346,7 @@ export const sendPasswordChangedConfirmation = async (
   try {
     const info = await transporter.sendMail({
       from: fromAddress,
-      to: toEmail,
+      to: destination,
       subject: 'Security Alert: Password Changed - Sagar Fitness Gym',
       html: htmlContent,
     });
