@@ -385,14 +385,31 @@ export const RegisterMemberModal: React.FC<RegisterMemberModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
               {/* Member ID (Auto-generated) */}
               <div>
-                <label className="block text-xs font-semibold text-[#202124] mb-1">
-                  Member ID <span className="text-[10px] text-blue-600 font-normal">(Auto-Generated)</span>
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-[#202124]">
+                    Member ID <span className="text-[10px] text-blue-600 font-normal">(Auto-Generated)</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      api.getNextMemberId().then((res) => {
+                        if (res?.nextId) {
+                          setFormData((prev) => ({ ...prev, memberId: res.nextId }));
+                        }
+                      });
+                    }}
+                    title="Refresh to next available unique Member ID"
+                    className="text-[10px] text-blue-600 hover:text-blue-800 flex items-center gap-1 font-semibold"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>Refresh</span>
+                  </button>
+                </div>
                 <input
                   type="text"
                   value={formData.memberId}
                   onChange={(e) => setFormData({ ...formData, memberId: e.target.value })}
-                  placeholder="FC-1013"
+                  placeholder="e.g. FC-1019"
                   className="w-full px-3 py-2 text-sm bg-gray-50 border border-[#E5E7EB] rounded-lg font-mono font-medium text-[#202124] focus:outline-none focus:border-blue-500"
                 />
               </div>

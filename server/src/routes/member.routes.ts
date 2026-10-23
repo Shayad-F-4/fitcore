@@ -609,11 +609,32 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
   }
 });
 
+// Helper to generate the next guaranteed unique Member ID
+async function getNextAvailableMemberId(): Promise<string> {
+  const members = await Member.find({}, { memberId: 1 }).lean();
+  let maxNum = 1000;
+  for (const m of members) {
+    if (m.memberId) {
+      const match = m.memberId.match(/^FC-(\d+)$/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+  }
+  let candidate = maxNum + 1;
+  while (await Member.exists({ memberId: `FC-${candidate}` })) {
+    candidate++;
+  }
+  return `FC-${candidate}`;
+}
+
 // Get next auto-generated Member ID
 router.get('/next-id', authenticate, async (_req: AuthenticatedRequest, res: Response) => {
   try {
-    const count = await Member.countDocuments();
-    const nextId = `FC-${(count + 1001).toString()}`;
+    const nextId = await getNextAvailableMemberId();
     sendSuccess(res, 'Next member ID generated', { nextId });
   } catch (error: any) {
     sendError(res, error.message || 'Failed to generate member ID', 500);
@@ -745,9 +766,11 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) 
       return;
     }
 
-    // Generate Member ID (e.g., FC-1009)
-    const count = await Member.countDocuments();
-    const memberId = customMemberId?.trim() || `FC-${(count + 1001).toString()}`;
+    // Generate unique Member ID (e.g., FC-1019)
+    let memberId = customMemberId?.trim();
+    if (!memberId || (await Member.exists({ memberId }))) {
+      memberId = await getNextAvailableMemberId();
+    }
     const qrCodeToken = `FIT_${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
 
     const member = await Member.create({
@@ -854,6 +877,20 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) 
     );
   } catch (error: any) {
     console.error('[Register Member Error]', error);
+    if (error.code === 11000 || (error.message && error.message.includes('E11000'))) {
+      if (error.message.includes('memberId')) {
+        sendError(res, 'Member ID already exists. Please refresh and try again.', 409);
+        return;
+      }
+      if (error.message.includes('phone')) {
+        sendError(res, 'A member with this mobile number already exists.', 409);
+        return;
+      }
+      if (error.message.includes('email')) {
+        sendError(res, 'A member with this email address already exists.', 409);
+        return;
+      }
+    }
     sendError(res, error.message || 'Failed to register member', 500);
   }
 });
