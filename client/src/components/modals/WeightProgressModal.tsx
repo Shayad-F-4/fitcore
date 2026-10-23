@@ -176,6 +176,7 @@ export const WeightProgressModal: React.FC<WeightProgressModalProps> = ({
                 max="350"
                 required
                 value={weight}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setWeight(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="e.g. 74.5"
                 className="w-full px-3 py-2 text-xs font-bold text-blue-700 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -194,6 +195,7 @@ export const WeightProgressModal: React.FC<WeightProgressModalProps> = ({
                 min="50"
                 max="280"
                 value={height}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => setHeight(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="e.g. 175"
                 className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"

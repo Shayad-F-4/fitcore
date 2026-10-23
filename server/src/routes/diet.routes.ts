@@ -4,6 +4,7 @@ import { authenticate, requireRole, AuthenticatedRequest } from '../middlewares/
 import { FoodItem } from '../models/FoodItem.js';
 import { DietPlan, IMealSchedule, IMealItem, FitnessGoal } from '../models/DietPlan.js';
 import { WeightProgress } from '../models/WeightProgress.js';
+import { FitnessProfile } from '../models/FitnessProfile.js';
 import { Member } from '../models/Member.js';
 import {
   calculateCalorieAndMacros,
@@ -754,7 +755,7 @@ router.get('/members/:memberId/progress', async (req: AuthenticatedRequest, res:
       .sort({ date: 1 }) // Chronological ascending for charts
       .lean();
 
-    sendSuccess(res, 'Member progress history retrieved successfully', { progress: history });
+    sendSuccess(res, 'Member progress history retrieved successfully', { progress: history, history });
   } catch (error: any) {
     sendError(res, error.message || 'Failed to fetch member progress history', 500);
   }
@@ -812,6 +813,18 @@ router.post('/members/:memberId/progress', async (req: AuthenticatedRequest, res
       notes: notes ? notes.trim() : undefined,
       recordedBy: req.user?.userId ? new mongoose.Types.ObjectId(req.user.userId) : undefined,
     });
+
+    // Automatically sync member's FitnessProfile currentWeightKg with latest logged weight
+    await FitnessProfile.findOneAndUpdate(
+      { member: memberId },
+      {
+        $set: {
+          currentWeightKg: weightNum,
+          ...(heightNum ? { heightCm: heightNum } : {}),
+          ...(bmi ? { bmi } : {}),
+        },
+      }
+    );
 
     sendSuccess(res, 'Progress recorded successfully', { progress }, 201);
   } catch (error: any) {

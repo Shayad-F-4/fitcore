@@ -213,7 +213,8 @@ export const AiCoachPage: React.FC = () => {
       });
     } else if (activeTab === 'progress') {
       api.getMemberProgress(selectedMemberId).then((res) => {
-        setProgressHistory(res?.history || []);
+        const list = res?.progress || res?.history || (Array.isArray(res) ? res : []);
+        setProgressHistory(list);
       });
     } else if (activeTab === 'notifications') {
       api.getFitnessNotifications().then((res) => {
@@ -1792,7 +1793,13 @@ export const AiCoachPage: React.FC = () => {
           onClose={() => setIsProgressModalOpen(false)}
           onSuccess={() => {
             if (selectedMemberId) {
-              api.getMemberProgress(selectedMemberId).then((res) => setProgressHistory(res?.history || []));
+              api.getMemberProgress(selectedMemberId).then((res) => {
+                const list = res?.progress || res?.history || (Array.isArray(res) ? res : []);
+                setProgressHistory(list);
+              });
+              api.getFitnessProfiles().then((res) => {
+                setProfiles(res?.profiles || []);
+              });
             }
           }}
           defaultMember={selectedMember}
