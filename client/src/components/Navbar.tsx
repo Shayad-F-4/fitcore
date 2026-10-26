@@ -19,6 +19,7 @@ import {
 import { sendWhatsAppReminder, openWhatsApp, getWelcomeMessage } from '../utils/whatsapp';
 import { Avatar } from './Avatar';
 import { WhatsAppIcon } from './WhatsAppIcon';
+import { soundFx } from '../utils/audio';
 
 interface NavbarProps {
   onToggleSidebar?: () => void;
@@ -132,6 +133,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       await fetchLiveOccupancy();
 
       if (res.type === 'CHECK_OUT') {
+        soundFx.playSuccess();
         showToast(
           'success',
           `👋 Checked Out: ${res.member?.fullName || 'Member'}`,
@@ -139,12 +141,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         );
       } else {
         if (res.membershipValid) {
+          soundFx.playSuccess();
           showToast(
             'success',
             `✅ Checked In: ${res.member?.fullName || 'Member'}`,
             `Welcome to Sagar Fitness Gym! Active membership confirmed.`
           );
         } else {
+          soundFx.playWarning();
           showToast(
             'warning',
             `⚠️ Alert: ${res.member?.fullName || 'Member'}`,
@@ -155,6 +159,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       setSearchQuery('');
       setShowSearchResults(false);
     } catch (err: any) {
+      soundFx.playWarning();
       showToast(
         'error',
         'Check-In Failed',

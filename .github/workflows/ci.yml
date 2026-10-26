@@ -1,0 +1,48 @@
+name: FitCore CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-and-test:
+    name: Build, Typecheck & Integration Tests
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Root & Workspace Dependencies
+        run: |
+          npm ci
+          npm ci --prefix server
+          npm ci --prefix client
+
+      - name: Client Typecheck & Production Build
+        run: npm run build:client
+
+      - name: Server Typecheck & Production Build
+        run: npm run build:server
+
+      - name: Execute Server End-to-End Vitest Suite (83 Tests)
+        env:
+          NODE_ENV: test
+          MONGODB_URI: mongodb://localhost:27017/fitcore_test
+          JWT_SECRET: fitcore_ci_secret_key_1234567890
+          PORT: 5001
+        run: npm run test --prefix server

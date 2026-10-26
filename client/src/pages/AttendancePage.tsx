@@ -20,6 +20,7 @@ import { AttendanceRegisterModal } from '../components/modals/AttendanceRegister
 import { exportToCSV } from '../utils/csvExport';
 import { Avatar } from '../components/Avatar';
 import { formatAttendanceDuration, getAttendanceDurationMinutes } from '../utils/formatters';
+import { soundFx } from '../utils/audio';
 
 export const AttendancePage: React.FC = () => {
   const { activeBranch } = useAuth();
@@ -97,11 +98,13 @@ export const AttendancePage: React.FC = () => {
       setIdentifiedSub(profileRes.currentMembership || null);
 
       if (profileRes.member.status === 'EXPIRED') {
+        soundFx.playWarning();
         setStatusMessage({
           type: 'warning',
           text: 'Warning: Member subscription has expired. Please renew membership before check-in.',
         });
       } else if (profileRes.member.status === 'FROZEN') {
+        soundFx.playWarning();
         setStatusMessage({
           type: 'warning',
           text: 'Warning: Membership is currently frozen. Unfreeze or renew to allow check-in.',
@@ -130,6 +133,7 @@ export const AttendancePage: React.FC = () => {
         method: 'MANUAL',
       });
 
+      soundFx.playSuccess();
       setStatusMessage({
         type: 'success',
         text: `Checked in successfully: ${res.member?.fullName || 'Member'} at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,

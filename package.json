@@ -12,6 +12,7 @@
     "build:client": "npm run build --prefix client",
     "build:server": "npm run build --prefix server",
     "pipeline:check": "npm run build:client && npm run build:server && npm run test --prefix server",
+    "backup": "powershell -ExecutionPolicy Bypass -File ./scripts/backup.ps1",
     "deploy:prod": "npm run build:client && npx vercel client --prod --yes",
     "seed": "npm run seed --prefix server",
     "test": "npm run test --prefix server"
