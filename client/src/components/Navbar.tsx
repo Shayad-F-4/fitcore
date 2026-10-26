@@ -322,14 +322,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <img
                       src="/logo.png"
                       alt="Sagar Fitness"
-                      className="h-8 w-auto max-w-[110px] object-contain"
-                      width="110"
-                      height="32"
+                      className="h-7 sm:h-8 w-auto max-w-[100px] sm:max-w-[110px] object-contain"
+                      width="100"
+                      height="28"
                     />
                   </picture>
                 </Link>
                 <span className="hidden sm:inline-block lg:hidden text-slate-300">|</span>
-                <h1 className="text-base sm:text-2xl font-black text-slate-900 tracking-tight truncate">
+                <h1 className="hidden sm:block text-base sm:text-2xl font-black text-slate-900 tracking-tight truncate">
                   {getPageTitle()}
                 </h1>
               </div>

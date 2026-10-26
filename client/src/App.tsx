@@ -110,7 +110,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area (Scrolls independently while Sidebar remains locked) */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#F7F8FA] h-screen overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#F7F8FA] h-screen overflow-y-auto overflow-x-hidden">
         <Navbar
           onToggleSidebar={() => setIsMobileNavOpen((prev) => !prev)}
           onSelectMember={(memberId) => setSelectedProfileId(memberId)}
@@ -118,7 +118,7 @@ export const App: React.FC = () => {
           onOpenRegister={() => setIsRegisterOpen(true)}
         />
 
-        <main className="flex-1 p-3 sm:p-4 md:p-8 max-w-7xl w-full mx-auto pb-28 lg:pb-16">
+        <main className="flex-1 p-3 sm:p-4 md:p-8 max-w-7xl w-full mx-auto pb-28 lg:pb-16 min-w-0 overflow-x-hidden">
           <Suspense fallback={<RouteSuspenseFallback />}>
             <Routes>
               <Route

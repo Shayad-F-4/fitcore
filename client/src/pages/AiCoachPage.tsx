@@ -1573,62 +1573,62 @@ export const AiCoachPage: React.FC = () => {
           TAB 10: PDF REPORTS & PRINTABLE SHEETS
           ========================================================================= */}
       {activeTab === 'pdf-reports' && (
-        <div className="space-y-5">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
-            <div className="flex items-center gap-2">
+        <div className="space-y-4 sm:space-y-5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs">
+            <div className="grid grid-cols-3 gap-1.5 w-full sm:w-auto">
               <button
                 onClick={() => setSelectedPdfType('WORKOUT')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
-                  selectedPdfType === 'WORKOUT' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600'
+                className={`px-2.5 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-bold text-center transition-all ${
+                  selectedPdfType === 'WORKOUT' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                Workout Plan PDF
+                Workout Plan
               </button>
               <button
                 onClick={() => setSelectedPdfType('PROGRESS')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
-                  selectedPdfType === 'PROGRESS' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600'
+                className={`px-2.5 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-bold text-center transition-all ${
+                  selectedPdfType === 'PROGRESS' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                Progress Report PDF
+                Progress
               </button>
               <button
                 onClick={() => setSelectedPdfType('BOOKLET')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
-                  selectedPdfType === 'BOOKLET' ? 'bg-purple-600 text-white' : 'bg-slate-100 text-slate-600'
+                className={`px-2.5 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-bold text-center transition-all ${
+                  selectedPdfType === 'BOOKLET' ? 'bg-purple-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                Combined Booklet PDF
+                Combined
               </button>
             </div>
 
             <button
               onClick={handleDownloadPdf}
               disabled={pdfGenerating}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition-colors"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-colors shrink-0"
             >
               {pdfGenerating ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <Download className="w-4 h-4" />
               )}
-              Download High-Res PDF
+              <span>Download High-Res PDF</span>
             </button>
           </div>
 
           {/* Printable Element in High-Resolution Canvas Container */}
-          <div className="p-8 bg-white border border-slate-300 rounded-2xl shadow-md max-w-4xl mx-auto" id="printable-fitness-report">
+          <div className="p-4 sm:p-8 bg-white border border-slate-300 rounded-2xl shadow-md max-w-4xl mx-auto overflow-hidden" id="printable-fitness-report">
             {/* Sagar Fitness Gym Letterhead */}
-            <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-start">
+            <div className="border-b-2 border-slate-900 pb-4 flex flex-col sm:flex-row justify-between items-start gap-3">
               <div>
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">SAGAR FITNESS GYM</h1>
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">SAGAR FITNESS GYM</h1>
                 <p className="text-xs text-slate-600 font-semibold">
                   Pathardi, Ahmednagar, Maharashtra, India • AI Fitness & Nutrition Department
                 </p>
                 <p className="text-[11px] text-slate-500">Contact: +91 98811 22334 • info@sagarfitness.com</p>
               </div>
-              <div className="text-right">
-                <span className="px-3 py-1 bg-slate-900 text-white rounded-md text-xs font-bold uppercase tracking-wider block">
+              <div className="sm:text-right">
+                <span className="inline-block px-3 py-1 bg-slate-900 text-white rounded-md text-xs font-bold uppercase tracking-wider">
                   {selectedPdfType === 'WORKOUT'
                     ? '7-Day Structured Training Regimen'
                     : selectedPdfType === 'PROGRESS'
@@ -1642,7 +1642,7 @@ export const AiCoachPage: React.FC = () => {
             </div>
 
             {/* Member Card Header */}
-            <div className="my-5 p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-4 gap-3 text-xs">
+            <div className="my-5 p-3.5 sm:p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
                 <span className="text-[10px] text-slate-400 font-bold uppercase block">Member Name</span>
                 <span className="font-extrabold text-slate-900 text-sm">{selectedMember?.fullName}</span>
@@ -1667,54 +1667,56 @@ export const AiCoachPage: React.FC = () => {
               <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1">
                 7-Day Weekly Program Schedule
               </h3>
-              <table className="w-full text-left text-xs border border-slate-200">
-                <thead className="bg-slate-100 text-slate-700 font-bold text-[11px]">
-                  <tr>
-                    <th className="p-2.5 border-r border-b">Day</th>
-                    <th className="p-2.5 border-r border-b">Nutrition Schedule & Macros</th>
-                    <th className="p-2.5 border-b">Workout Routine & Exercises</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(
-                    (day, idx) => (
-                      <tr key={idx} className="border-b">
-                        <td className="p-2.5 font-bold border-r bg-slate-50/50 w-28 align-top">
-                          {day}
-                        </td>
-                        <td className="p-2.5 border-r align-top">
-                          <p className="font-bold text-slate-800 mb-0.5">
-                            Target Calories: ~2000 kcal
-                          </p>
-                          <p className="text-[11px] text-slate-600">
-                            • Breakfast: Poha / Oats with milk or eggs (450 kcal)
-                            <br />
-                            • Lunch: 2 Rotis + Dal Tadka + Rice + Fresh Salad (650 kcal)
-                            <br />
-                            • Snack: Roasted Chana / Sprouts salad (250 kcal)
-                            <br />
-                            • Dinner: Paneer / Chicken curry + 2 Rotis (550 kcal)
-                          </p>
-                        </td>
-                        <td className="p-2.5 align-top">
-                          <p className="font-bold text-purple-800 mb-0.5">
-                            {idx % 2 === 0 ? 'Compound Training Session' : 'Active Recovery & Core'}
-                          </p>
-                          <p className="text-[11px] text-slate-600">
-                            {idx % 2 === 0
-                              ? '45 mins • Warm-up: 5m treadmill • Bench Press 3x10, Lat Pulldown 3x12, Squats 3x12 • Cool-down'
-                              : '30 mins low-intensity walk (5,000 steps) + foam rolling & hydration'}
-                          </p>
-                        </td>
-                      </tr>
-                    )
-                  )}
-                </tbody>
-              </table>
+              <div className="overflow-x-auto -mx-1 sm:mx-0">
+                <table className="w-full min-w-[500px] sm:min-w-full text-left text-xs border border-slate-200">
+                  <thead className="bg-slate-100 text-slate-700 font-bold text-[11px]">
+                    <tr>
+                      <th className="p-2.5 border-r border-b w-24 sm:w-28">Day</th>
+                      <th className="p-2.5 border-r border-b">Nutrition Schedule & Macros</th>
+                      <th className="p-2.5 border-b">Workout Routine & Exercises</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(
+                      (day, idx) => (
+                        <tr key={idx} className="border-b">
+                          <td className="p-2.5 font-bold border-r bg-slate-50/50 align-top">
+                            {day}
+                          </td>
+                          <td className="p-2.5 border-r align-top">
+                            <p className="font-bold text-slate-800 mb-0.5">
+                              Target Calories: ~2000 kcal
+                            </p>
+                            <p className="text-[11px] text-slate-600">
+                              • Breakfast: Poha / Oats with milk or eggs (450 kcal)
+                              <br />
+                              • Lunch: 2 Rotis + Dal Tadka + Rice + Fresh Salad (650 kcal)
+                              <br />
+                              • Snack: Roasted Chana / Sprouts salad (250 kcal)
+                              <br />
+                              • Dinner: Paneer / Chicken curry + 2 Rotis (550 kcal)
+                            </p>
+                          </td>
+                          <td className="p-2.5 align-top">
+                            <p className="font-bold text-purple-800 mb-0.5">
+                              {idx % 2 === 0 ? 'Compound Training Session' : 'Active Recovery & Core'}
+                            </p>
+                            <p className="text-[11px] text-slate-600">
+                              {idx % 2 === 0
+                                ? '45 mins • Warm-up: 5m treadmill • Bench Press 3x10, Lat Pulldown 3x12, Squats 3x12 • Cool-down'
+                                : '30 mins low-intensity walk (5,000 steps) + foam rolling & hydration'}
+                            </p>
+                          </td>
+                        </tr>
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Footer Disclaimer */}
-            <div className="mt-8 pt-4 border-t border-slate-200 text-[10px] text-slate-400 flex justify-between items-center">
+            <div className="mt-8 pt-4 border-t border-slate-200 text-[10px] text-slate-400 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
               <span>Sagar Fitness Gym — Certified Trainer & AI Assisted Program</span>
               <span>Page 1 of 1 • Authorized Document</span>
             </div>
