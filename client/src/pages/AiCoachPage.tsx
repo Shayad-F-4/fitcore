@@ -548,32 +548,42 @@ export const AiCoachPage: React.FC = () => {
     { id: 'settings', label: 'Fitness Settings', icon: Settings },
   ];
 
+  const filteredProfiles = profiles.filter((p) => {
+    if (!profileSearch.trim()) return true;
+    const term = profileSearch.toLowerCase();
+    const mObj: any = p.member || {};
+    const name = (mObj.fullName || '').toLowerCase();
+    const mId = (mObj.memberId || '').toLowerCase();
+    const goal = (p.fitnessGoal || '').toLowerCase();
+    return name.includes(term) || mId.includes(term) || goal.includes(term);
+  });
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-4 sm:space-y-6 pb-28 lg:pb-8 animate-in fade-in duration-200">
       {/* Top Header Card */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-4 bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-xs shrink-0">
             <Sparkles className="w-5 h-5 animate-pulse" />
           </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <h1 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
                 AI Fitness Coach
               </h1>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-purple-100 text-purple-800 border border-purple-200">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide bg-purple-100 text-purple-800 border border-purple-200 shrink-0">
                 Sagar Fitness Gym
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5 truncate sm:whitespace-normal">
               Personalized member workout protocols & nutrition targets
             </p>
           </div>
         </div>
 
         {/* Global Member Selector & Quick Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex flex-col min-w-[260px]">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
+          <div className="flex flex-col w-full sm:min-w-[260px]">
             <div className="flex items-center justify-between gap-2 mb-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                 Active Member Focus
@@ -591,7 +601,7 @@ export const AiCoachPage: React.FC = () => {
             <select
               value={selectedMemberId}
               onChange={(e) => setSelectedMemberId(e.target.value)}
-              className="px-3.5 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-hidden transition-colors"
+              className="w-full px-3 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-hidden transition-colors"
             >
               {members.map((m) => {
                 const prof = profiles.find((p) => {
@@ -607,14 +617,14 @@ export const AiCoachPage: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 self-start sm:self-end">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
             {!hasMemberProfile && (
               <button
                 onClick={() => {
                   setSelectedProfile(null);
                   setIsProfileModalOpen(true);
                 }}
-                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-colors shrink-0"
+                className="col-span-2 sm:col-auto px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
                 title="Fill member starting bodyweight and fitness profile"
               >
                 <Scale className="w-4 h-4" />
@@ -625,35 +635,36 @@ export const AiCoachPage: React.FC = () => {
             {/* Prominent Send Plan to WhatsApp Button */}
             <button
               onClick={handleSendMemberPlanToWhatsApp}
-              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-colors shrink-0"
+              className={`px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs transition-colors ${
+                !hasMemberProfile ? 'col-span-1' : 'col-span-2 sm:col-auto'
+              }`}
               title="Send active plan to member's WhatsApp"
             >
-              <WhatsAppIcon className="w-4 h-4" />
-              <span>Send Plan to WhatsApp</span>
+              <WhatsAppIcon className="w-4 h-4 shrink-0" />
+              <span>WhatsApp Plan</span>
             </button>
 
             {hasAiCoachPass ? (
-              <span className="px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0">
+              <span className="col-span-1 sm:col-auto px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shrink-0">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 AI Pass Active
               </span>
             ) : (
               <button
                 onClick={handleGrantAiCoachPass}
-                className="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors"
+                className="col-span-1 sm:col-auto px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shrink-0 transition-colors"
                 title="Grant 90-Day AI Coach Plan Pass to this member"
               >
                 <Plus className="w-3.5 h-3.5 text-amber-600" />
                 <span>Grant Pass</span>
               </button>
             )}
-
           </div>
         </div>
       </div>
 
-      {/* Clean Horizontal Navigation Tabs - No Grey Scrollbar Line */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      {/* Clean Horizontal Navigation Tabs - Native App Style Pill Switcher */}
+      <div className="-mx-3 sm:mx-0 px-3 sm:px-0 flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -661,7 +672,7 @@ export const AiCoachPage: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as AiCoachTab)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shrink-0 whitespace-nowrap active:scale-95 ${
                 isActive
                   ? 'bg-slate-900 text-white shadow-xs'
                   : 'bg-white hover:bg-slate-50 text-slate-600 border border-slate-200'
@@ -996,15 +1007,15 @@ export const AiCoachPage: React.FC = () => {
           ========================================================================= */}
       {activeTab === 'profiles' && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
             <div className="relative w-full sm:w-80">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               <input
                 type="text"
-                placeholder="Search fitness profiles..."
+                placeholder="Search by name, ID or goal..."
                 value={profileSearch}
                 onChange={(e) => setProfileSearch(e.target.value)}
-                className="w-full pl-9 pr-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800"
+                className="w-full pl-9 pr-3.5 py-2.5 sm:py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 shadow-2xs focus:ring-2 focus:ring-purple-500 focus:outline-hidden"
               />
             </div>
 
@@ -1013,14 +1024,15 @@ export const AiCoachPage: React.FC = () => {
                 setSelectedProfile(null);
                 setIsProfileModalOpen(true);
               }}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-colors"
             >
               <Plus className="w-4 h-4" />
-              New Member Profile Wizard
+              <span>+ New Member Profile Wizard</span>
             </button>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+          {/* Desktop Table View (Tablets & Laptops) */}
+          <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-slate-700">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-bold text-[11px]">
@@ -1035,8 +1047,8 @@ export const AiCoachPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {profiles.length > 0 ? (
-                    profiles.map((p) => {
+                  {filteredProfiles.length > 0 ? (
+                    filteredProfiles.map((p) => {
                       const mObj: any = p.member || {};
                       return (
                         <tr key={p._id} className="hover:bg-slate-50/80 transition-colors">
@@ -1054,7 +1066,7 @@ export const AiCoachPage: React.FC = () => {
                             {p.bmi && <span className="text-[10px] text-purple-600 font-bold block">BMI: {p.bmi}</span>}
                           </td>
                           <td className="py-3.5 px-4">
-                            <span className="font-bold text-slate-800 block">{p.fitnessGoal}</span>
+                            <span className="font-bold text-slate-800 block">{(p.fitnessGoal || '').replace(/_/g, ' ')}</span>
                             <span className="text-[10px] text-slate-500">{p.workoutDaysPerWeek} days/wk</span>
                           </td>
                           <td className="py-3.5 px-4">
@@ -1099,6 +1111,94 @@ export const AiCoachPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          {/* Mobile Native App Cards View (Smartphones) */}
+          <div className="md:hidden space-y-3">
+            {filteredProfiles.length > 0 ? (
+              filteredProfiles.map((p) => {
+                const mObj: any = p.member || {};
+                return (
+                  <div
+                    key={p._id}
+                    className="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 font-extrabold text-sm flex items-center justify-center shrink-0">
+                          {(mObj.fullName || 'M').charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-bold text-slate-900 truncate">
+                            {mObj.fullName || 'Member'}
+                          </h4>
+                          <span className="text-[10px] text-slate-400 font-medium block">
+                            {mObj.memberId || 'FC-MEMBER'} • {p.gender} ({p.age} yrs)
+                          </span>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase bg-purple-50 text-purple-700 border border-purple-200 rounded-md shrink-0">
+                        {(p.fitnessGoal || '').replace(/_/g, ' ')}
+                      </span>
+                    </div>
+
+                    {/* Quick Biometrics Grid */}
+                    <div className="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-xl text-center border border-slate-100">
+                      <div>
+                        <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Weight</span>
+                        <span className="text-xs font-black text-slate-800">{p.currentWeightKg} kg</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">Height</span>
+                        <span className="text-xs font-black text-slate-800">{p.heightCm} cm</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">BMI</span>
+                        <span className="text-xs font-black text-purple-700">{p.bmi || '-'}</span>
+                      </div>
+                    </div>
+
+                    {/* Calorie & Nutrition Target Banner */}
+                    <div className="flex items-center justify-between p-2.5 bg-emerald-50/70 border border-emerald-100 rounded-xl">
+                      <div>
+                        <span className="text-[9px] font-bold text-emerald-800 uppercase tracking-wider block">Daily Target</span>
+                        <span className="text-sm font-black text-emerald-700">🔥 {p.targetCalories} kcal</span>
+                      </div>
+                      <div className="text-right text-[10px] font-semibold text-slate-600">
+                        <span>P: {p.targetProtein}g • C: {p.targetCarbs}g</span>
+                        <span className="block text-[9px] text-slate-400 font-normal">Diet: {p.dietaryPreference || 'Standard'}</span>
+                      </div>
+                    </div>
+
+                    {/* Card Actions */}
+                    <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                      <button
+                        onClick={() => {
+                          setSelectedProfile(p);
+                          setIsProfileModalOpen(true);
+                        }}
+                        className="flex-1 py-2 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition-colors text-center"
+                      >
+                        Edit Profile
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedMemberId(mObj._id || '');
+                          setActiveTab('workout-planner');
+                        }}
+                        className="flex-1 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors text-center"
+                      >
+                        Workouts →
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="p-8 text-center text-slate-400 text-xs bg-white rounded-2xl border border-slate-200">
+                No member fitness profiles recorded yet.
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1331,7 +1431,7 @@ export const AiCoachPage: React.FC = () => {
           ========================================================================= */}
       {activeTab === 'progress' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs">
             <div>
               <h2 className="text-sm font-bold text-slate-900">
                 Weight & Body Metric Progression ({selectedMember?.fullName})
@@ -1343,14 +1443,15 @@ export const AiCoachPage: React.FC = () => {
 
             <button
               onClick={() => setIsProgressModalOpen(true)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs"
+              className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Log Weigh-In
+              <span>Log Weigh-In</span>
             </button>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+          {/* Desktop Table View (Tablets & Laptops) */}
+          <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
             <table className="w-full text-left text-xs text-slate-700">
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-bold text-[11px]">
                 <tr>
@@ -1391,31 +1492,78 @@ export const AiCoachPage: React.FC = () => {
                         <p className="text-[11px] text-slate-400 max-w-sm">
                           Member ka starting weight aur body metrics track karne ke liye niche button par click karein.
                         </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <button
-                            onClick={() => setIsProgressModalOpen(true)}
-                            className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors"
-                          >
-                            + Log Weigh-In
-                          </button>
-                          {!hasMemberProfile && (
-                            <button
-                              onClick={() => {
-                                setSelectedProfile(null);
-                                setIsProfileModalOpen(true);
-                              }}
-                              className="px-3.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold transition-colors"
-                            >
-                              + Set Fitness Profile
-                            </button>
-                          )}
-                        </div>
                       </div>
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Native App Cards View (Smartphones) */}
+          <div className="md:hidden space-y-3">
+            {progressHistory.length > 0 ? (
+              progressHistory.map((p) => (
+                <div
+                  key={p._id}
+                  className="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-2.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900">
+                      📅 {formatDateIN(p.date)}
+                    </span>
+                    <span className="px-2.5 py-1 rounded-xl bg-blue-50 text-blue-700 font-black text-xs border border-blue-200">
+                      ⚖️ {p.weight} kg
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-xl text-center border border-slate-100 text-[10px]">
+                    <div>
+                      <span className="text-slate-400 uppercase font-bold block text-[9px]">BMI</span>
+                      <span className="font-extrabold text-purple-700 text-xs">{p.bmi ? p.bmi.toFixed(1) : '-'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 uppercase font-bold block text-[9px]">Waist</span>
+                      <span className="font-bold text-slate-800 text-xs">{p.waist ? `${p.waist}cm` : '-'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 uppercase font-bold block text-[9px]">Chest</span>
+                      <span className="font-bold text-slate-800 text-xs">{p.chest ? `${p.chest}cm` : '-'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 uppercase font-bold block text-[9px]">Body Fat</span>
+                      <span className="font-bold text-slate-800 text-xs">{p.bodyFat ? `${p.bodyFat}%` : '-'}</span>
+                    </div>
+                  </div>
+
+                  {p.notes && (
+                    <div className="text-[11px] text-slate-600 bg-slate-50/80 p-2 rounded-lg italic border border-slate-100">
+                      "{p.notes}"
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="p-8 text-center text-slate-400 text-xs bg-white rounded-2xl border border-slate-200">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center">
+                    <Scale className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-bold text-slate-700">
+                    Abhi tak {selectedMember?.fullName} ka koi weight log record nahi hai.
+                  </span>
+                  <p className="text-[11px] text-slate-400 max-w-sm">
+                    Member ka starting weight aur body metrics track karne ke liye niche button par click karein.
+                  </p>
+                  <button
+                    onClick={() => setIsProgressModalOpen(true)}
+                    className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold"
+                  >
+                    + Log First Weigh-In
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
