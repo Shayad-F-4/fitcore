@@ -1617,18 +1617,18 @@ export const AiCoachPage: React.FC = () => {
           </div>
 
           {/* Printable Element in High-Resolution Canvas Container */}
-          <div className="p-4 sm:p-8 bg-white border border-slate-300 rounded-2xl shadow-md max-w-4xl mx-auto overflow-hidden" id="printable-fitness-report">
+          <div className="p-3.5 sm:p-6 md:p-8 bg-white border border-slate-300 rounded-2xl shadow-md max-w-4xl mx-auto overflow-hidden" id="printable-fitness-report">
             {/* Sagar Fitness Gym Letterhead */}
-            <div className="border-b-2 border-slate-900 pb-4 flex flex-col sm:flex-row justify-between items-start gap-3">
-              <div>
+            <div className="border-b-2 border-slate-900 pb-4 flex flex-col md:flex-row md:items-start justify-between gap-3">
+              <div className="min-w-0">
                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">SAGAR FITNESS GYM</h1>
-                <p className="text-xs text-slate-600 font-semibold">
+                <p className="text-xs text-slate-600 font-semibold mt-0.5">
                   Pathardi, Ahmednagar, Maharashtra, India • AI Fitness & Nutrition Department
                 </p>
-                <p className="text-[11px] text-slate-500">Contact: +91 98811 22334 • info@sagarfitness.com</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">Contact: +91 98811 22334 • info@sagarfitness.com</p>
               </div>
-              <div className="sm:text-right">
-                <span className="inline-block px-3 py-1 bg-slate-900 text-white rounded-md text-xs font-bold uppercase tracking-wider">
+              <div className="md:text-right w-full md:w-auto shrink-0">
+                <span className="inline-block px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold uppercase tracking-wider shadow-2xs">
                   {selectedPdfType === 'WORKOUT'
                     ? '7-Day Structured Training Regimen'
                     : selectedPdfType === 'PROGRESS'
@@ -1642,10 +1642,10 @@ export const AiCoachPage: React.FC = () => {
             </div>
 
             {/* Member Card Header */}
-            <div className="my-5 p-3.5 sm:p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div className="my-4 sm:my-5 p-3.5 sm:p-4 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 text-xs">
               <div>
                 <span className="text-[10px] text-slate-400 font-bold uppercase block">Member Name</span>
-                <span className="font-extrabold text-slate-900 text-sm">{selectedMember?.fullName}</span>
+                <span className="font-extrabold text-slate-900 text-xs sm:text-sm truncate block">{selectedMember?.fullName}</span>
                 <span className="text-[10px] text-slate-500 block">ID: {selectedMember?.memberId}</span>
               </div>
               <div>
@@ -1662,16 +1662,57 @@ export const AiCoachPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Schedule / Content Table */}
+            {/* Schedule / Content - Responsive Dual Views */}
             <div className="space-y-4">
               <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider border-b border-slate-200 pb-1">
                 7-Day Weekly Program Schedule
               </h3>
-              <div className="overflow-x-auto -mx-1 sm:mx-0">
-                <table className="w-full min-w-[500px] sm:min-w-full text-left text-xs border border-slate-200">
+
+              {/* Mobile Card View (Smartphones) */}
+              <div className="md:hidden space-y-3">
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, idx) => (
+                  <div key={idx} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5 text-xs">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+                      <span className="font-extrabold text-slate-900 text-sm">📅 {day}</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-purple-100 text-purple-800 rounded-md">
+                        {idx % 2 === 0 ? 'Compound Training' : 'Recovery & Core'}
+                      </span>
+                    </div>
+
+                    {/* Nutrition Block */}
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-emerald-800 flex items-center gap-1">
+                        🥗 Nutrition Target (~2000 kcal)
+                      </span>
+                      <div className="text-[11px] text-slate-600 bg-white p-2.5 rounded-lg border border-slate-100 space-y-0.5 leading-relaxed">
+                        <p>• <strong>Breakfast:</strong> Poha / Oats with milk or eggs (450 kcal)</p>
+                        <p>• <strong>Lunch:</strong> 2 Rotis + Dal Tadka + Rice + Fresh Salad (650 kcal)</p>
+                        <p>• <strong>Snack:</strong> Roasted Chana / Sprouts salad (250 kcal)</p>
+                        <p>• <strong>Dinner:</strong> Paneer / Chicken curry + 2 Rotis (550 kcal)</p>
+                      </div>
+                    </div>
+
+                    {/* Workout Block */}
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-purple-900 flex items-center gap-1">
+                        💪 Workout Routine
+                      </span>
+                      <div className="text-[11px] text-slate-700 bg-purple-50/60 p-2.5 rounded-lg border border-purple-100 leading-relaxed font-medium">
+                        {idx % 2 === 0
+                          ? '45 mins • Warm-up: 5m treadmill • Bench Press 3x10, Lat Pulldown 3x12, Squats 3x12 • Cool-down'
+                          : '30 mins low-intensity walk (5,000 steps) + foam rolling & hydration'}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table View (Laptops, Tablets & PDF Generation) */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left text-xs border border-slate-200">
                   <thead className="bg-slate-100 text-slate-700 font-bold text-[11px]">
                     <tr>
-                      <th className="p-2.5 border-r border-b w-24 sm:w-28">Day</th>
+                      <th className="p-2.5 border-r border-b w-28">Day</th>
                       <th className="p-2.5 border-r border-b">Nutrition Schedule & Macros</th>
                       <th className="p-2.5 border-b">Workout Routine & Exercises</th>
                     </tr>
@@ -1716,7 +1757,7 @@ export const AiCoachPage: React.FC = () => {
             </div>
 
             {/* Footer Disclaimer */}
-            <div className="mt-8 pt-4 border-t border-slate-200 text-[10px] text-slate-400 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
+            <div className="mt-6 pt-4 border-t border-slate-200 text-[10px] text-slate-400 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
               <span>Sagar Fitness Gym — Certified Trainer & AI Assisted Program</span>
               <span>Page 1 of 1 • Authorized Document</span>
             </div>

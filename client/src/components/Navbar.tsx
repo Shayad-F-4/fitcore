@@ -333,8 +333,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                     />
                   </picture>
                 </Link>
-                <span className="hidden sm:inline-block lg:hidden text-slate-300">|</span>
-                <h1 className="hidden sm:block text-base sm:text-2xl font-black text-slate-900 tracking-tight truncate">
+                <span className="hidden md:inline-block lg:hidden text-slate-300">|</span>
+                <h1 className="hidden md:block text-base sm:text-2xl font-black text-slate-900 tracking-tight truncate">
                   {getPageTitle()}
                 </h1>
               </div>
