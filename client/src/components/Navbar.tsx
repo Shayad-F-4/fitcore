@@ -91,7 +91,6 @@ export const Navbar: React.FC<NavbarProps> = ({
     if (path === '/') return 'Dashboard';
     if (path.startsWith('/members')) return 'Members';
     if (path.startsWith('/plans')) return 'Membership Plans';
-    if (path.startsWith('/attendance')) return 'Attendance';
     if (path.startsWith('/payments') || path.startsWith('/billing')) return 'Payments';
     if (path.startsWith('/settings')) return 'Settings';
     return 'Sagar Fitness Gym';

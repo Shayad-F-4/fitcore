@@ -17,14 +17,8 @@ const MembersPage = lazy(() =>
 const PlansPage = lazy(() =>
   import('./pages/PlansPage').then((m) => ({ default: m.PlansPage }))
 );
-const AttendancePage = lazy(() =>
-  import('./pages/AttendancePage').then((m) => ({ default: m.AttendancePage }))
-);
 const BillingPage = lazy(() =>
   import('./pages/BillingPage').then((m) => ({ default: m.BillingPage }))
-);
-const ReportsPage = lazy(() =>
-  import('./pages/ReportsPage').then((m) => ({ default: m.ReportsPage }))
 );
 const SettingsPage = lazy(() =>
   import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage }))
@@ -150,7 +144,7 @@ export const App: React.FC = () => {
                   )
                 }
               />
-              <Route path="/attendance" element={<AttendancePage />} />
+              <Route path="/attendance" element={<Navigate to="/" replace />} />
               <Route
                 path="/payments"
                 element={
@@ -169,16 +163,7 @@ export const App: React.FC = () => {
                   />
                 }
               />
-              <Route
-                path="/reports"
-                element={
-                  <ReportsPage
-                    onOpenReceipt={(payment) => setSelectedReceiptPayment(payment)}
-                    onRenewMember={(membership) => setSelectedRenewSub(membership)}
-                    onSelectMember={(memberId) => setSelectedProfileId(memberId)}
-                  />
-                }
-              />
+              <Route path="/reports" element={<Navigate to="/" replace />} />
               <Route path="/pos" element={<Navigate to="/" replace />} />
               <Route path="/inventory/pos" element={<Navigate to="/" replace />} />
               <Route path="/inventory" element={<Navigate to="/" replace />} />

@@ -3,7 +3,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
-  UserCheck,
   Receipt,
   Menu,
 } from 'lucide-react';
@@ -41,15 +40,6 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       activeIndicator: 'bg-emerald-600',
     },
     {
-      to: '/attendance',
-      label: 'Attendance',
-      icon: UserCheck,
-      exact: false,
-      activeColor: 'text-amber-600',
-      activeBg: 'bg-amber-50/90 text-amber-800',
-      activeIndicator: 'bg-amber-600',
-    },
-    {
       to: '/billing',
       label: 'Billing',
       icon: Receipt,
@@ -65,7 +55,6 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     location.pathname.startsWith('/plans') ||
     location.pathname.startsWith('/pos') ||
     location.pathname.startsWith('/inventory') ||
-    location.pathname.startsWith('/reports') ||
     location.pathname.startsWith('/settings') ||
     isSidebarOpen;
 

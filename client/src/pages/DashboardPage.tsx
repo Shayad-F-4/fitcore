@@ -6,7 +6,6 @@ import {
   AlertCircle,
   UserPlus,
   Clock,
-  UserCheck,
   Search,
   RotateCw,
   Eye,
@@ -356,16 +355,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
             <button
-              onClick={() => navigate('/attendance')}
+              onClick={() => navigate('/members')}
               className="p-3 rounded-xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-300 text-left transition-all active:scale-[0.98] group cursor-pointer min-h-[44px]"
             >
               <div className="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-emerald-800">
                 <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                  <UserCheck className="w-3.5 h-3.5" />
+                  <Users className="w-3.5 h-3.5" />
                 </div>
-                <span>Attendance Punch</span>
+                <span>All Members</span>
               </div>
-              <p className="text-[10px] text-slate-500 mt-1">Check-in / out athletes</p>
+              <p className="text-[10px] text-slate-500 mt-1">Manage gym members</p>
             </button>
 
             {onOpenRegister && (
