@@ -3,7 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
-  Sparkles,
+  UserCheck,
   Receipt,
   Menu,
 } from 'lucide-react';
@@ -41,13 +41,13 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       activeIndicator: 'bg-emerald-600',
     },
     {
-      to: '/ai-coach',
-      label: 'AI Coach',
-      icon: Sparkles,
+      to: '/attendance',
+      label: 'Attendance',
+      icon: UserCheck,
       exact: false,
-      activeColor: 'text-purple-600',
-      activeBg: 'bg-purple-50/90 text-purple-800',
-      activeIndicator: 'bg-purple-600',
+      activeColor: 'text-amber-600',
+      activeBg: 'bg-amber-50/90 text-amber-800',
+      activeIndicator: 'bg-amber-600',
     },
     {
       to: '/billing',
@@ -62,7 +62,6 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
   // Secondary routes where "More" is logically active
   const isMoreActive =
-    location.pathname.startsWith('/attendance') ||
     location.pathname.startsWith('/plans') ||
     location.pathname.startsWith('/pos') ||
     location.pathname.startsWith('/inventory') ||

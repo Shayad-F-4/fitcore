@@ -11,7 +11,6 @@ import {
   X,
   Dumbbell,
   Building2,
-  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -68,15 +67,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onCloseMobile, onO
       activeColor: 'border-l-4 border-l-rose-500 bg-rose-50/80 text-rose-800 font-bold',
       iconActive: 'bg-rose-100 text-rose-600',
       dotColor: 'bg-rose-600',
-    },
-    {
-      to: '/ai-coach',
-      label: 'AI Fitness Coach',
-      icon: Sparkles,
-      adminOnly: true,
-      activeColor: 'border-l-4 border-l-purple-600 bg-purple-50/80 text-purple-900 font-bold',
-      iconActive: 'bg-purple-100 text-purple-700',
-      dotColor: 'bg-purple-600',
     },
     {
       to: '/reports',

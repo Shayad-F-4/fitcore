@@ -32,9 +32,6 @@ const SettingsPage = lazy(() =>
 const AuditLogsPage = lazy(() =>
   import('./pages/AuditLogsPage').then((m) => ({ default: m.AuditLogsPage }))
 );
-const AiCoachPage = lazy(() =>
-  import('./pages/AiCoachPage').then((m) => ({ default: m.AiCoachPage }))
-);
 
 // Code-split heavy modals
 const RegisterMemberModal = lazy(() =>
@@ -185,17 +182,8 @@ export const App: React.FC = () => {
               <Route path="/pos" element={<Navigate to="/" replace />} />
               <Route path="/inventory/pos" element={<Navigate to="/" replace />} />
               <Route path="/inventory" element={<Navigate to="/" replace />} />
-              <Route
-                path="/ai-coach"
-                element={
-                  user?.role === 'SUPER_ADMIN' || user?.role === 'GYM_ADMIN' ? (
-                    <AiCoachPage />
-                  ) : (
-                    <Navigate to="/members" replace />
-                  )
-                }
-              />
-              <Route path="/diet" element={<Navigate to="/ai-coach" replace />} />
+              <Route path="/ai-coach" element={<Navigate to="/members" replace />} />
+              <Route path="/diet" element={<Navigate to="/members" replace />} />
               <Route
                 path="/settings"
                 element={
