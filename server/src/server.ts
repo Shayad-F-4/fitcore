@@ -37,12 +37,31 @@ import expiryRoutes from './routes/expiry.routes.js';
 import inventoryRoutes from './routes/inventory.routes.js';
 import dietRoutes from './routes/diet.routes.js';
 import aiCoachRoutes from './routes/aiCoach.routes.js';
+import webRoutes from './routes/web.routes.js';
 import { runAutoExpiryReminders } from './services/whatsappService.js';
 
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
 
 const app = express();
+
+// View Engine & Static Assets Configuration (HTML + CSS + Plain JS via EJS)
+app.set('view engine', 'ejs');
+const candidateViews = [
+  path.resolve(process.cwd(), 'src/views'),
+  path.resolve(process.cwd(), 'views'),
+  path.resolve(process.cwd(), 'server/src/views'),
+  path.resolve(process.cwd(), 'server/views'),
+];
+const viewsPath = candidateViews.find((p) => fs.existsSync(p)) || path.resolve(process.cwd(), 'src/views');
+app.set('views', viewsPath);
+
+const candidatePublic = [
+  path.resolve(process.cwd(), 'public'),
+  path.resolve(process.cwd(), 'server/public'),
+];
+const publicPath = candidatePublic.find((p) => fs.existsSync(p)) || path.resolve(process.cwd(), 'public');
+app.use(express.static(publicPath));
 
 // High-performance gzip/deflate compression for all API and static responses
 app.use(
@@ -241,6 +260,9 @@ app.use('/api/expiry', expiryRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/diet', dietRoutes);
 app.use('/api/ai-coach', aiCoachRoutes);
+
+// Mount HTML + CSS + Vanilla JS Web Pages
+app.use('/', webRoutes);
 
 // Global Error Handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

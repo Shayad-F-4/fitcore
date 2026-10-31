@@ -1,0 +1,220 @@
+<%- include('partials/header', { title: 'Settings' }) %>
+
+<div class="flex h-screen overflow-hidden">
+  <%- include('partials/sidebar', { activePage: 'settings' }) %>
+
+  <div class="flex-1 flex flex-col min-w-0 bg-[#F7F8FA] h-screen overflow-y-auto">
+    <%- include('partials/navbar', { pageTitle: 'System Settings' }) %>
+
+    <main class="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-12 space-y-6">
+      
+      <!-- Gym Facility Card -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
+        <h2 class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b border-slate-100">Gym Center Details</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div>
+            <span class="text-slate-400 font-bold uppercase text-[10px]">Gym Name</span>
+            <div class="font-bold text-slate-800 mt-0.5">Sagar Fitness Gym</div>
+          </div>
+          <div>
+            <span class="text-slate-400 font-bold uppercase text-[10px]">Location</span>
+            <div class="font-bold text-slate-800 mt-0.5">Pathardi, Ahmednagar, Maharashtra</div>
+          </div>
+          <div>
+            <span class="text-slate-400 font-bold uppercase text-[10px]">Helpline Contact</span>
+            <div class="font-bold text-slate-800 mt-0.5">+91 98811 22334</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Staff Accounts Management -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Authorized Staff Accounts</h2>
+            <p class="text-[11px] text-slate-400">Manage administrator and front desk logins</p>
+          </div>
+          <button type="button" onclick="openStaffModal()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all">
+            Add Staff Member
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+              <tr>
+                <th class="py-3 px-4">Staff Name</th>
+                <th class="py-3 px-4">Email / Login ID</th>
+                <th class="py-3 px-4">Role</th>
+                <th class="py-3 px-4">Status</th>
+              </tr>
+            </thead>
+            <tbody id="staff-table-body" class="divide-y divide-slate-100 font-medium">
+              <tr>
+                <td colspan="4" class="py-8 text-center text-slate-400">Loading staff accounts...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Security / Change Password -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs max-w-lg">
+        <h2 class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b border-slate-100">Change Password</h2>
+        <form id="change-pwd-form" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Current Password</label>
+            <input type="password" id="cur-pwd" required placeholder="Enter current password" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">New Password (Min 6 characters)</label>
+            <input type="password" id="new-pwd" required minlength="6" placeholder="Enter new password" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none">
+          </div>
+          <button type="submit" id="chg-pwd-btn" class="w-full h-10 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+            Update Password
+          </button>
+        </form>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('partials/mobileNav', { activePage: 'settings' }) %>
+
+<!-- Add Staff Modal -->
+<div id="staff-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 space-y-4">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <h3 class="text-base font-bold text-slate-900">Add Staff Account</h3>
+      <button type="button" onclick="closeStaffModal()" class="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <form id="add-staff-form" class="space-y-3.5">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
+        <input type="text" id="staff-name" required placeholder="Staff member name" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Email / Login Username *</label>
+        <input type="email" id="staff-email" required placeholder="staff@fitcore.com" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Role *</label>
+        <select id="staff-role" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none bg-white">
+          <option value="RECEPTIONIST">Front Desk / Receptionist</option>
+          <option value="GYM_ADMIN">Gym Manager</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Password *</label>
+        <input type="password" id="staff-password" required minlength="6" placeholder="Min 6 characters" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none">
+      </div>
+
+      <div class="pt-2">
+        <button type="submit" id="staff-submit-btn" class="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+          Create Account
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+<script>
+  function openStaffModal() {
+    document.getElementById('staff-modal').classList.remove('hidden');
+  }
+  function closeStaffModal() {
+    document.getElementById('staff-modal').classList.add('hidden');
+  }
+
+  async function loadStaff() {
+    try {
+      const res = await api.get('/auth/staff');
+      const staff = Array.isArray(res) ? res : (res.data || []);
+      const tbody = document.getElementById('staff-table-body');
+
+      if (staff.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-slate-400">No staff accounts found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = staff.map(s => {
+        const roleText = s.role === 'SUPER_ADMIN' ? 'Owner / Admin' : s.role === 'GYM_ADMIN' ? 'Gym Manager' : 'Front Desk';
+        const roleColor = s.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' : s.role === 'GYM_ADMIN' ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-700';
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="py-3 px-4 font-bold text-slate-900">${s.fullName}</td>
+            <td class="py-3 px-4 text-slate-600 font-mono">${s.email}</td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${roleColor}">${roleText}</span>
+            </td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">ACTIVE</span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    } catch (err) {
+      document.getElementById('staff-table-body').innerHTML = `<tr><td colspan="4" class="py-8 text-center text-rose-500">Failed to load staff accounts.</td></tr>`;
+    }
+  }
+
+  document.getElementById('add-staff-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('staff-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    const payload = {
+      fullName: document.getElementById('staff-name').value.trim(),
+      email: document.getElementById('staff-email').value.trim(),
+      role: document.getElementById('staff-role').value,
+      password: document.getElementById('staff-password').value,
+    };
+
+    try {
+      await api.post('/auth/register', payload);
+      showToast('Staff Created', `${payload.fullName} registered successfully!`, 'success');
+      closeStaffModal();
+      document.getElementById('add-staff-form').reset();
+      loadStaff();
+    } catch (err) {
+      showToast('Error', err.message || 'Could not create staff account', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Create Account';
+    }
+  });
+
+  document.getElementById('change-pwd-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('chg-pwd-btn');
+    btn.disabled = true;
+    btn.textContent = 'Updating...';
+
+    const currentPassword = document.getElementById('cur-pwd').value;
+    const newPassword = document.getElementById('new-pwd').value;
+
+    try {
+      await api.post('/auth/change-password', { currentPassword, newPassword });
+      showToast('Password Changed', 'Your password was updated successfully!', 'success');
+      document.getElementById('change-pwd-form').reset();
+    } catch (err) {
+      showToast('Error', err.message || 'Could not change password', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Update Password';
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', loadStaff);
+</script>

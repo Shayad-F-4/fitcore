@@ -1,0 +1,54 @@
+<aside id="app-sidebar" class="w-64 bg-white border-r border-slate-200 hidden lg:flex flex-col h-screen shrink-0 sticky top-0 z-30 select-none">
+  <!-- Logo Section -->
+  <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-3">
+      <img src="/logo.png" alt="Sagar Fitness Gym" class="h-9 w-auto object-contain">
+    </a>
+  </div>
+
+  <!-- Navigation Links -->
+  <nav class="flex-1 p-3 space-y-1.5 overflow-y-auto">
+    <a href="/" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all <%= activePage === 'dashboard' ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-600' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' %>">
+      <i data-lucide="layout-dashboard" class="w-5 h-5 <%= activePage === 'dashboard' ? 'text-blue-600' : 'text-slate-400' %>"></i>
+      <span>Dashboard</span>
+    </a>
+
+    <a href="/members" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all <%= activePage === 'members' ? 'bg-emerald-50 text-emerald-800 border-l-4 border-emerald-500' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' %>">
+      <i data-lucide="users" class="w-5 h-5 <%= activePage === 'members' ? 'text-emerald-600' : 'text-slate-400' %>"></i>
+      <span>Members</span>
+    </a>
+
+    <a href="/plans" id="nav-plans" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all <%= activePage === 'plans' ? 'bg-purple-50 text-purple-800 border-l-4 border-purple-500' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' %>">
+      <i data-lucide="credit-card" class="w-5 h-5 <%= activePage === 'plans' ? 'text-purple-600' : 'text-slate-400' %>"></i>
+      <span>Membership Plans</span>
+    </a>
+
+    <a href="/billing" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all <%= activePage === 'billing' ? 'bg-rose-50 text-rose-800 border-l-4 border-rose-500' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' %>">
+      <i data-lucide="receipt" class="w-5 h-5 <%= activePage === 'billing' ? 'text-rose-600' : 'text-slate-400' %>"></i>
+      <span>Billing & Fees</span>
+    </a>
+
+    <a href="/settings" id="nav-settings" class="nav-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all <%= activePage === 'settings' ? 'bg-indigo-50 text-indigo-800 border-l-4 border-indigo-500' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' %>">
+      <i data-lucide="settings" class="w-5 h-5 <%= activePage === 'settings' ? 'text-indigo-600' : 'text-slate-400' %>"></i>
+      <span>Settings</span>
+    </a>
+  </nav>
+
+  <!-- Bottom Staff Info -->
+  <div class="p-4 border-t border-slate-100 bg-slate-50/60">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs uppercase" id="sidebar-user-avatar">
+          SF
+        </div>
+        <div class="truncate">
+          <div class="text-xs font-bold text-slate-800 truncate" id="sidebar-user-name">Staff</div>
+          <div class="text-[10px] text-slate-400 font-medium truncate" id="sidebar-user-role">Receptionist</div>
+        </div>
+      </div>
+      <button onclick="api.logout()" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Logout">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+</aside>

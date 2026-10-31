@@ -1,0 +1,57 @@
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script>
+    // Initialize Lucide icons on load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+
+      // Check Authentication for protected pages
+      const isLoginPage = window.location.pathname.startsWith('/login');
+      const token = api.getToken();
+
+      if (!token && !isLoginPage) {
+        window.location.href = '/login';
+        return;
+      }
+
+      if (token && isLoginPage) {
+        window.location.href = '/';
+        return;
+      }
+
+      // Populate User Info
+      const user = api.getUser();
+      if (user) {
+        const nameEl = document.getElementById('sidebar-user-name');
+        const roleEl = document.getElementById('sidebar-user-role');
+        const avatarEl = document.getElementById('sidebar-user-avatar');
+
+        if (nameEl) nameEl.textContent = user.fullName || 'Staff Member';
+        if (roleEl) roleEl.textContent = user.role === 'SUPER_ADMIN' ? 'Owner / Admin' : user.role === 'GYM_ADMIN' ? 'Manager' : 'Front Desk';
+        if (avatarEl && user.fullName) {
+          avatarEl.textContent = user.fullName.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+        }
+
+        // Hide admin-only links for receptionist
+        if (user.role === 'RECEPTIONIST') {
+          const plansNav = document.getElementById('nav-plans');
+          const settingsNav = document.getElementById('nav-settings');
+          if (plansNav) plansNav.style.display = 'none';
+          if (settingsNav) settingsNav.style.display = 'none';
+        }
+      }
+    });
+
+    function toggleMobileDrawer() {
+      const drawer = document.getElementById('mobile-drawer');
+      if (drawer) {
+        drawer.classList.toggle('hidden');
+      }
+    }
+
+    document.getElementById('mobile-sidebar-toggle')?.addEventListener('click', toggleMobileDrawer);
+  </script>
+</body>
+</html>

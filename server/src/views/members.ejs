@@ -1,0 +1,347 @@
+<%- include('partials/header', { title: 'Members' }) %>
+
+<div class="flex h-screen overflow-hidden">
+  <%- include('partials/sidebar', { activePage: 'members' }) %>
+
+  <div class="flex-1 flex flex-col min-w-0 bg-[#F7F8FA] h-screen overflow-y-auto">
+    <%- include('partials/navbar', { pageTitle: 'Members Management' }) %>
+
+    <main class="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-12 space-y-4">
+      
+      <!-- Top Bar: Search & Filters -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+        <!-- Search Input -->
+        <div class="relative w-full sm:w-80">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </span>
+          <input type="text" id="member-search" placeholder="Search by name, mobile, ID..." class="w-full h-10 pl-10 pr-4 text-xs border border-slate-200 rounded-xl focus:border-blue-600 focus:outline-none font-medium bg-slate-50/50">
+        </div>
+
+        <!-- Filter Buttons & Add Member -->
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-600">
+            <button type="button" onclick="setFilter('ALL')" class="filter-tab px-3 py-1.5 rounded-lg transition-all active bg-white text-blue-600 shadow-2xs">All</button>
+            <button type="button" onclick="setFilter('ACTIVE')" class="filter-tab px-3 py-1.5 rounded-lg transition-all text-slate-600 hover:text-slate-900">Active</button>
+            <button type="button" onclick="setFilter('EXPIRED')" class="filter-tab px-3 py-1.5 rounded-lg transition-all text-slate-600 hover:text-slate-900">Expired</button>
+          </div>
+
+          <button type="button" onclick="openRegisterModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all shrink-0">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+            <span>Add Member</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Members Table -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+              <tr>
+                <th class="py-3 px-4">Athlete / ID</th>
+                <th class="py-3 px-4">Contact</th>
+                <th class="py-3 px-4">Active Plan</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Dues</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="members-table-body" class="divide-y divide-slate-100 font-medium">
+              <tr>
+                <td colspan="6" class="py-8 text-center text-slate-400">Loading members list...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="p-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <span id="members-count-label">Showing 0 members</span>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<%- include('partials/mobileNav', { activePage: 'members' }) %>
+
+<!-- Add Member Modal -->
+<div id="register-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+  <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-900">Register New Member</h3>
+      </div>
+      <button type="button" onclick="closeRegisterModal()" class="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <form id="add-member-form" class="space-y-3.5">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
+        <input type="text" id="add-name" required placeholder="e.g. Rahul Sharma" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Phone Number *</label>
+          <input type="tel" id="add-phone" required placeholder="10-digit mobile number" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Gender</label>
+          <select id="add-gender" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium bg-white">
+            <option value="MALE">Male</option>
+            <option value="FEMALE">Female</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Assign Plan (Optional)</label>
+        <select id="add-plan-select" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium bg-white">
+          <option value="">-- No plan initially (Register only) --</option>
+        </select>
+      </div>
+
+      <div class="pt-2">
+        <button type="submit" id="add-submit-btn" class="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+          Save & Register
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- View Member Details Modal -->
+<div id="member-profile-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+  <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm uppercase" id="prof-avatar">
+          M
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900" id="prof-name">Member Name</h3>
+          <p class="text-xs text-slate-400" id="prof-id">ID: FC-1001</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeProfileModal()" class="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Profile Details Card -->
+    <div class="space-y-3">
+      <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+        <div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Mobile Number</span>
+          <div class="text-xs font-bold text-slate-800 mt-0.5" id="prof-phone">-</div>
+        </div>
+        <div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Membership Status</span>
+          <div class="mt-0.5" id="prof-status-badge">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">INACTIVE</span>
+          </div>
+        </div>
+        <div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Current Plan</span>
+          <div class="text-xs font-bold text-slate-800 mt-0.5" id="prof-plan">None</div>
+        </div>
+        <div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Expiry Date</span>
+          <div class="text-xs font-bold text-slate-800 mt-0.5" id="prof-expiry">-</div>
+        </div>
+      </div>
+
+      <!-- Quick WhatsApp Button -->
+      <a id="prof-wa-btn" href="#" target="_blank" class="w-full py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 flex items-center justify-center gap-2 transition-all">
+        <i data-lucide="message-circle" class="w-4 h-4 text-emerald-600"></i>
+        <span>Chat on WhatsApp</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+<script>
+  let allMembers = [];
+  let currentFilter = 'ALL';
+
+  function openRegisterModal() {
+    document.getElementById('register-modal').classList.remove('hidden');
+    loadPlansDropdown();
+  }
+  function closeRegisterModal() {
+    document.getElementById('register-modal').classList.add('hidden');
+  }
+
+  function closeProfileModal() {
+    document.getElementById('member-profile-modal').classList.add('hidden');
+  }
+
+  function setFilter(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-tab').forEach(b => {
+      b.className = 'filter-tab px-3 py-1.5 rounded-lg transition-all text-slate-600 hover:text-slate-900';
+    });
+    event.target.className = 'filter-tab px-3 py-1.5 rounded-lg transition-all bg-white text-blue-600 shadow-2xs';
+    renderMembers();
+  }
+
+  async function loadPlansDropdown() {
+    try {
+      const plans = await api.get('/plans');
+      const select = document.getElementById('add-plan-select');
+      const items = Array.isArray(plans) ? plans : (plans.data || []);
+      select.innerHTML = '<option value="">-- No plan initially (Register only) --</option>' +
+        items.map(p => `<option value="${p._id}">${p.name} (${p.durationDays} days - ${formatINR(p.price)})</option>`).join('');
+    } catch (err) {
+      console.warn('Plans dropdown error:', err);
+    }
+  }
+
+  async function loadMembers() {
+    try {
+      const res = await api.get('/members');
+      allMembers = Array.isArray(res) ? res : (res.data?.members || res.members || []);
+      renderMembers();
+    } catch (err) {
+      document.getElementById('members-table-body').innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-500">Failed to load members.</td></tr>`;
+    }
+  }
+
+  function renderMembers() {
+    const query = document.getElementById('member-search').value.toLowerCase().trim();
+    const tbody = document.getElementById('members-table-body');
+
+    let filtered = allMembers.filter(m => {
+      const name = (m.fullName || '').toLowerCase();
+      const phone = (m.phone || '').toLowerCase();
+      const code = (m.memberId || '').toLowerCase();
+      const matchesSearch = !query || name.includes(query) || phone.includes(query) || code.includes(query);
+
+      const status = m.status || 'INACTIVE';
+      const matchesFilter = currentFilter === 'ALL' ||
+        (currentFilter === 'ACTIVE' && status === 'ACTIVE') ||
+        (currentFilter === 'EXPIRED' && (status === 'EXPIRED' || status === 'INACTIVE'));
+
+      return matchesSearch && matchesFilter;
+    });
+
+    document.getElementById('members-count-label').textContent = `Showing ${filtered.length} of ${allMembers.length} members`;
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">No members match your criteria.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(m => {
+      const name = m.fullName || 'Member';
+      const code = m.memberId || 'ID-';
+      const phone = m.phone || 'No phone';
+      const status = m.status || 'INACTIVE';
+      const statusBadge = status === 'ACTIVE'
+        ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">ACTIVE</span>'
+        : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">EXPIRED</span>';
+      
+      const sub = m.activeMembership || {};
+      const planName = sub.plan?.name || 'No Plan';
+      const dues = sub.amountDue && sub.amountPaid !== undefined ? Math.max(0, sub.amountDue - sub.amountPaid) : 0;
+      const duesBadge = dues > 0
+        ? `<span class="font-bold text-rose-600">${formatINR(dues)}</span>`
+        : '<span class="text-slate-400">Paid</span>';
+
+      return `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td class="py-3 px-4">
+            <div class="font-bold text-slate-900 cursor-pointer hover:text-blue-600" onclick="viewMember('${m._id}')">${name}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${code}</div>
+          </td>
+          <td class="py-3 px-4 text-slate-600 font-mono">${phone}</td>
+          <td class="py-3 px-4 text-slate-700">${planName}</td>
+          <td class="py-3 px-4">${statusBadge}</td>
+          <td class="py-3 px-4">${duesBadge}</td>
+          <td class="py-3 px-4 text-right">
+            <button type="button" onclick="viewMember('${m._id}')" class="px-2.5 py-1 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+              View
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    if (window.lucide) lucide.createIcons();
+  }
+
+  async function viewMember(id) {
+    try {
+      const res = await api.get(`/members/${id}`);
+      const m = res.member || res;
+      document.getElementById('prof-name').textContent = m.fullName || 'Member';
+      document.getElementById('prof-id').textContent = `ID: ${m.memberId || 'N/A'}`;
+      document.getElementById('prof-phone').textContent = m.phone || 'N/A';
+      document.getElementById('prof-avatar').textContent = (m.fullName || 'M').slice(0, 2).toUpperCase();
+
+      const sub = res.activeMembership || m.activeMembership;
+      document.getElementById('prof-plan').textContent = sub?.plan?.name || 'No active plan';
+      document.getElementById('prof-expiry').textContent = sub?.endDate ? formatDateIN(sub.endDate) : 'N/A';
+
+      const status = m.status || 'INACTIVE';
+      document.getElementById('prof-status-badge').innerHTML = status === 'ACTIVE'
+        ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">ACTIVE</span>'
+        : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">INACTIVE</span>';
+
+      const cleanPhone = (m.phone || '').replace(/\D/g, '').slice(-10);
+      const waBtn = document.getElementById('prof-wa-btn');
+      if (cleanPhone) {
+        waBtn.href = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(`Hello ${m.fullName}, greeting from Sagar Fitness Gym Pathardi!`)}`;
+        waBtn.style.display = 'flex';
+      } else {
+        waBtn.style.display = 'none';
+      }
+
+      document.getElementById('member-profile-modal').classList.remove('hidden');
+    } catch (err) {
+      showToast('Error', 'Could not fetch member profile details', 'error');
+    }
+  }
+
+  // Search input live filtering
+  document.getElementById('member-search').addEventListener('input', renderMembers);
+
+  // Add Member Form
+  document.getElementById('add-member-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('add-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    const payload = {
+      fullName: document.getElementById('add-name').value.trim(),
+      phone: document.getElementById('add-phone').value.trim(),
+      gender: document.getElementById('add-gender').value,
+      planId: document.getElementById('add-plan-select').value || undefined,
+    };
+
+    try {
+      await api.post('/members', payload);
+      showToast('Success', `${payload.fullName} added successfully!`, 'success');
+      closeRegisterModal();
+      document.getElementById('add-member-form').reset();
+      loadMembers();
+    } catch (err) {
+      showToast('Registration Error', err.message || 'Failed to save member', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save & Register';
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', loadMembers);
+</script>

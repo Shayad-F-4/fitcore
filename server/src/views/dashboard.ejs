@@ -1,0 +1,329 @@
+<%- include('partials/header', { title: 'Dashboard' }) %>
+
+<div class="flex h-screen overflow-hidden">
+  <!-- Desktop Sidebar -->
+  <%- include('partials/sidebar', { activePage: 'dashboard' }) %>
+
+  <!-- Main Content Wrapper -->
+  <div class="flex-1 flex flex-col min-w-0 bg-[#F7F8FA] h-screen overflow-y-auto">
+    <!-- Navbar -->
+    <%- include('partials/navbar', { pageTitle: 'Dashboard' }) %>
+
+    <!-- Page Content -->
+    <main class="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-12 space-y-6">
+      
+      <!-- Quick Action Buttons -->
+      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs">
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Quick Actions</span>
+          <span class="text-xs text-slate-500 font-medium" id="logged-user-label">Logged in</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <a href="/members" class="p-3 rounded-xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-300 text-left transition-all active:scale-95 group">
+            <div class="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-emerald-800">
+              <div class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i>
+              </div>
+              <span>All Members</span>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-1">Manage gym members</p>
+          </a>
+
+          <button type="button" onclick="openRegisterModal()" class="p-3 rounded-xl bg-slate-50 hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 text-left transition-all active:scale-95 group cursor-pointer">
+            <div class="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-blue-800">
+              <div class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+              </div>
+              <span>New Admission</span>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-1">Register new member</p>
+          </button>
+
+          <a href="/billing" class="p-3 rounded-xl bg-slate-50 hover:bg-rose-50/70 border border-slate-200 hover:border-rose-300 text-left transition-all active:scale-95 group">
+            <div class="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-rose-800">
+              <div class="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
+              </div>
+              <span>Collect Fees</span>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-1">Receipts & fee payment</p>
+          </a>
+
+          <a href="#expiry-section" class="p-3 rounded-xl bg-slate-50 hover:bg-amber-50/70 border border-slate-200 hover:border-amber-300 text-left transition-all active:scale-95 group">
+            <div class="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-amber-800">
+              <div class="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+              </div>
+              <span>Expiry Alerts</span>
+            </div>
+            <p class="text-[10px] text-slate-500 mt-1">Send WhatsApp alerts</p>
+          </a>
+        </div>
+      </div>
+
+      <!-- Exactly 5 Metric Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+        <!-- Card 1: Today's Revenue -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Today's Fees</span>
+            <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <i data-lucide="indian-rupee" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-2 text-xl sm:text-2xl font-black text-slate-900" id="stat-today-revenue">₹0</div>
+          <p class="text-[10px] text-slate-400 mt-0.5">Collected today</p>
+        </div>
+
+        <!-- Card 2: Active Members -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Active Members</span>
+            <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+              <i data-lucide="users" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-2 text-xl sm:text-2xl font-black text-slate-900" id="stat-active-members">0</div>
+          <p class="text-[10px] text-slate-400 mt-0.5">Valid memberships</p>
+        </div>
+
+        <!-- Card 3: Expiry Alerts -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Expiring Soon</span>
+            <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <i data-lucide="clock" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-2 text-xl sm:text-2xl font-black text-slate-900" id="stat-expiring-soon">0</div>
+          <p class="text-[10px] text-slate-400 mt-0.5">Next 7 days</p>
+        </div>
+
+        <!-- Card 4: Pending Dues -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pending Dues</span>
+            <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+              <i data-lucide="alert-circle" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-2 text-xl sm:text-2xl font-black text-rose-600" id="stat-pending-dues">₹0</div>
+          <p class="text-[10px] text-slate-400 mt-0.5">Unpaid balances</p>
+        </div>
+
+        <!-- Card 5: Total Revenue -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs col-span-2 lg:col-span-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Revenue</span>
+            <div class="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+              <i data-lucide="credit-card" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-2 text-xl sm:text-2xl font-black text-slate-900" id="stat-total-revenue">₹0</div>
+          <p class="text-[10px] text-slate-400 mt-0.5">Lifetime fee collection</p>
+        </div>
+      </div>
+
+      <!-- Expiry Warning Section -->
+      <div id="expiry-section" class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <i data-lucide="bell" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-slate-900">Memberships Expiring Soon</h2>
+              <p class="text-[11px] text-slate-400">Athletes requiring renewal within the next 7 days</p>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800" id="expiry-count-badge">0</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+              <tr>
+                <th class="py-3 px-4">Member</th>
+                <th class="py-3 px-4">Plan</th>
+                <th class="py-3 px-4">Expiry Date</th>
+                <th class="py-3 px-4">Remaining</th>
+                <th class="py-3 px-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="expiry-table-body" class="divide-y divide-slate-100 font-medium">
+              <tr>
+                <td colspan="5" class="py-8 text-center text-slate-400">Loading expiring memberships...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Mobile Bottom Nav -->
+<%- include('partials/mobileNav', { activePage: 'dashboard' }) %>
+
+<!-- Shared New Member Registration Modal -->
+<div id="register-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+  <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-900">New Member Admission</h3>
+      </div>
+      <button type="button" onclick="closeRegisterModal()" class="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <form id="quick-register-form" class="space-y-3.5">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
+        <input type="text" id="reg-name" required placeholder="Member name" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Phone Number *</label>
+          <input type="tel" id="reg-phone" required placeholder="10-digit mobile" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Gender</label>
+          <select id="reg-gender" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium bg-white">
+            <option value="MALE">Male</option>
+            <option value="FEMALE">Female</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Email (Optional)</label>
+        <input type="email" id="reg-email" placeholder="Email address" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium">
+      </div>
+
+      <div class="pt-2">
+        <button type="submit" id="reg-submit-btn" class="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+          Save & Register Member
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
+
+<script>
+  // Open & Close Registration Modal
+  function openRegisterModal() {
+    document.getElementById('register-modal').classList.remove('hidden');
+  }
+  function closeRegisterModal() {
+    document.getElementById('register-modal').classList.add('hidden');
+  }
+
+  // Load Dashboard Data
+  async function loadDashboard() {
+    try {
+      const stats = await api.get('/dashboard/stats');
+      if (stats) {
+        document.getElementById('stat-today-revenue').textContent = formatINR(stats.todayRevenue || stats.todayPayments || 0);
+        document.getElementById('stat-active-members').textContent = stats.activeMembers || 0;
+        document.getElementById('stat-expiring-soon').textContent = stats.expiringSoon || 0;
+        document.getElementById('stat-pending-dues').textContent = formatINR(stats.totalPendingDues || 0);
+        document.getElementById('stat-total-revenue').textContent = formatINR(stats.totalRevenue || 0);
+      }
+    } catch (err) {
+      console.warn('Dashboard stats error:', err);
+    }
+
+    // Load Expiry Alerts
+    try {
+      const list = await api.get('/expiry/upcoming?days=7');
+      const tbody = document.getElementById('expiry-table-body');
+      const badge = document.getElementById('expiry-count-badge');
+      const items = Array.isArray(list) ? list : (list.data || []);
+
+      badge.textContent = items.length;
+
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400">🎉 No memberships expiring in the next 7 days!</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = items.map(sub => {
+        const member = sub.member || {};
+        const memberName = member.fullName || 'Unknown';
+        const phone = member.phone || '';
+        const planName = sub.plan?.name || 'General Plan';
+        const expiryDate = formatDateIN(sub.endDate);
+        const diffDays = Math.ceil((new Date(sub.endDate) - new Date()) / (1000 * 60 * 60 * 24));
+        const daysText = diffDays < 0 ? 'Expired' : diffDays === 0 ? 'Today' : `${diffDays} days left`;
+        const badgeColor = diffDays <= 1 ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800';
+
+        // Clean phone for WhatsApp
+        const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+        const waMsg = encodeURIComponent(`Hello ${memberName}, your Sagar Fitness Gym membership is expiring on ${expiryDate}. Please renew your plan at the front desk to continue your workout sessions!`);
+        const waUrl = cleanPhone ? `https://wa.me/91${cleanPhone}?text=${waMsg}` : '#';
+
+        return `
+          <tr class="hover:bg-slate-50/80 transition-colors">
+            <td class="py-3 px-4 font-bold text-slate-900">${memberName}</td>
+            <td class="py-3 px-4 text-slate-600">${planName}</td>
+            <td class="py-3 px-4 text-slate-600">${expiryDate}</td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">${daysText}</span>
+            </td>
+            <td class="py-3 px-4 text-right">
+              ${cleanPhone ? `
+                <a href="${waUrl}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg text-xs transition-colors">
+                  <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                  <span>WhatsApp</span>
+                </a>
+              ` : '<span class="text-slate-400 text-[11px]">No phone</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      if (window.lucide) lucide.createIcons();
+    } catch (err) {
+      console.warn('Expiry load error:', err);
+    }
+  }
+
+  // Quick Register Handler
+  document.getElementById('quick-register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('reg-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Registering...';
+
+    const payload = {
+      fullName: document.getElementById('reg-name').value.trim(),
+      phone: document.getElementById('reg-phone').value.trim(),
+      gender: document.getElementById('reg-gender').value,
+      email: document.getElementById('reg-email').value.trim() || undefined,
+    };
+
+    try {
+      await api.post('/members', payload);
+      showToast('Registration Successful', `${payload.fullName} has been added!`, 'success');
+      closeRegisterModal();
+      document.getElementById('quick-register-form').reset();
+      loadDashboard();
+    } catch (err) {
+      showToast('Registration Failed', err.message || 'Could not register member', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save & Register Member';
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', loadDashboard);
+</script>
