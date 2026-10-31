@@ -447,13 +447,13 @@
             <!-- Actions -->
             <td class="px-6 py-3.5 text-right">
               <div class="flex items-center justify-end gap-2">
-                ${cleanPhone ? `
-                  <a href="https://wa.me/91${cleanPhone}?text=${waMsg}" target="_blank" class="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 hover:border-emerald-300 hover:text-emerald-800 transition-all active:scale-95 shadow-2xs hover:shadow-xs">
+                ${mem.phone ? `
+                  <button onclick="sendExpiryWhatsApp('${(mem.fullName || 'Member').replace(/'/g, '')}', '${mem.phone}', '${plan.name || 'Pass'}', '${sub.endDate || sub.expiryDate}', ${isExp})" class="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 hover:border-emerald-300 hover:text-emerald-800 transition-all active:scale-95 shadow-2xs hover:shadow-xs cursor-pointer">
                     <div class="w-5 h-5 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-600">
                       <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
                     </div>
                     <span>WhatsApp</span>
-                  </a>
+                  </button>
                 ` : ''}
 
                 <button onclick='openRenewModal(${JSON.stringify(sub).replace(/'/g, "&#39;")})' class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all shadow-xs active:scale-95 cursor-pointer">
@@ -469,6 +469,15 @@
       if (window.lucide) lucide.createIcons();
     } catch (e) {
       console.warn('Expiry alerts error:', e);
+    }
+  }
+
+  // Send WhatsApp Notice
+  function sendExpiryWhatsApp(name, phone, planName, expiryDate, isExp) {
+    if (isExp) {
+      whatsapp.sendExpiredNotice(name, phone, planName, expiryDate);
+    } else {
+      whatsapp.sendExpiryReminder(name, phone, planName, expiryDate);
     }
   }
 

@@ -179,13 +179,17 @@
       </div>
     </div>
 
-    <!-- Actions: Print / Close -->
-    <div class="pt-3 border-t border-slate-100 flex items-center gap-2 font-sans">
-      <button type="button" onclick="window.print()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-all">
-        <i data-lucide="printer" class="w-4 h-4"></i>
-        <span>Print Receipt</span>
+    <!-- Actions: Print / WhatsApp / Close -->
+    <div class="pt-3 border-t border-slate-100 flex items-center gap-2 font-sans flex-wrap">
+      <button type="button" onclick="sendWhatsAppReceiptCurrent()" class="flex-1 min-w-[120px] py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+        <i data-lucide="message-circle" class="w-4 h-4"></i>
+        <span>WhatsApp</span>
       </button>
-      <button type="button" onclick="closeReceiptModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all">
+      <button type="button" onclick="window.print()" class="flex-1 min-w-[120px] py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+        <i data-lucide="printer" class="w-4 h-4"></i>
+        <span>Print</span>
+      </button>
+      <button type="button" onclick="closeReceiptModal()" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer">
         Close
       </button>
     </div>
@@ -196,6 +200,7 @@
 
 <script>
   let allPayments = [];
+  let activeReceiptData = null;
 
   function openCollectModal() {
     document.getElementById('collect-modal').classList.remove('hidden');
@@ -207,6 +212,17 @@
 
   function closeReceiptModal() {
     document.getElementById('receipt-modal').classList.add('hidden');
+  }
+
+  function sendWhatsAppReceiptCurrent() {
+    if (!activeReceiptData) return;
+    const memName = activeReceiptData.member?.fullName || activeReceiptData.memberName || 'Member';
+    const phone = activeReceiptData.member?.phone || '';
+    const receiptNo = activeReceiptData.receiptNumber || ('REC-' + (activeReceiptData._id || '').slice(-6).toUpperCase());
+    const amount = activeReceiptData.amount || 0;
+    const method = activeReceiptData.paymentMethod || activeReceiptData.method || 'CASH';
+    const remaining = activeReceiptData.balanceRemaining || 0;
+    whatsapp.sendPaymentReceipt(memName, phone, receiptNo, amount, method, remaining);
   }
 
   // Load Members for dropdown
@@ -299,6 +315,7 @@
   }
 
   function showReceipt(p) {
+    activeReceiptData = p;
     document.getElementById('rec-number').textContent = p.receiptNumber || 'RECEIPT #' + (p._id || '').slice(-6).toUpperCase();
     document.getElementById('rec-date').textContent = formatDateIN(p.createdAt || p.paymentDate);
     document.getElementById('rec-member').textContent = p.member?.fullName || p.memberName || 'Member';
