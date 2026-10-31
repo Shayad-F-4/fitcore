@@ -6,72 +6,101 @@
   <div class="flex-1 flex flex-col min-w-0 bg-[#F7F8FA] h-screen overflow-y-auto">
     <%- include('partials/navbar', { pageTitle: 'System Settings' }) %>
 
-    <main class="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-12 space-y-6">
+    <main class="flex-1 p-3 sm:p-4 md:p-8 max-w-7xl w-full mx-auto pb-28 lg:pb-16 space-y-4 sm:space-y-6">
       
-      <!-- Gym Facility Card -->
+      <!-- Gym Facility Card (Exact styling from React SettingsPage) -->
       <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
-        <h2 class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b border-slate-100">Gym Center Details</h2>
+        <div class="flex items-center gap-2 pb-3 mb-4 border-b border-slate-100">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <i data-lucide="building-2" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Gym Center & Facility Details</h2>
+            <p class="text-[11px] text-slate-400">Headquarters location and verified branch identity</p>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-          <div>
+          <div class="p-3 bg-slate-50/70 rounded-xl border border-slate-100">
             <span class="text-slate-400 font-bold uppercase text-[10px]">Gym Name</span>
-            <div class="font-bold text-slate-800 mt-0.5">Sagar Fitness Gym</div>
+            <div class="font-bold text-slate-900 mt-0.5 text-sm">Sagar Fitness Gym</div>
           </div>
-          <div>
+          <div class="p-3 bg-slate-50/70 rounded-xl border border-slate-100">
             <span class="text-slate-400 font-bold uppercase text-[10px]">Location</span>
-            <div class="font-bold text-slate-800 mt-0.5">Pathardi, Ahmednagar, Maharashtra</div>
+            <div class="font-bold text-slate-900 mt-0.5">Pathardi, Ahmednagar, Maharashtra</div>
           </div>
-          <div>
+          <div class="p-3 bg-slate-50/70 rounded-xl border border-slate-100">
             <span class="text-slate-400 font-bold uppercase text-[10px]">Helpline Contact</span>
-            <div class="font-bold text-slate-800 mt-0.5">+91 98811 22334</div>
+            <div class="font-bold text-slate-900 font-mono mt-0.5">+91 98811 22334</div>
           </div>
         </div>
       </div>
 
       <!-- Staff Accounts Management -->
       <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
-          <div>
-            <h2 class="text-sm font-bold text-slate-900">Authorized Staff Accounts</h2>
-            <p class="text-[11px] text-slate-400">Manage administrator and front desk logins</p>
+        <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <i data-lucide="users" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Authorized Staff Accounts</h2>
+              <p class="text-[11px] text-slate-400">Manage administrator and reception counter staff credentials</p>
+            </div>
           </div>
-          <button type="button" onclick="openStaffModal()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all">
-            Add Staff Member
+
+          <button
+            type="button"
+            onclick="openStaffModal()"
+            class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer self-start sm:self-auto"
+          >
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+            <span>Add Staff Account</span>
           </button>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+            <thead class="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
               <tr>
-                <th class="py-3 px-4">Staff Name</th>
+                <th class="py-3 px-4">Staff Member</th>
                 <th class="py-3 px-4">Email / Login ID</th>
-                <th class="py-3 px-4">Role</th>
-                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Access Role</th>
+                <th class="py-3 px-4">Account Status</th>
               </tr>
             </thead>
             <tbody id="staff-table-body" class="divide-y divide-slate-100 font-medium">
               <tr>
-                <td colspan="4" class="py-8 text-center text-slate-400">Loading staff accounts...</td>
+                <td colspan="4" class="p-8 text-center text-xs text-slate-400">Loading staff directory...</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Security / Change Password -->
+      <!-- Change Security Password -->
       <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs max-w-lg">
-        <h2 class="text-sm font-bold text-slate-900 mb-3 pb-2 border-b border-slate-100">Change Password</h2>
-        <form id="change-pwd-form" class="space-y-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Current Password</label>
-            <input type="password" id="cur-pwd" required placeholder="Enter current password" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none">
+        <div class="flex items-center gap-2.5 pb-3 mb-3 border-b border-slate-100">
+          <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+            <i data-lucide="lock" class="w-4 h-4"></i>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">New Password (Min 6 characters)</label>
-            <input type="password" id="new-pwd" required minlength="6" placeholder="Enter new password" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none">
+            <h2 class="text-sm font-bold text-slate-900">Update Password</h2>
+            <p class="text-[11px] text-slate-400">Secure your logged-in administrator profile</p>
           </div>
-          <button type="submit" id="chg-pwd-btn" class="w-full h-10 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
-            Update Password
+        </div>
+
+        <form id="change-pwd-form" class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Current Password *</label>
+            <input type="password" id="cur-pwd" required placeholder="Enter current password" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none font-medium">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">New Password * (Min 6 characters)</label>
+            <input type="password" id="new-pwd" required minlength="6" placeholder="Choose secure password" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none font-medium">
+          </div>
+          <button type="submit" id="chg-pwd-btn" class="w-full h-10 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer">
+            Save New Password
           </button>
         </form>
       </div>
@@ -86,7 +115,12 @@
 <div id="staff-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
   <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 space-y-4">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-      <h3 class="text-base font-bold text-slate-900">Add Staff Account</h3>
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-900">Add Staff Account</h3>
+      </div>
       <button type="button" onclick="closeStaffModal()" class="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
@@ -95,29 +129,29 @@
     <form id="add-staff-form" class="space-y-3.5">
       <div>
         <label class="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
-        <input type="text" id="staff-name" required placeholder="Staff member name" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none">
+        <input type="text" id="staff-name" required placeholder="Staff member name" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none font-medium">
       </div>
 
       <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1">Email / Login Username *</label>
-        <input type="email" id="staff-email" required placeholder="staff@fitcore.com" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none">
+        <label class="block text-xs font-bold text-slate-700 mb-1">Email / Username *</label>
+        <input type="email" id="staff-email" required placeholder="staff@fitcore.com" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none font-medium">
       </div>
 
       <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1">Role *</label>
-        <select id="staff-role" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none bg-white">
+        <label class="block text-xs font-bold text-slate-700 mb-1">Role Permission *</label>
+        <select id="staff-role" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none bg-white font-medium">
           <option value="RECEPTIONIST">Front Desk / Receptionist</option>
           <option value="GYM_ADMIN">Gym Manager</option>
         </select>
       </div>
 
       <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1">Password *</label>
-        <input type="password" id="staff-password" required minlength="6" placeholder="Min 6 characters" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none">
+        <label class="block text-xs font-bold text-slate-700 mb-1">Initial Password *</label>
+        <input type="password" id="staff-password" required minlength="6" placeholder="Min 6 characters" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-indigo-600 focus:outline-none font-medium">
       </div>
 
       <div class="pt-2">
-        <button type="submit" id="staff-submit-btn" class="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+        <button type="submit" id="staff-submit-btn" class="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer">
           Create Account
         </button>
       </div>
@@ -135,6 +169,7 @@
     document.getElementById('staff-modal').classList.add('hidden');
   }
 
+  // Load Staff Accounts
   async function loadStaff() {
     try {
       const res = await api.get('/auth/staff');
@@ -142,20 +177,22 @@
       const tbody = document.getElementById('staff-table-body');
 
       if (staff.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-slate-400">No staff accounts found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-xs text-slate-400">No staff accounts found.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = staff.map(s => {
-        const roleText = s.role === 'SUPER_ADMIN' ? 'Owner / Admin' : s.role === 'GYM_ADMIN' ? 'Gym Manager' : 'Front Desk';
-        const roleColor = s.role === 'SUPER_ADMIN' ? 'bg-purple-100 text-purple-800' : s.role === 'GYM_ADMIN' ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-700';
+        const isOwner = s.role === 'SUPER_ADMIN';
+        const isManager = s.role === 'GYM_ADMIN';
+        const roleLabel = isOwner ? '👑 Gym Owner' : isManager ? '🏢 Gym Manager' : '👤 Front Desk';
+        const roleBadge = isOwner ? 'bg-purple-100 text-purple-800' : isManager ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-700';
 
         return `
           <tr class="hover:bg-slate-50/80 transition-colors">
             <td class="py-3 px-4 font-bold text-slate-900">${s.fullName}</td>
             <td class="py-3 px-4 text-slate-600 font-mono">${s.email}</td>
             <td class="py-3 px-4">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${roleColor}">${roleText}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${roleBadge}">${roleLabel}</span>
             </td>
             <td class="py-3 px-4">
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">ACTIVE</span>
@@ -164,10 +201,11 @@
         `;
       }).join('');
     } catch (err) {
-      document.getElementById('staff-table-body').innerHTML = `<tr><td colspan="4" class="py-8 text-center text-rose-500">Failed to load staff accounts.</td></tr>`;
+      document.getElementById('staff-table-body').innerHTML = `<tr><td colspan="4" class="p-8 text-center text-rose-500">Failed to load staff accounts.</td></tr>`;
     }
   }
 
+  // Submit Add Staff
   document.getElementById('add-staff-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('staff-submit-btn');
@@ -195,6 +233,7 @@
     }
   });
 
+  // Submit Change Password
   document.getElementById('change-pwd-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('chg-pwd-btn');
@@ -206,13 +245,13 @@
 
     try {
       await api.post('/auth/change-password', { currentPassword, newPassword });
-      showToast('Password Changed', 'Your password was updated successfully!', 'success');
+      showToast('Password Updated', 'Your security password was changed successfully!', 'success');
       document.getElementById('change-pwd-form').reset();
     } catch (err) {
-      showToast('Error', err.message || 'Could not change password', 'error');
+      showToast('Error', err.message || 'Current password incorrect', 'error');
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Update Password';
+      btn.textContent = 'Save New Password';
     }
   });
 

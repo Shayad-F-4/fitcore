@@ -10,16 +10,20 @@
     <%- include('partials/navbar', { pageTitle: 'Dashboard' }) %>
 
     <!-- Page Content -->
-    <main class="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-12 space-y-6">
+    <main class="flex-1 p-3 sm:p-4 md:p-8 max-w-7xl w-full mx-auto pb-28 lg:pb-16 space-y-4 sm:space-y-6">
       
-      <!-- Quick Action Buttons -->
+      <!-- Quick Action Buttons Bar -->
       <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs">
         <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Quick Actions</span>
-          <span class="text-xs text-slate-500 font-medium" id="logged-user-label">Logged in</span>
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Quick Actions</span>
+          </div>
+          <span class="text-xs text-slate-500 font-medium">Sagar Fitness Desk</span>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          <a href="/members" class="p-3 rounded-xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-300 text-left transition-all active:scale-95 group">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
+          <!-- All Members -->
+          <a href="/members" class="p-3 rounded-xl bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-300 text-left transition-all active:scale-[0.98] group cursor-pointer min-h-[44px]">
             <div class="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-emerald-800">
               <div class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                 <i data-lucide="users" class="w-3.5 h-3.5"></i>
@@ -29,130 +33,185 @@
             <p class="text-[10px] text-slate-500 mt-1">Manage gym members</p>
           </a>
 
-          <button type="button" onclick="openRegisterModal()" class="p-3 rounded-xl bg-slate-50 hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 text-left transition-all active:scale-95 group cursor-pointer">
+          <!-- New Member Admission -->
+          <button type="button" onclick="openRegisterModal()" class="p-3 rounded-xl bg-slate-50 hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 text-left transition-all active:scale-[0.98] group cursor-pointer min-h-[44px]">
             <div class="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-blue-800">
               <div class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
                 <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
               </div>
-              <span>New Admission</span>
+              <span>New Member</span>
             </div>
-            <p class="text-[10px] text-slate-500 mt-1">Register new member</p>
+            <p class="text-[10px] text-slate-500 mt-1">Register new admission</p>
           </button>
 
-          <a href="/billing" class="p-3 rounded-xl bg-slate-50 hover:bg-rose-50/70 border border-slate-200 hover:border-rose-300 text-left transition-all active:scale-95 group">
+          <!-- Collect Due & Bill -->
+          <a href="/billing" class="p-3 rounded-xl bg-slate-50 hover:bg-rose-50/70 border border-slate-200 hover:border-rose-300 text-left transition-all active:scale-[0.98] group cursor-pointer min-h-[44px]">
             <div class="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-rose-800">
               <div class="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
                 <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
               </div>
-              <span>Collect Fees</span>
+              <span>Collect Due & Bill</span>
             </div>
-            <p class="text-[10px] text-slate-500 mt-1">Receipts & fee payment</p>
+            <p class="text-[10px] text-slate-500 mt-1">Receipts & fees payment</p>
           </a>
 
-          <a href="#expiry-section" class="p-3 rounded-xl bg-slate-50 hover:bg-amber-50/70 border border-slate-200 hover:border-amber-300 text-left transition-all active:scale-95 group">
-            <div class="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-amber-800">
-              <div class="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+          <!-- WhatsApp Alerts -->
+          <a href="#expiry-warning-section" class="p-3 rounded-xl bg-slate-50 hover:bg-amber-50/70 border border-slate-200 hover:border-amber-300 text-left transition-all active:scale-[0.98] group cursor-pointer min-h-[44px]">
+            <div class="flex items-center gap-2 text-slate-900 font-bold text-xs group-hover:text-emerald-800">
+              <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
+                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
               </div>
-              <span>Expiry Alerts</span>
+              <span>WhatsApp Alerts</span>
             </div>
-            <p class="text-[10px] text-slate-500 mt-1">Send WhatsApp alerts</p>
+            <p class="text-[10px] text-slate-500 mt-1">Send expiry reminders</p>
           </a>
         </div>
       </div>
 
-      <!-- Exactly 5 Metric Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
-        <!-- Card 1: Today's Revenue -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+      <!-- Exactly 5 Summary Metric Cards (Exact CSS from original React design) -->
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+        <!-- Card 1: Today's Revenue (Emerald) -->
+        <div class="bg-emerald-50/40 border border-emerald-200/80 border-l-4 border-l-emerald-500 rounded-xl p-3 sm:p-4 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Today's Fees</span>
-            <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <i data-lucide="indian-rupee" class="w-4 h-4"></i>
+            <span class="text-[11px] sm:text-xs font-bold text-emerald-800/80 uppercase tracking-wider truncate mr-1">
+              Today's Revenue
+            </span>
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-100/90 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold text-xs sm:text-sm shadow-2xs shrink-0">
+              ₹
             </div>
           </div>
-          <div class="mt-2 text-xl sm:text-2xl font-black text-slate-900" id="stat-today-revenue">₹0</div>
-          <p class="text-[10px] text-slate-400 mt-0.5">Collected today</p>
+          <div class="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-black text-slate-900 tracking-tight" id="stat-today-revenue">
+            ₹0
+          </div>
+          <p class="text-[10px] sm:text-[11px] text-emerald-800/70 mt-1 flex items-center gap-1.5 font-medium truncate">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0"></span>
+            <span class="truncate">Counter & digital receipts</span>
+          </p>
         </div>
 
-        <!-- Card 2: Active Members -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+        <!-- Card 2: Active Athletes (Blue) -->
+        <div class="bg-blue-50/40 border border-blue-200/80 border-l-4 border-l-blue-500 rounded-xl p-3 sm:p-4 shadow-2xs hover:border-blue-300 hover:shadow-xs transition-all">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Active Members</span>
-            <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-              <i data-lucide="users" class="w-4 h-4"></i>
+            <span class="text-[11px] sm:text-xs font-bold text-blue-800/80 uppercase tracking-wider truncate mr-1">
+              Active Athletes
+            </span>
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-100/90 text-blue-700 border border-blue-200 flex items-center justify-center shadow-2xs shrink-0">
+              <i data-lucide="users" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
             </div>
           </div>
-          <div class="mt-2 text-xl sm:text-2xl font-black text-slate-900" id="stat-active-members">0</div>
-          <p class="text-[10px] text-slate-400 mt-0.5">Valid memberships</p>
+          <div class="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-black text-slate-900 tracking-tight" id="stat-active-members">
+            0
+          </div>
+          <p class="text-[10px] sm:text-[11px] text-blue-800/70 mt-1 flex items-center gap-1.5 font-medium truncate">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"></span>
+            <span class="truncate">Valid active memberships</span>
+          </p>
         </div>
 
-        <!-- Card 3: Expiry Alerts -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+        <!-- Card 3: Expiry Alerts (Amber) -->
+        <div
+          onclick="document.getElementById('expiry-warning-section')?.scrollIntoView({ behavior: 'smooth' })"
+          class="bg-amber-50/40 border border-amber-200/80 border-l-4 border-l-amber-500 rounded-xl p-3 sm:p-4 shadow-2xs hover:border-amber-300 hover:shadow-xs cursor-pointer active:scale-[0.98] transition-all"
+        >
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Expiring Soon</span>
-            <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-              <i data-lucide="clock" class="w-4 h-4"></i>
+            <span class="text-[11px] sm:text-xs font-bold text-amber-800/80 uppercase tracking-wider truncate mr-1">
+              Expiry Alerts
+            </span>
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-100/90 text-amber-700 border border-amber-200 flex items-center justify-center shadow-2xs shrink-0">
+              <i data-lucide="clock" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
             </div>
           </div>
-          <div class="mt-2 text-xl sm:text-2xl font-black text-slate-900" id="stat-expiring-soon">0</div>
-          <p class="text-[10px] text-slate-400 mt-0.5">Next 7 days</p>
+          <div class="mt-1.5 sm:mt-2 flex items-baseline gap-1.5">
+            <span class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight" id="stat-expiry-total">
+              0
+            </span>
+            <span class="text-[10px] sm:text-[11px] text-amber-800/70 font-medium truncate">pending</span>
+          </div>
+          <div class="mt-1 flex items-center gap-1 sm:gap-1.5 flex-wrap" id="expiry-sub-tags">
+            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-semibold bg-amber-100 text-amber-900 border border-amber-200">
+              ⚠️ Next 7 days
+            </span>
+          </div>
         </div>
 
-        <!-- Card 4: Pending Dues -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+        <!-- Card 4: Pending Dues (Rose) -->
+        <a
+          href="/billing"
+          class="bg-rose-50/40 border border-rose-200/80 border-l-4 border-l-rose-500 rounded-xl p-3 sm:p-4 shadow-2xs hover:border-rose-300 hover:shadow-xs cursor-pointer active:scale-[0.98] transition-all"
+        >
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pending Dues</span>
-            <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-              <i data-lucide="alert-circle" class="w-4 h-4"></i>
+            <span class="text-[11px] sm:text-xs font-bold text-rose-800/80 uppercase tracking-wider truncate mr-1">
+              Pending Dues
+            </span>
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-rose-100/90 text-rose-700 border border-rose-200 flex items-center justify-center shadow-2xs shrink-0">
+              <i data-lucide="alert-circle" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
             </div>
           </div>
-          <div class="mt-2 text-xl sm:text-2xl font-black text-rose-600" id="stat-pending-dues">₹0</div>
-          <p class="text-[10px] text-slate-400 mt-0.5">Unpaid balances</p>
-        </div>
+          <div class="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-black text-rose-600 tracking-tight" id="stat-pending-dues">
+            ₹0
+          </div>
+          <p class="text-[10px] sm:text-[11px] text-rose-800/70 mt-1 flex items-center gap-1.5 font-medium truncate">
+            <span class="w-1.5 h-1.5 rounded-full bg-rose-600 shrink-0"></span>
+            <span class="truncate">Unpaid balances</span>
+          </p>
+        </a>
 
-        <!-- Card 5: Total Revenue -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs col-span-2 lg:col-span-1">
+        <!-- Card 5: Total Revenue (Purple - spans 2 cols on mobile) -->
+        <a
+          href="/billing"
+          class="bg-purple-50/40 border border-purple-200/80 border-l-4 border-l-purple-500 rounded-xl p-3 sm:p-4 shadow-2xs hover:border-purple-300 hover:shadow-xs cursor-pointer active:scale-[0.98] transition-all col-span-2 lg:col-span-1"
+        >
           <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Revenue</span>
-            <div class="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-              <i data-lucide="credit-card" class="w-4 h-4"></i>
+            <span class="text-[11px] sm:text-xs font-bold text-purple-800/80 uppercase tracking-wider truncate mr-1">
+              Total Revenue
+            </span>
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-purple-100/90 text-purple-700 border border-purple-200 flex items-center justify-center font-bold text-xs sm:text-sm shadow-2xs shrink-0">
+              ₹
             </div>
           </div>
-          <div class="mt-2 text-xl sm:text-2xl font-black text-slate-900" id="stat-total-revenue">₹0</div>
-          <p class="text-[10px] text-slate-400 mt-0.5">Lifetime fee collection</p>
-        </div>
+          <div class="mt-1.5 sm:mt-2 text-lg sm:text-2xl font-black text-slate-900 tracking-tight" id="stat-total-revenue">
+            ₹0
+          </div>
+          <p class="text-[10px] sm:text-[11px] text-purple-800/70 mt-1 flex items-center gap-1.5 font-medium truncate">
+            <span class="w-1.5 h-1.5 rounded-full bg-purple-600 shrink-0"></span>
+            <span class="truncate">Monthly collections</span>
+          </p>
+        </a>
       </div>
 
-      <!-- Expiry Warning Section -->
-      <div id="expiry-section" class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <i data-lucide="bell" class="w-4 h-4"></i>
+      <!-- Section C: Membership Expiry & Overdue Warnings Table -->
+      <div id="expiry-warning-section" class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/60">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+              <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Membership Expiry & Overdue Warnings (<span id="expiry-count-title">0</span>)
+              </h3>
             </div>
-            <div>
-              <h2 class="text-sm sm:text-base font-bold text-slate-900">Memberships Expiring Soon</h2>
-              <p class="text-[11px] text-slate-400">Athletes requiring renewal within the next 7 days</p>
-            </div>
+            <p class="text-xs text-slate-500 font-medium mt-0.5">
+              Expired members requiring renewal and passes expiring within 7 days.
+            </p>
           </div>
-          <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800" id="expiry-count-badge">0</span>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+            <thead class="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
               <tr>
-                <th class="py-3 px-4">Member</th>
-                <th class="py-3 px-4">Plan</th>
-                <th class="py-3 px-4">Expiry Date</th>
-                <th class="py-3 px-4">Remaining</th>
-                <th class="py-3 px-4 text-right">Action</th>
+                <th class="px-6 py-3">Member Name</th>
+                <th class="px-6 py-3">Phone Number</th>
+                <th class="px-6 py-3">Membership Plan</th>
+                <th class="px-6 py-3">Expiry Date</th>
+                <th class="px-6 py-3">Status / Alert</th>
+                <th class="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody id="expiry-table-body" class="divide-y divide-slate-100 font-medium">
+            <tbody id="expiry-table-body" class="divide-y divide-slate-100">
               <tr>
-                <td colspan="5" class="py-8 text-center text-slate-400">Loading expiring memberships...</td>
+                <td colspan="6" class="p-8 text-center text-xs text-slate-500">
+                  Loading membership expiry records...
+                </td>
               </tr>
             </tbody>
           </table>
@@ -163,10 +222,64 @@
   </div>
 </div>
 
-<!-- Mobile Bottom Nav -->
+<!-- Mobile Bottom Navigation -->
 <%- include('partials/mobileNav', { activePage: 'dashboard' }) %>
 
-<!-- Shared New Member Registration Modal -->
+<!-- Renew Membership Modal -->
+<div id="renew-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 space-y-4">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+          <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-900">Renew Membership</h3>
+      </div>
+      <button type="button" onclick="closeRenewModal()" class="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <form id="renew-form" class="space-y-3.5">
+      <input type="hidden" id="renew-membership-id">
+      
+      <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+        <div class="text-xs font-bold text-slate-900" id="renew-member-name">Member</div>
+        <div class="text-[11px] text-slate-500" id="renew-current-plan">Current Plan: -</div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Select Renewal Plan *</label>
+        <select id="renew-plan-select" required onchange="onRenewPlanChange()" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none bg-white font-medium">
+          <option value="">-- Choose Plan --</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Fee Amount (₹) *</label>
+          <input type="number" id="renew-amount" required min="0" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Payment Method</label>
+          <select id="renew-method" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none bg-white font-medium">
+            <option value="UPI">UPI / GPay / PhonePe</option>
+            <option value="CASH">Cash</option>
+            <option value="CARD">Debit / Credit Card</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button type="submit" id="renew-submit-btn" class="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+          Confirm Renewal & Record Payment
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- New Member Admission Modal -->
 <div id="register-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
   <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -203,8 +316,10 @@
       </div>
 
       <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1">Email (Optional)</label>
-        <input type="email" id="reg-email" placeholder="Email address" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium">
+        <label class="block text-xs font-bold text-slate-700 mb-1">Initial Membership Plan</label>
+        <select id="reg-plan-select" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium bg-white">
+          <option value="">-- No plan initially (Register Only) --</option>
+        </select>
       </div>
 
       <div class="pt-2">
@@ -219,83 +334,189 @@
 <%- include('partials/footer') %>
 
 <script>
-  // Open & Close Registration Modal
+  let availablePlans = [];
+
   function openRegisterModal() {
     document.getElementById('register-modal').classList.remove('hidden');
+    loadPlansIntoSelect('reg-plan-select');
   }
   function closeRegisterModal() {
     document.getElementById('register-modal').classList.add('hidden');
   }
 
-  // Load Dashboard Data
+  function closeRenewModal() {
+    document.getElementById('renew-modal').classList.add('hidden');
+  }
+
+  // Load plans into any dropdown
+  async function loadPlansIntoSelect(selectId) {
+    if (availablePlans.length === 0) {
+      const p = await api.get('/plans');
+      availablePlans = Array.isArray(p) ? p : (p.data || []);
+    }
+    const sel = document.getElementById(selectId);
+    if (sel && sel.options.length <= 1) {
+      availablePlans.forEach(plan => {
+        const opt = document.createElement('option');
+        opt.value = plan._id;
+        opt.textContent = `${plan.name} (${plan.durationDays} days - ${formatINR(plan.price)})`;
+        opt.dataset.price = plan.price;
+        opt.dataset.days = plan.durationDays;
+        sel.appendChild(opt);
+      });
+    }
+  }
+
+  // Simple Clean Dashboard Loader
   async function loadDashboard() {
+    // 1. Load Stats
     try {
-      const stats = await api.get('/dashboard/stats');
-      if (stats) {
-        document.getElementById('stat-today-revenue').textContent = formatINR(stats.todayRevenue || stats.todayPayments || 0);
-        document.getElementById('stat-active-members').textContent = stats.activeMembers || 0;
-        document.getElementById('stat-expiring-soon').textContent = stats.expiringSoon || 0;
-        document.getElementById('stat-pending-dues').textContent = formatINR(stats.totalPendingDues || 0);
-        document.getElementById('stat-total-revenue').textContent = formatINR(stats.totalRevenue || 0);
+      const s = await api.get('/dashboard/stats');
+      if (s) {
+        document.getElementById('stat-today-revenue').textContent = formatINR(s.todayRevenue || s.todayPayments || 0);
+        document.getElementById('stat-active-members').textContent = (s.activeMembers || 0).toLocaleString('en-IN');
+        document.getElementById('stat-expiry-total').textContent = (s.expiringSoon || 0).toLocaleString('en-IN');
+        document.getElementById('stat-pending-dues').textContent = formatINR(s.totalPendingDues || 0);
+        document.getElementById('stat-total-revenue').textContent = formatINR(s.totalRevenue || 0);
       }
-    } catch (err) {
-      console.warn('Dashboard stats error:', err);
+    } catch (e) {
+      console.warn('Dashboard stats load error:', e);
     }
 
-    // Load Expiry Alerts
+    // 2. Load Expiring & Overdue Warnings
     try {
-      const list = await api.get('/expiry/upcoming?days=7');
+      const res = await api.get('/expiry/upcoming?days=7');
+      const list = Array.isArray(res) ? res : (res.data || []);
       const tbody = document.getElementById('expiry-table-body');
-      const badge = document.getElementById('expiry-count-badge');
-      const items = Array.isArray(list) ? list : (list.data || []);
+      document.getElementById('expiry-count-title').textContent = list.length;
 
-      badge.textContent = items.length;
-
-      if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400">🎉 No memberships expiring in the next 7 days!</td></tr>`;
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-xs text-slate-500">All member passes are currently valid and active. No expired or expiring memberships.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = items.map(sub => {
-        const member = sub.member || {};
-        const memberName = member.fullName || 'Unknown';
-        const phone = member.phone || '';
-        const planName = sub.plan?.name || 'General Plan';
-        const expiryDate = formatDateIN(sub.endDate);
-        const diffDays = Math.ceil((new Date(sub.endDate) - new Date()) / (1000 * 60 * 60 * 24));
-        const daysText = diffDays < 0 ? 'Expired' : diffDays === 0 ? 'Today' : `${diffDays} days left`;
-        const badgeColor = diffDays <= 1 ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800';
+      tbody.innerHTML = list.map(sub => {
+        const mem = sub.member || {};
+        const plan = sub.plan || {};
+        const expiryDateStr = formatDateIN(sub.endDate || sub.expiryDate);
+        const diffDays = Math.ceil((new Date(sub.endDate || sub.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
+        const isExp = diffDays <= 0;
+
+        const badgeHtml = isExp
+          ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">🔴 Expired</span>`
+          : `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-900 border border-amber-200">⚠️ ${diffDays} days left</span>`;
 
         // Clean phone for WhatsApp
-        const cleanPhone = phone.replace(/\D/g, '').slice(-10);
-        const waMsg = encodeURIComponent(`Hello ${memberName}, your Sagar Fitness Gym membership is expiring on ${expiryDate}. Please renew your plan at the front desk to continue your workout sessions!`);
-        const waUrl = cleanPhone ? `https://wa.me/91${cleanPhone}?text=${waMsg}` : '#';
+        const cleanPhone = (mem.phone || '').replace(/\D/g, '').slice(-10);
+        const waMsg = encodeURIComponent(
+          isExp
+            ? `Hello ${mem.fullName}, your Sagar Fitness Gym membership has EXPIRED. Please visit the front desk to renew your pass!`
+            : `Hello ${mem.fullName}, reminder: your Sagar Fitness Gym membership expires on ${expiryDateStr}. Please renew on time!`
+        );
 
         return `
-          <tr class="hover:bg-slate-50/80 transition-colors">
-            <td class="py-3 px-4 font-bold text-slate-900">${memberName}</td>
-            <td class="py-3 px-4 text-slate-600">${planName}</td>
-            <td class="py-3 px-4 text-slate-600">${expiryDate}</td>
-            <td class="py-3 px-4">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">${daysText}</span>
+          <tr class="transition-colors ${isExp ? 'bg-rose-50/40 hover:bg-rose-50/70' : 'hover:bg-slate-50/70'}">
+            <!-- Member Photo & Name -->
+            <td class="px-6 py-3.5">
+              <a href="/members" class="flex items-center gap-3 text-left group">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs uppercase ${isExp ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-blue-50 text-blue-700 border border-blue-100'}">
+                  ${(mem.fullName || 'M').slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <div class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                    <span>${mem.fullName || 'Member'}</span>
+                    ${isExp ? '<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-rose-100 text-rose-700 border border-rose-200">EXPIRED</span>' : ''}
+                  </div>
+                  <div class="text-[11px] text-slate-500 font-mono mt-0.5">ID: ${mem.memberId || '-'}</div>
+                </div>
+              </a>
             </td>
-            <td class="py-3 px-4 text-right">
-              ${cleanPhone ? `
-                <a href="${waUrl}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg text-xs transition-colors">
-                  <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
-                  <span>WhatsApp</span>
-                </a>
-              ` : '<span class="text-slate-400 text-[11px]">No phone</span>'}
+
+            <!-- Phone Number -->
+            <td class="px-6 py-3.5 font-mono font-medium text-slate-700">${mem.phone || '-'}</td>
+
+            <!-- Plan -->
+            <td class="px-6 py-3.5 text-slate-800 font-semibold">${plan.name || 'Standard Pass'}</td>
+
+            <!-- Expiry Date -->
+            <td class="px-6 py-3.5 font-semibold font-mono ${isExp ? 'text-rose-700 font-bold' : 'text-slate-800'}">${expiryDateStr}</td>
+
+            <!-- Status / Alert -->
+            <td class="px-6 py-3.5">${badgeHtml}</td>
+
+            <!-- Actions -->
+            <td class="px-6 py-3.5 text-right">
+              <div class="flex items-center justify-end gap-2">
+                ${cleanPhone ? `
+                  <a href="https://wa.me/91${cleanPhone}?text=${waMsg}" target="_blank" class="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 hover:border-emerald-300 hover:text-emerald-800 transition-all active:scale-95 shadow-2xs hover:shadow-xs">
+                    <div class="w-5 h-5 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-600">
+                      <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <span>WhatsApp</span>
+                  </a>
+                ` : ''}
+
+                <button onclick='openRenewModal(${JSON.stringify(sub).replace(/'/g, "&#39;")})' class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all shadow-xs active:scale-95 cursor-pointer">
+                  <i data-lucide="rotate-cw" class="w-3 h-3"></i>
+                  <span>Renew</span>
+                </button>
+              </div>
             </td>
           </tr>
         `;
       }).join('');
 
       if (window.lucide) lucide.createIcons();
-    } catch (err) {
-      console.warn('Expiry load error:', err);
+    } catch (e) {
+      console.warn('Expiry alerts error:', e);
     }
   }
+
+  // Open Renew Modal
+  async function openRenewModal(sub) {
+    document.getElementById('renew-membership-id').value = sub._id;
+    document.getElementById('renew-member-name').textContent = sub.member?.fullName || 'Member';
+    document.getElementById('renew-current-plan').textContent = `Current: ${sub.plan?.name || 'Pass'} (${formatDateIN(sub.endDate || sub.expiryDate)})`;
+    await loadPlansIntoSelect('renew-plan-select');
+    document.getElementById('renew-modal').classList.remove('hidden');
+    if (sub.plan?._id) {
+      document.getElementById('renew-plan-select').value = sub.plan._id;
+      onRenewPlanChange();
+    }
+  }
+
+  function onRenewPlanChange() {
+    const sel = document.getElementById('renew-plan-select');
+    const opt = sel.options[sel.selectedIndex];
+    if (opt && opt.dataset.price) {
+      document.getElementById('renew-amount').value = opt.dataset.price;
+    }
+  }
+
+  // Submit Renewal (< 15 lines)
+  document.getElementById('renew-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('renew-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    const subId = document.getElementById('renew-membership-id').value;
+    const planId = document.getElementById('renew-plan-select').value;
+    const amountPaid = Number(document.getElementById('renew-amount').value);
+    const paymentMethod = document.getElementById('renew-method').value;
+
+    try {
+      await api.post(`/memberships/${subId}/renew`, { newPlanId: planId, amountPaid, paymentMethod });
+      showToast('Membership Renewed', 'Renewal recorded successfully!', 'success');
+      closeRenewModal();
+      loadDashboard();
+    } catch (err) {
+      showToast('Renewal Failed', err.message || 'Could not renew', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Confirm Renewal & Record Payment';
+    }
+  });
 
   // Quick Register Handler
   document.getElementById('quick-register-form').addEventListener('submit', async (e) => {
@@ -308,17 +529,17 @@
       fullName: document.getElementById('reg-name').value.trim(),
       phone: document.getElementById('reg-phone').value.trim(),
       gender: document.getElementById('reg-gender').value,
-      email: document.getElementById('reg-email').value.trim() || undefined,
+      planId: document.getElementById('reg-plan-select').value || undefined,
     };
 
     try {
       await api.post('/members', payload);
-      showToast('Registration Successful', `${payload.fullName} has been added!`, 'success');
+      showToast('Registered', `${payload.fullName} registered successfully!`, 'success');
       closeRegisterModal();
       document.getElementById('quick-register-form').reset();
       loadDashboard();
     } catch (err) {
-      showToast('Registration Failed', err.message || 'Could not register member', 'error');
+      showToast('Registration Error', err.message || 'Failed to register', 'error');
     } finally {
       btn.disabled = false;
       btn.textContent = 'Save & Register Member';

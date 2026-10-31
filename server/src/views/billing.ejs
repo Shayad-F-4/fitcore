@@ -1,49 +1,86 @@
-<%- include('partials/header', { title: 'Billing & Payments' }) %>
+<%- include('partials/header', { title: 'Billing & Fees' }) %>
 
 <div class="flex h-screen overflow-hidden">
   <%- include('partials/sidebar', { activePage: 'billing' }) %>
 
   <div class="flex-1 flex flex-col min-w-0 bg-[#F7F8FA] h-screen overflow-y-auto">
-    <%- include('partials/navbar', { pageTitle: 'Billing & Fees Management' }) %>
+    <%- include('partials/navbar', { pageTitle: 'Billing & Payments Ledger' }) %>
 
-    <main class="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-12 space-y-4">
+    <main class="flex-1 p-3 sm:p-4 md:p-8 max-w-7xl w-full mx-auto pb-28 lg:pb-16 space-y-4 sm:space-y-6">
       
-      <!-- Top Actions & Pending Dues Quick Collect -->
-      <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h2 class="text-sm font-bold text-slate-900">Fee Transactions & Invoices</h2>
-          <p class="text-[11px] text-slate-400">Track membership payments, partial dues, and generate official receipts</p>
+      <!-- Top Revenue Metrics (Exact CSS from original React design) -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <!-- Metric 1: Total Collections -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs border-l-4 border-l-emerald-500">
+          <div class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Total Fees Collected</div>
+          <div class="text-xl sm:text-2xl font-black text-slate-900 mt-1" id="bill-sum-total">₹0</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Lifetime fee records</div>
         </div>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="openCollectModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all">
-            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-            <span>Record Payment / Due</span>
-          </button>
+
+        <!-- Metric 2: Today's Collections -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs border-l-4 border-l-blue-500">
+          <div class="text-[11px] font-bold text-blue-800 uppercase tracking-wider">Today's Collections</div>
+          <div class="text-xl sm:text-2xl font-black text-slate-900 mt-1" id="bill-sum-today">₹0</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Counter & digital cash</div>
+        </div>
+
+        <!-- Metric 3: Outstanding Dues -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-2xs border-l-4 border-l-rose-500">
+          <div class="text-[11px] font-bold text-rose-800 uppercase tracking-wider">Pending Dues Balance</div>
+          <div class="text-xl sm:text-2xl font-black text-rose-600 mt-1" id="bill-sum-dues">₹0</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Uncollected membership fees</div>
         </div>
       </div>
 
-      <!-- Payments Table -->
+      <!-- Action & Search Bar -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="relative w-full sm:w-80">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </span>
+          <input
+            type="text"
+            id="payment-search"
+            placeholder="Search receipt #, member name..."
+            class="w-full h-10 pl-10 pr-4 text-xs border border-slate-200 rounded-xl focus:border-blue-600 focus:outline-none font-medium bg-slate-50/50"
+          />
+        </div>
+
+        <button
+          type="button"
+          onclick="openCollectModal()"
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer shrink-0"
+        >
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>Record Payment / Collect Due</span>
+        </button>
+      </div>
+
+      <!-- Transactions Ledger Table -->
       <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Transaction Records</span>
-          <span class="text-xs text-slate-400" id="billing-count-label">Loading transactions...</span>
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+          <div class="flex items-center gap-2">
+            <i data-lucide="receipt" class="w-4 h-4 text-slate-600"></i>
+            <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Fee Transactions History</span>
+          </div>
+          <span class="text-xs text-slate-500 font-medium" id="payments-count-badge">0 entries</span>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+            <thead class="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
               <tr>
                 <th class="py-3 px-4">Receipt #</th>
-                <th class="py-3 px-4">Member</th>
+                <th class="py-3 px-4">Member Name</th>
                 <th class="py-3 px-4">Amount Paid</th>
-                <th class="py-3 px-4">Payment Mode</th>
-                <th class="py-3 px-4">Date</th>
-                <th class="py-3 px-4 text-right">Receipt</th>
+                <th class="py-3 px-4">Payment Method</th>
+                <th class="py-3 px-4">Date & Time</th>
+                <th class="py-3 px-4 text-right">Official Receipt</th>
               </tr>
             </thead>
             <tbody id="payments-table-body" class="divide-y divide-slate-100 font-medium">
               <tr>
-                <td colspan="6" class="py-8 text-center text-slate-400">Loading payment history...</td>
+                <td colspan="6" class="p-8 text-center text-xs text-slate-400">Loading payment records...</td>
               </tr>
             </tbody>
           </table>
@@ -56,11 +93,16 @@
 
 <%- include('partials/mobileNav', { activePage: 'billing' }) %>
 
-<!-- Record Payment Modal -->
+<!-- Collect / Record Payment Modal -->
 <div id="collect-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
   <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 space-y-4">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-      <h3 class="text-base font-bold text-slate-900">Record Fee Payment</h3>
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+          <i data-lucide="credit-card" class="w-4 h-4"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-900">Record Fee Collection</h3>
+      </div>
       <button type="button" onclick="closeCollectModal()" class="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
@@ -69,21 +111,21 @@
     <form id="collect-form" class="space-y-3.5">
       <div>
         <label class="block text-xs font-bold text-slate-700 mb-1">Select Member *</label>
-        <select id="collect-member-select" required class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-rose-600 focus:outline-none font-medium bg-white">
-          <option value="">-- Choose member --</option>
+        <select id="collect-member-select" required class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium bg-white">
+          <option value="">-- Choose Member --</option>
         </select>
       </div>
 
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Amount Paid (₹) *</label>
-          <input type="number" id="collect-amount" required min="1" placeholder="e.g. 1500" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-rose-600 focus:outline-none font-medium">
+          <input type="number" id="collect-amount" required min="1" placeholder="e.g. 1500" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Payment Method</label>
-          <select id="collect-method" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-rose-600 focus:outline-none font-medium bg-white">
-            <option value="CASH">Cash</option>
+          <select id="collect-method" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium bg-white">
             <option value="UPI">UPI / GPay / PhonePe</option>
+            <option value="CASH">Cash</option>
             <option value="CARD">Debit / Credit Card</option>
             <option value="BANK_TRANSFER">Bank Transfer</option>
           </select>
@@ -91,12 +133,12 @@
       </div>
 
       <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1">Remarks / Reference (Optional)</label>
-        <input type="text" id="collect-remarks" placeholder="UPI ref or note" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-rose-600 focus:outline-none font-medium">
+        <label class="block text-xs font-bold text-slate-700 mb-1">Notes / Transaction Ref (Optional)</label>
+        <input type="text" id="collect-notes" placeholder="e.g. GPay Ref #1234 or Monthly dues" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium">
       </div>
 
       <div class="pt-2">
-        <button type="submit" id="collect-submit-btn" class="w-full h-11 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+        <button type="submit" id="collect-btn" class="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
           Record Payment & Generate Receipt
         </button>
       </div>
@@ -104,39 +146,46 @@
   </div>
 </div>
 
-<!-- Receipt Printable Modal -->
+<!-- Official Receipt Modal (Exact Print Styling from React) -->
 <div id="receipt-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
-  <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 space-y-4 font-mono select-none">
+  <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 space-y-4 font-mono select-none border border-slate-200">
+    <!-- Header -->
     <div class="text-center pb-3 border-b border-dashed border-slate-300">
-      <h3 class="text-base font-black tracking-wider text-slate-900">SAGAR FITNESS GYM</h3>
-      <p class="text-[10px] text-slate-500 font-sans">Pathardi, Maharashtra • +91 98811 22334</p>
-      <div class="mt-2 text-xs font-bold text-slate-700" id="rec-number">RECEIPT #REC-0000</div>
+      <div class="flex justify-center mb-1">
+        <img src="/logo.png" alt="Sagar Fitness Gym" class="h-8 w-auto">
+      </div>
+      <h3 class="text-sm font-black tracking-wider text-slate-900">SAGAR FITNESS GYM</h3>
+      <p class="text-[10px] text-slate-500 font-sans">Pathardi, Ahmednagar, Maharashtra • +91 98811 22334</p>
+      <div class="mt-2 text-xs font-bold text-blue-700" id="rec-number">RECEIPT #REC-0000</div>
     </div>
 
-    <div class="space-y-2 text-xs text-slate-700">
+    <!-- Receipt Details -->
+    <div class="space-y-2 text-xs text-slate-700 font-sans">
       <div class="flex justify-between">
         <span class="text-slate-400">Date:</span>
-        <span class="font-bold" id="rec-date">-</span>
+        <span class="font-bold text-slate-900 font-mono" id="rec-date">-</span>
       </div>
       <div class="flex justify-between">
         <span class="text-slate-400">Member:</span>
-        <span class="font-bold" id="rec-member">-</span>
+        <span class="font-bold text-slate-900" id="rec-member">-</span>
       </div>
       <div class="flex justify-between">
         <span class="text-slate-400">Payment Mode:</span>
-        <span class="font-bold" id="rec-mode">CASH</span>
+        <span class="font-bold text-slate-900 font-mono" id="rec-method">UPI</span>
       </div>
       <div class="pt-2 border-t border-dashed border-slate-300 flex justify-between text-sm">
-        <span class="font-bold">TOTAL PAID:</span>
-        <span class="font-black text-emerald-700" id="rec-amount">₹0</span>
+        <span class="font-bold text-slate-900">AMOUNT PAID:</span>
+        <span class="font-black text-emerald-700 font-mono" id="rec-amount">₹0</span>
       </div>
     </div>
 
+    <!-- Actions: Print / Close -->
     <div class="pt-3 border-t border-slate-100 flex items-center gap-2 font-sans">
-      <button type="button" onclick="window.print()" class="flex-1 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-xs">
-        Print Receipt
+      <button type="button" onclick="window.print()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-all">
+        <i data-lucide="printer" class="w-4 h-4"></i>
+        <span>Print Receipt</span>
       </button>
-      <button type="button" onclick="closeReceiptModal()" class="px-3 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl">
+      <button type="button" onclick="closeReceiptModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all">
         Close
       </button>
     </div>
@@ -146,11 +195,11 @@
 <%- include('partials/footer') %>
 
 <script>
-  let paymentsList = [];
+  let allPayments = [];
 
   function openCollectModal() {
     document.getElementById('collect-modal').classList.remove('hidden');
-    loadMembersForBilling();
+    loadMembersForSelect();
   }
   function closeCollectModal() {
     document.getElementById('collect-modal').classList.add('hidden');
@@ -160,80 +209,116 @@
     document.getElementById('receipt-modal').classList.add('hidden');
   }
 
-  async function loadMembersForBilling() {
+  // Load Members for dropdown
+  async function loadMembersForSelect() {
     try {
       const res = await api.get('/members');
-      const members = Array.isArray(res) ? res : (res.data?.members || res.members || []);
-      const select = document.getElementById('collect-member-select');
-      select.innerHTML = '<option value="">-- Choose member --</option>' +
-        members.map(m => `<option value="${m._id}">${m.fullName} (${m.phone || 'No phone'})</option>`).join('');
-    } catch (err) {
-      console.warn('Load members error:', err);
+      const list = Array.isArray(res) ? res : (res.data?.members || res.members || []);
+      const sel = document.getElementById('collect-member-select');
+      sel.innerHTML = '<option value="">-- Choose Member --</option>' +
+        list.map(m => `<option value="${m._id}">${m.fullName} (${m.phone || 'No phone'})</option>`).join('');
+    } catch (e) {
+      console.warn('Load members error:', e);
     }
   }
 
+  // Load Payments
   async function loadPayments() {
     try {
       const res = await api.get('/payments');
-      paymentsList = Array.isArray(res) ? res : (res.data?.payments || res.payments || []);
-      const tbody = document.getElementById('payments-table-body');
-      document.getElementById('billing-count-label').textContent = `${paymentsList.length} total payments`;
+      allPayments = Array.isArray(res) ? res : (res.data?.payments || res.payments || []);
+      
+      // Calculate totals
+      let total = 0, today = 0;
+      const todayStr = new Date().toISOString().slice(0, 10);
 
-      if (paymentsList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">No payment records found.</td></tr>`;
-        return;
+      allPayments.forEach(p => {
+        const amt = Number(p.amount) || 0;
+        total += amt;
+        const pDate = (p.createdAt || p.paymentDate || '').slice(0, 10);
+        if (pDate === todayStr) today += amt;
+      });
+
+      document.getElementById('bill-sum-total').textContent = formatINR(total);
+      document.getElementById('bill-sum-today').textContent = formatINR(today);
+
+      // Load Dues
+      const dash = await api.get('/dashboard/stats');
+      if (dash) {
+        document.getElementById('bill-sum-dues').textContent = formatINR(dash.totalPendingDues || 0);
       }
 
-      tbody.innerHTML = paymentsList.map(p => {
-        const memberName = p.member?.fullName || p.memberName || 'Member';
-        const recNum = p.receiptNumber || 'REC-' + (p._id || '').slice(-6).toUpperCase();
-        const dateStr = formatDateIN(p.createdAt || p.paymentDate);
-        const amount = formatINR(p.amount);
-        const method = p.paymentMethod || p.method || 'CASH';
-
-        return `
-          <tr class="hover:bg-slate-50/80 transition-colors">
-            <td class="py-3 px-4 font-mono font-bold text-slate-800">${recNum}</td>
-            <td class="py-3 px-4 font-bold text-slate-900">${memberName}</td>
-            <td class="py-3 px-4 font-black text-emerald-700">${amount}</td>
-            <td class="py-3 px-4">
-              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 uppercase font-mono">${method}</span>
-            </td>
-            <td class="py-3 px-4 text-slate-500">${dateStr}</td>
-            <td class="py-3 px-4 text-right">
-              <button onclick='showReceipt(${JSON.stringify(p)})' class="px-2.5 py-1 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
-                View Receipt
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      if (window.lucide) lucide.createIcons();
+      renderPayments();
     } catch (err) {
-      document.getElementById('payments-table-body').innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-500">Failed to load payments.</td></tr>`;
+      document.getElementById('payments-table-body').innerHTML = `<tr><td colspan="6" class="p-8 text-center text-rose-500">Failed to load payment records.</td></tr>`;
     }
+  }
+
+  function renderPayments() {
+    const q = document.getElementById('payment-search').value.toLowerCase().trim();
+    const tbody = document.getElementById('payments-table-body');
+
+    const filtered = allPayments.filter(p => {
+      const mem = p.member?.fullName || p.memberName || '';
+      const rec = p.receiptNumber || '';
+      return !q || mem.toLowerCase().includes(q) || rec.toLowerCase().includes(q);
+    });
+
+    document.getElementById('payments-count-badge').textContent = `${filtered.length} entries`;
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">No payment transactions match your query.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(p => {
+      const memName = p.member?.fullName || p.memberName || 'Member';
+      const recNum = p.receiptNumber || 'REC-' + (p._id || '').slice(-6).toUpperCase();
+      const dateStr = formatDateIN(p.createdAt || p.paymentDate);
+      const method = p.paymentMethod || p.method || 'CASH';
+
+      return `
+        <tr class="hover:bg-slate-50/80 transition-colors">
+          <td class="py-3 px-4 font-mono font-bold text-slate-900">${recNum}</td>
+          <td class="py-3 px-4 font-bold text-slate-900">${memName}</td>
+          <td class="py-3 px-4 font-black text-emerald-700 font-mono">${formatINR(p.amount)}</td>
+          <td class="py-3 px-4">
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 uppercase font-mono">${method}</span>
+          </td>
+          <td class="py-3 px-4 text-slate-500 font-mono">${dateStr}</td>
+          <td class="py-3 px-4 text-right">
+            <button onclick='showReceipt(${JSON.stringify(p).replace(/'/g, "&#39;")})' class="px-2.5 py-1 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer">
+              View Receipt
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    if (window.lucide) lucide.createIcons();
   }
 
   function showReceipt(p) {
     document.getElementById('rec-number').textContent = p.receiptNumber || 'RECEIPT #' + (p._id || '').slice(-6).toUpperCase();
     document.getElementById('rec-date').textContent = formatDateIN(p.createdAt || p.paymentDate);
     document.getElementById('rec-member').textContent = p.member?.fullName || p.memberName || 'Member';
-    document.getElementById('rec-mode').textContent = p.paymentMethod || 'CASH';
+    document.getElementById('rec-method').textContent = p.paymentMethod || 'CASH';
     document.getElementById('rec-amount').textContent = formatINR(p.amount);
     document.getElementById('receipt-modal').classList.remove('hidden');
+    if (window.lucide) lucide.createIcons();
   }
 
+  // Submit Collect Payment
   document.getElementById('collect-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const btn = document.getElementById('collect-submit-btn');
+    const btn = document.getElementById('collect-btn');
     btn.disabled = true;
-    btn.textContent = 'Recording...';
+    btn.textContent = 'Processing...';
 
     const memberId = document.getElementById('collect-member-select').value;
     const amount = Number(document.getElementById('collect-amount').value);
     const paymentMethod = document.getElementById('collect-method').value;
-    const remarks = document.getElementById('collect-remarks').value.trim() || undefined;
+    const remarks = document.getElementById('collect-notes').value.trim() || undefined;
 
     try {
       const res = await api.post('/payments', { memberId, amount, paymentMethod, remarks });
@@ -250,5 +335,6 @@
     }
   });
 
+  document.getElementById('payment-search').addEventListener('input', renderPayments);
   document.addEventListener('DOMContentLoaded', loadPayments);
 </script>

@@ -38,3 +38,4 @@ router.get(['/attendance', '/reports', '/pos', '/inventory', '/ai-coach', '/diet
 });
 
 export default router;
+

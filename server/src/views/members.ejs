@@ -1,61 +1,121 @@
-<%- include('partials/header', { title: 'Members' }) %>
+<%- include('partials/header', { title: 'Members Directory' }) %>
 
 <div class="flex h-screen overflow-hidden">
   <%- include('partials/sidebar', { activePage: 'members' }) %>
 
   <div class="flex-1 flex flex-col min-w-0 bg-[#F7F8FA] h-screen overflow-y-auto">
-    <%- include('partials/navbar', { pageTitle: 'Members Management' }) %>
+    <%- include('partials/navbar', { pageTitle: 'Members Directory' }) %>
 
-    <main class="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto pb-24 lg:pb-12 space-y-4">
+    <main class="flex-1 p-3 sm:p-4 md:p-8 max-w-7xl w-full mx-auto pb-28 lg:pb-16 space-y-4">
       
-      <!-- Top Bar: Search & Filters -->
-      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-        <!-- Search Input -->
-        <div class="relative w-full sm:w-80">
-          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-            <i data-lucide="search" class="w-4 h-4"></i>
-          </span>
-          <input type="text" id="member-search" placeholder="Search by name, mobile, ID..." class="w-full h-10 pl-10 pr-4 text-xs border border-slate-200 rounded-xl focus:border-blue-600 focus:outline-none font-medium bg-slate-50/50">
+      <!-- Top Compact Summary Cards (Exact from original React design) -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
+        <!-- Total Members -->
+        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs">
+          <div class="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Members</div>
+          <div class="text-base sm:text-xl font-black text-slate-900 mt-1" id="sum-total">0</div>
         </div>
 
-        <!-- Filter Buttons & Add Member -->
-        <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-          <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-600">
-            <button type="button" onclick="setFilter('ALL')" class="filter-tab px-3 py-1.5 rounded-lg transition-all active bg-white text-blue-600 shadow-2xs">All</button>
-            <button type="button" onclick="setFilter('ACTIVE')" class="filter-tab px-3 py-1.5 rounded-lg transition-all text-slate-600 hover:text-slate-900">Active</button>
-            <button type="button" onclick="setFilter('EXPIRED')" class="filter-tab px-3 py-1.5 rounded-lg transition-all text-slate-600 hover:text-slate-900">Expired</button>
+        <!-- Active Members -->
+        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs border-l-4 border-l-emerald-500">
+          <div class="text-[10px] sm:text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Active Passes</div>
+          <div class="text-base sm:text-xl font-black text-emerald-600 mt-1" id="sum-active">0</div>
+        </div>
+
+        <!-- Expiring Soon -->
+        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs border-l-4 border-l-amber-500">
+          <div class="text-[10px] sm:text-[11px] font-bold text-amber-800 uppercase tracking-wider">Expiring Soon</div>
+          <div class="text-base sm:text-xl font-black text-amber-600 mt-1" id="sum-expiring">0</div>
+        </div>
+
+        <!-- Expired -->
+        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs border-l-4 border-l-rose-500">
+          <div class="text-[10px] sm:text-[11px] font-bold text-rose-800 uppercase tracking-wider">Expired</div>
+          <div class="text-base sm:text-xl font-black text-rose-600 mt-1" id="sum-expired">0</div>
+        </div>
+
+        <!-- Pending Dues -->
+        <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs border-l-4 border-l-purple-500 col-span-2 sm:col-span-1">
+          <div class="text-[10px] sm:text-[11px] font-bold text-purple-800 uppercase tracking-wider">Pending Dues</div>
+          <div class="text-base sm:text-xl font-black text-purple-700 mt-1" id="sum-dues">₹0</div>
+        </div>
+      </div>
+
+      <!-- Search, Filter Tabs & Add Member Bar -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-3">
+        <!-- Category Filter Tabs -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none border-b border-slate-100">
+          <button type="button" onclick="setCategoryTab('ALL')" class="cat-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-50 text-blue-700 shadow-2xs">
+            All Members (<span id="tab-cnt-all">0</span>)
+          </button>
+          <button type="button" onclick="setCategoryTab('ACTIVE')" class="cat-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+            Active (<span id="tab-cnt-active">0</span>)
+          </button>
+          <button type="button" onclick="setCategoryTab('EXPIRING')" class="cat-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+            Expiring Soon (<span id="tab-cnt-expiring">0</span>)
+          </button>
+          <button type="button" onclick="setCategoryTab('EXPIRED')" class="cat-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+            Expired (<span id="tab-cnt-expired">0</span>)
+          </button>
+          <button type="button" onclick="setCategoryTab('DUES')" class="cat-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all">
+            With Dues (<span id="tab-cnt-dues">0</span>)
+          </button>
+        </div>
+
+        <!-- Controls: Search input, Plan dropdown, New Member button -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+          <div class="flex items-center gap-2.5 w-full sm:w-auto flex-1">
+            <div class="relative flex-1 max-w-sm">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                <i data-lucide="search" class="w-4 h-4"></i>
+              </span>
+              <input
+                type="text"
+                id="search-input"
+                placeholder="Search by name, phone, member ID..."
+                class="w-full h-10 pl-10 pr-4 text-xs border border-slate-200 rounded-xl focus:border-blue-600 focus:outline-none font-medium bg-slate-50/50"
+              />
+            </div>
+
+            <select id="filter-plan-select" onchange="renderMembersTable()" class="h-10 px-3 text-xs border border-slate-200 rounded-xl focus:border-blue-600 focus:outline-none bg-slate-50/50 font-medium text-slate-700">
+              <option value="ALL">All Membership Plans</option>
+            </select>
           </div>
 
-          <button type="button" onclick="openRegisterModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all shrink-0">
-            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+          <button
+            type="button"
+            onclick="openRegisterModal()"
+            class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer shrink-0"
+          >
+            <i data-lucide="user-plus" class="w-4 h-4"></i>
             <span>Add Member</span>
           </button>
         </div>
       </div>
 
-      <!-- Members Table -->
+      <!-- Members Directory Table -->
       <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50/80 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+            <thead class="bg-slate-50/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100">
               <tr>
                 <th class="py-3 px-4">Athlete / ID</th>
                 <th class="py-3 px-4">Contact</th>
-                <th class="py-3 px-4">Active Plan</th>
+                <th class="py-3 px-4">Membership Plan</th>
                 <th class="py-3 px-4">Status</th>
-                <th class="py-3 px-4">Dues</th>
+                <th class="py-3 px-4">Fees / Dues</th>
                 <th class="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody id="members-table-body" class="divide-y divide-slate-100 font-medium">
               <tr>
-                <td colspan="6" class="py-8 text-center text-slate-400">Loading members list...</td>
+                <td colspan="6" class="p-8 text-center text-xs text-slate-400">Loading members directory...</td>
               </tr>
             </tbody>
           </table>
         </div>
         <div class="p-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span id="members-count-label">Showing 0 members</span>
+          <span id="members-count-badge">Showing 0 members</span>
         </div>
       </div>
 
@@ -65,12 +125,129 @@
 
 <%- include('partials/mobileNav', { activePage: 'members' }) %>
 
+<!-- View Member Profile Modal -->
+<div id="member-profile-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+  <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 flex items-center justify-center font-bold text-sm uppercase" id="prof-avatar">
+          M
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900" id="prof-name">Member Name</h3>
+          <p class="text-xs text-slate-500 font-mono" id="prof-id">ID: FC-1001</p>
+        </div>
+      </div>
+      <button type="button" onclick="closeProfileModal()" class="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Profile Details Grid -->
+    <div class="space-y-3">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+        <div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Phone</span>
+          <div class="text-xs font-bold text-slate-800 font-mono mt-0.5" id="prof-phone">-</div>
+        </div>
+        <div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Gender</span>
+          <div class="text-xs font-bold text-slate-800 mt-0.5" id="prof-gender">MALE</div>
+        </div>
+        <div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase">Status</span>
+          <div class="mt-0.5" id="prof-status-badge">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">ACTIVE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Membership Box -->
+      <div class="p-4 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-800">Active Membership Pass</span>
+          <span class="text-xs font-mono font-bold text-blue-700" id="prof-plan-name">Standard Pass</span>
+        </div>
+        <div class="flex justify-between text-xs text-slate-600">
+          <span>Expiry Date:</span>
+          <span class="font-bold text-slate-900 font-mono" id="prof-expiry-date">-</span>
+        </div>
+        <div class="flex justify-between text-xs text-slate-600">
+          <span>Fee Balance Due:</span>
+          <span class="font-bold text-rose-600 font-mono" id="prof-balance-due">₹0</span>
+        </div>
+      </div>
+
+      <!-- Actions: WhatsApp and Renew -->
+      <div class="flex items-center gap-2 pt-1">
+        <a id="prof-wa-btn" href="#" target="_blank" class="flex-1 py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 flex items-center justify-center gap-2 transition-all">
+          <i data-lucide="message-circle" class="w-4 h-4 text-emerald-600"></i>
+          <span>WhatsApp Chat</span>
+        </a>
+        <button type="button" id="prof-renew-btn" class="flex-1 py-2.5 px-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all">
+          <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+          <span>Renew Pass</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Renew Modal (Shared) -->
+<div id="renew-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 space-y-4">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <h3 class="text-base font-bold text-slate-900">Renew Membership</h3>
+      <button type="button" onclick="closeRenewModal()" class="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <form id="renew-form" class="space-y-3.5">
+      <input type="hidden" id="renew-membership-id">
+      
+      <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+        <div class="text-xs font-bold text-slate-900" id="renew-member-name">Member</div>
+        <div class="text-[11px] text-slate-500" id="renew-member-meta">-</div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Select Renewal Plan *</label>
+        <select id="renew-plan-select" required onchange="onRenewPlanSelectChange()" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none bg-white font-medium">
+          <option value="">-- Choose Plan --</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Fee Amount (₹) *</label>
+          <input type="number" id="renew-amount" required min="0" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Payment Method</label>
+          <select id="renew-method" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none bg-white font-medium">
+            <option value="UPI">UPI / GPay / PhonePe</option>
+            <option value="CASH">Cash</option>
+            <option value="CARD">Debit / Credit Card</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button type="submit" id="renew-btn" class="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+          Confirm Renewal
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Add Member Modal -->
 <div id="register-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
   <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between pb-3 border-b border-slate-100">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
           <i data-lucide="user-plus" class="w-4 h-4"></i>
         </div>
         <h3 class="text-base font-bold text-slate-900">Register New Member</h3>
@@ -89,7 +266,7 @@
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Phone Number *</label>
-          <input type="tel" id="add-phone" required placeholder="10-digit mobile number" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium">
+          <input type="tel" id="add-phone" required placeholder="10-digit mobile" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium">
         </div>
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Gender</label>
@@ -102,68 +279,18 @@
       </div>
 
       <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1">Assign Plan (Optional)</label>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Assign Membership Plan</label>
         <select id="add-plan-select" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none font-medium bg-white">
-          <option value="">-- No plan initially (Register only) --</option>
+          <option value="">-- No plan initially (Register Only) --</option>
         </select>
       </div>
 
       <div class="pt-2">
-        <button type="submit" id="add-submit-btn" class="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
-          Save & Register
+        <button type="submit" id="add-btn" class="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+          Save & Register Member
         </button>
       </div>
     </form>
-  </div>
-</div>
-
-<!-- View Member Details Modal -->
-<div id="member-profile-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
-  <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm uppercase" id="prof-avatar">
-          M
-        </div>
-        <div>
-          <h3 class="text-base font-bold text-slate-900" id="prof-name">Member Name</h3>
-          <p class="text-xs text-slate-400" id="prof-id">ID: FC-1001</p>
-        </div>
-      </div>
-      <button type="button" onclick="closeProfileModal()" class="p-1 rounded-lg text-slate-400 hover:bg-slate-100">
-        <i data-lucide="x" class="w-4 h-4"></i>
-      </button>
-    </div>
-
-    <!-- Profile Details Card -->
-    <div class="space-y-3">
-      <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-        <div>
-          <span class="text-[10px] font-bold text-slate-400 uppercase">Mobile Number</span>
-          <div class="text-xs font-bold text-slate-800 mt-0.5" id="prof-phone">-</div>
-        </div>
-        <div>
-          <span class="text-[10px] font-bold text-slate-400 uppercase">Membership Status</span>
-          <div class="mt-0.5" id="prof-status-badge">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">INACTIVE</span>
-          </div>
-        </div>
-        <div>
-          <span class="text-[10px] font-bold text-slate-400 uppercase">Current Plan</span>
-          <div class="text-xs font-bold text-slate-800 mt-0.5" id="prof-plan">None</div>
-        </div>
-        <div>
-          <span class="text-[10px] font-bold text-slate-400 uppercase">Expiry Date</span>
-          <div class="text-xs font-bold text-slate-800 mt-0.5" id="prof-expiry">-</div>
-        </div>
-      </div>
-
-      <!-- Quick WhatsApp Button -->
-      <a id="prof-wa-btn" href="#" target="_blank" class="w-full py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 flex items-center justify-center gap-2 transition-all">
-        <i data-lucide="message-circle" class="w-4 h-4 text-emerald-600"></i>
-        <span>Chat on WhatsApp</span>
-      </a>
-    </div>
   </div>
 </div>
 
@@ -171,11 +298,12 @@
 
 <script>
   let allMembers = [];
-  let currentFilter = 'ALL';
+  let availablePlans = [];
+  let currentCategory = 'ALL';
 
   function openRegisterModal() {
     document.getElementById('register-modal').classList.remove('hidden');
-    loadPlansDropdown();
+    loadPlans();
   }
   function closeRegisterModal() {
     document.getElementById('register-modal').classList.add('hidden');
@@ -185,92 +313,190 @@
     document.getElementById('member-profile-modal').classList.add('hidden');
   }
 
-  function setFilter(filter) {
-    currentFilter = filter;
-    document.querySelectorAll('.filter-tab').forEach(b => {
-      b.className = 'filter-tab px-3 py-1.5 rounded-lg transition-all text-slate-600 hover:text-slate-900';
-    });
-    event.target.className = 'filter-tab px-3 py-1.5 rounded-lg transition-all bg-white text-blue-600 shadow-2xs';
-    renderMembers();
+  function closeRenewModal() {
+    document.getElementById('renew-modal').classList.add('hidden');
   }
 
-  async function loadPlansDropdown() {
+  function setCategoryTab(cat) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-tab').forEach(b => {
+      b.className = 'cat-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all';
+    });
+    event.currentTarget.className = 'cat-tab px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-blue-50 text-blue-700 shadow-2xs';
+    renderMembersTable();
+  }
+
+  // Load Membership Plans into dropdowns
+  async function loadPlans() {
+    if (availablePlans.length > 0) return;
     try {
-      const plans = await api.get('/plans');
-      const select = document.getElementById('add-plan-select');
-      const items = Array.isArray(plans) ? plans : (plans.data || []);
-      select.innerHTML = '<option value="">-- No plan initially (Register only) --</option>' +
-        items.map(p => `<option value="${p._id}">${p.name} (${p.durationDays} days - ${formatINR(p.price)})</option>`).join('');
-    } catch (err) {
-      console.warn('Plans dropdown error:', err);
+      const p = await api.get('/plans');
+      availablePlans = Array.isArray(p) ? p : (p.data || []);
+      
+      const filterSelect = document.getElementById('filter-plan-select');
+      const addSelect = document.getElementById('add-plan-select');
+      const renewSelect = document.getElementById('renew-plan-select');
+
+      availablePlans.forEach(plan => {
+        const opt = `<option value="${plan._id}" data-price="${plan.price}" data-days="${plan.durationDays}">${plan.name} (${plan.durationDays}d - ${formatINR(plan.price)})</option>`;
+        if (filterSelect) filterSelect.innerHTML += opt;
+        if (addSelect) addSelect.innerHTML += opt;
+        if (renewSelect) renewSelect.innerHTML += opt;
+      });
+    } catch (e) {
+      console.warn('Error loading plans:', e);
     }
   }
 
+  // Load All Members
   async function loadMembers() {
     try {
+      await loadPlans();
       const res = await api.get('/members');
       allMembers = Array.isArray(res) ? res : (res.data?.members || res.members || []);
-      renderMembers();
+      updateSummaryCounts();
+      renderMembersTable();
     } catch (err) {
-      document.getElementById('members-table-body').innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-500">Failed to load members.</td></tr>`;
+      document.getElementById('members-table-body').innerHTML = `<tr><td colspan="6" class="p-8 text-center text-rose-500">Failed to load members directory.</td></tr>`;
     }
   }
 
-  function renderMembers() {
-    const query = document.getElementById('member-search').value.toLowerCase().trim();
+  function updateSummaryCounts() {
+    let active = 0, expiring = 0, expired = 0, dues = 0, duesTotal = 0;
+
+    allMembers.forEach(m => {
+      const status = m.status || 'INACTIVE';
+      const sub = m.activeMembership || {};
+      const diffDays = sub.endDate ? Math.ceil((new Date(sub.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : -99;
+
+      if (status === 'ACTIVE' && diffDays > 0) active++;
+      if (diffDays >= 0 && diffDays <= 7) expiring++;
+      if (status === 'EXPIRED' || diffDays < 0) expired++;
+
+      const bal = sub.amountDue && sub.amountPaid !== undefined ? Math.max(0, sub.amountDue - sub.amountPaid) : 0;
+      if (bal > 0) {
+        dues++;
+        duesTotal += bal;
+      }
+    });
+
+    document.getElementById('sum-total').textContent = allMembers.length;
+    document.getElementById('sum-active').textContent = active;
+    document.getElementById('sum-expiring').textContent = expiring;
+    document.getElementById('sum-expired').textContent = expired;
+    document.getElementById('sum-dues').textContent = formatINR(duesTotal);
+
+    document.getElementById('tab-cnt-all').textContent = allMembers.length;
+    document.getElementById('tab-cnt-active').textContent = active;
+    document.getElementById('tab-cnt-expiring').textContent = expiring;
+    document.getElementById('tab-cnt-expired').textContent = expired;
+    document.getElementById('tab-cnt-dues').textContent = dues;
+  }
+
+  function renderMembersTable() {
+    const q = document.getElementById('search-input').value.toLowerCase().trim();
+    const planFilter = document.getElementById('filter-plan-select').value;
     const tbody = document.getElementById('members-table-body');
 
-    let filtered = allMembers.filter(m => {
+    const filtered = allMembers.filter(m => {
       const name = (m.fullName || '').toLowerCase();
       const phone = (m.phone || '').toLowerCase();
       const code = (m.memberId || '').toLowerCase();
-      const matchesSearch = !query || name.includes(query) || phone.includes(query) || code.includes(query);
+      const matchesSearch = !q || name.includes(q) || phone.includes(q) || code.includes(q);
 
+      const sub = m.activeMembership || {};
+      const planId = sub.plan?._id || sub.plan;
+      const matchesPlan = planFilter === 'ALL' || planId === planFilter;
+
+      const diffDays = sub.endDate ? Math.ceil((new Date(sub.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : -99;
       const status = m.status || 'INACTIVE';
-      const matchesFilter = currentFilter === 'ALL' ||
-        (currentFilter === 'ACTIVE' && status === 'ACTIVE') ||
-        (currentFilter === 'EXPIRED' && (status === 'EXPIRED' || status === 'INACTIVE'));
 
-      return matchesSearch && matchesFilter;
+      let matchesCategory = true;
+      if (currentCategory === 'ACTIVE') matchesCategory = status === 'ACTIVE' && diffDays > 0;
+      if (currentCategory === 'EXPIRING') matchesCategory = diffDays >= 0 && diffDays <= 7;
+      if (currentCategory === 'EXPIRED') matchesCategory = status === 'EXPIRED' || diffDays < 0;
+      if (currentCategory === 'DUES') {
+        const bal = sub.amountDue && sub.amountPaid !== undefined ? Math.max(0, sub.amountDue - sub.amountPaid) : 0;
+        matchesCategory = bal > 0;
+      }
+
+      return matchesSearch && matchesPlan && matchesCategory;
     });
 
-    document.getElementById('members-count-label').textContent = `Showing ${filtered.length} of ${allMembers.length} members`;
+    document.getElementById('members-count-badge').textContent = `Showing ${filtered.length} of ${allMembers.length} members`;
 
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">No members match your criteria.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-400">No members match your search or filter.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = filtered.map(m => {
-      const name = m.fullName || 'Member';
-      const code = m.memberId || 'ID-';
-      const phone = m.phone || 'No phone';
-      const status = m.status || 'INACTIVE';
-      const statusBadge = status === 'ACTIVE'
-        ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">ACTIVE</span>'
-        : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">EXPIRED</span>';
-      
       const sub = m.activeMembership || {};
       const planName = sub.plan?.name || 'No Plan';
-      const dues = sub.amountDue && sub.amountPaid !== undefined ? Math.max(0, sub.amountDue - sub.amountPaid) : 0;
-      const duesBadge = dues > 0
-        ? `<span class="font-bold text-rose-600">${formatINR(dues)}</span>`
-        : '<span class="text-slate-400">Paid</span>';
+      const status = m.status || 'INACTIVE';
+      const diffDays = sub.endDate ? Math.ceil((new Date(sub.endDate) - new Date()) / (1000 * 60 * 60 * 24)) : -99;
+      const isExp = status === 'EXPIRED' || diffDays < 0;
+
+      const statusBadge = isExp
+        ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">EXPIRED</span>`
+        : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">ACTIVE</span>`;
+
+      const bal = sub.amountDue && sub.amountPaid !== undefined ? Math.max(0, sub.amountDue - sub.amountPaid) : 0;
+      const duesBadge = bal > 0
+        ? `<span class="font-bold text-rose-600 font-mono">${formatINR(bal)}</span>`
+        : `<span class="text-slate-400">Settled</span>`;
+
+      const cleanPhone = (m.phone || '').replace(/\D/g, '').slice(-10);
 
       return `
         <tr class="hover:bg-slate-50/80 transition-colors">
+          <!-- Athlete Name & ID -->
           <td class="py-3 px-4">
-            <div class="font-bold text-slate-900 cursor-pointer hover:text-blue-600" onclick="viewMember('${m._id}')">${name}</div>
-            <div class="text-[10px] text-slate-400 font-mono">${code}</div>
-          </td>
-          <td class="py-3 px-4 text-slate-600 font-mono">${phone}</td>
-          <td class="py-3 px-4 text-slate-700">${planName}</td>
-          <td class="py-3 px-4">${statusBadge}</td>
-          <td class="py-3 px-4">${duesBadge}</td>
-          <td class="py-3 px-4 text-right">
-            <button type="button" onclick="viewMember('${m._id}')" class="px-2.5 py-1 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
-              View
+            <button onclick="viewMember('${m._id}')" class="flex items-center gap-2.5 text-left group cursor-pointer">
+              <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-xs uppercase border border-blue-100">
+                ${(m.fullName || 'M').slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <div class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">${m.fullName}</div>
+                <div class="text-[10px] text-slate-400 font-mono">ID: ${m.memberId || '-'}</div>
+              </div>
             </button>
+          </td>
+
+          <!-- Contact -->
+          <td class="py-3 px-4 text-slate-600 font-mono font-medium">${m.phone || '-'}</td>
+
+          <!-- Plan -->
+          <td class="py-3 px-4">
+            <span class="font-semibold text-slate-800">${planName}</span>
+            ${sub.endDate ? `<div class="text-[10px] text-slate-400">Exp: ${formatDateIN(sub.endDate)}</div>` : ''}
+          </td>
+
+          <!-- Status -->
+          <td class="py-3 px-4">${statusBadge}</td>
+
+          <!-- Dues -->
+          <td class="py-3 px-4">${duesBadge}</td>
+
+          <!-- Actions -->
+          <td class="py-3 px-4 text-right">
+            <div class="flex items-center justify-end gap-1.5">
+              ${cleanPhone ? `
+                <a href="https://wa.me/91${cleanPhone}?text=Hello%20${encodeURIComponent(m.fullName)}%2C%20greeting%20from%20Sagar%20Fitness%20Gym!" target="_blank" class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Chat on WhatsApp">
+                  <i data-lucide="message-circle" class="w-4 h-4"></i>
+                </a>
+              ` : ''}
+
+              <button onclick="viewMember('${m._id}')" class="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer">
+                View
+              </button>
+
+              ${sub._id ? `
+                <button onclick='openRenewForMember(${JSON.stringify(sub).replace(/'/g, "&#39;")}, "${m.fullName.replace(/'/g, "")}")' class="px-2.5 py-1 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer">
+                  Renew
+                </button>
+              ` : ''}
+            </div>
           </td>
         </tr>
       `;
@@ -279,46 +505,104 @@
     if (window.lucide) lucide.createIcons();
   }
 
+  // View Member Details
   async function viewMember(id) {
     try {
       const res = await api.get(`/members/${id}`);
       const m = res.member || res;
       document.getElementById('prof-name').textContent = m.fullName || 'Member';
-      document.getElementById('prof-id').textContent = `ID: ${m.memberId || 'N/A'}`;
-      document.getElementById('prof-phone').textContent = m.phone || 'N/A';
+      document.getElementById('prof-id').textContent = `ID: ${m.memberId || '-'}`;
+      document.getElementById('prof-phone').textContent = m.phone || '-';
+      document.getElementById('prof-gender').textContent = m.gender || 'MALE';
       document.getElementById('prof-avatar').textContent = (m.fullName || 'M').slice(0, 2).toUpperCase();
 
       const sub = res.activeMembership || m.activeMembership;
-      document.getElementById('prof-plan').textContent = sub?.plan?.name || 'No active plan';
-      document.getElementById('prof-expiry').textContent = sub?.endDate ? formatDateIN(sub.endDate) : 'N/A';
+      document.getElementById('prof-plan-name').textContent = sub?.plan?.name || 'No active pass';
+      document.getElementById('prof-expiry-date').textContent = sub?.endDate ? formatDateIN(sub.endDate) : 'N/A';
+      
+      const bal = sub?.amountDue && sub?.amountPaid !== undefined ? Math.max(0, sub.amountDue - sub.amountPaid) : 0;
+      document.getElementById('prof-balance-due').textContent = formatINR(bal);
 
       const status = m.status || 'INACTIVE';
       document.getElementById('prof-status-badge').innerHTML = status === 'ACTIVE'
-        ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">ACTIVE</span>'
-        : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">INACTIVE</span>';
+        ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">ACTIVE</span>`
+        : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">EXPIRED</span>`;
 
       const cleanPhone = (m.phone || '').replace(/\D/g, '').slice(-10);
       const waBtn = document.getElementById('prof-wa-btn');
       if (cleanPhone) {
-        waBtn.href = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(`Hello ${m.fullName}, greeting from Sagar Fitness Gym Pathardi!`)}`;
+        waBtn.href = `https://wa.me/91${cleanPhone}?text=Hello%20${encodeURIComponent(m.fullName)}%20from%20Sagar%20Fitness%20Gym!`;
         waBtn.style.display = 'flex';
       } else {
         waBtn.style.display = 'none';
       }
 
+      const renewBtn = document.getElementById('prof-renew-btn');
+      if (sub && sub._id) {
+        renewBtn.style.display = 'flex';
+        renewBtn.onclick = () => {
+          closeProfileModal();
+          openRenewForMember(sub, m.fullName);
+        };
+      } else {
+        renewBtn.style.display = 'none';
+      }
+
       document.getElementById('member-profile-modal').classList.remove('hidden');
     } catch (err) {
-      showToast('Error', 'Could not fetch member profile details', 'error');
+      showToast('Error', 'Could not open member profile', 'error');
     }
   }
 
-  // Search input live filtering
-  document.getElementById('member-search').addEventListener('input', renderMembers);
+  // Open Renew Modal
+  function openRenewForMember(sub, name) {
+    document.getElementById('renew-membership-id').value = sub._id;
+    document.getElementById('renew-member-name').textContent = name || 'Member';
+    document.getElementById('renew-member-meta').textContent = `Pass: ${sub.plan?.name || 'Pass'} (${formatDateIN(sub.endDate)})`;
+    document.getElementById('renew-modal').classList.remove('hidden');
+    if (sub.plan?._id) {
+      document.getElementById('renew-plan-select').value = sub.plan._id;
+      onRenewPlanSelectChange();
+    }
+  }
 
-  // Add Member Form
+  function onRenewPlanSelectChange() {
+    const sel = document.getElementById('renew-plan-select');
+    const opt = sel.options[sel.selectedIndex];
+    if (opt && opt.dataset.price) {
+      document.getElementById('renew-amount').value = opt.dataset.price;
+    }
+  }
+
+  // Submit Renewal
+  document.getElementById('renew-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('renew-btn');
+    btn.disabled = true;
+    btn.textContent = 'Renewing...';
+
+    const subId = document.getElementById('renew-membership-id').value;
+    const planId = document.getElementById('renew-plan-select').value;
+    const amountPaid = Number(document.getElementById('renew-amount').value);
+    const paymentMethod = document.getElementById('renew-method').value;
+
+    try {
+      await api.post(`/memberships/${subId}/renew`, { newPlanId: planId, amountPaid, paymentMethod });
+      showToast('Membership Renewed', 'Pass successfully extended!', 'success');
+      closeRenewModal();
+      loadMembers();
+    } catch (err) {
+      showToast('Renewal Failed', err.message || 'Error renewing pass', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Confirm Renewal';
+    }
+  });
+
+  // Submit Add Member
   document.getElementById('add-member-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const btn = document.getElementById('add-submit-btn');
+    const btn = document.getElementById('add-btn');
     btn.disabled = true;
     btn.textContent = 'Saving...';
 
@@ -331,17 +615,18 @@
 
     try {
       await api.post('/members', payload);
-      showToast('Success', `${payload.fullName} added successfully!`, 'success');
+      showToast('Member Added', `${payload.fullName} is now registered!`, 'success');
       closeRegisterModal();
       document.getElementById('add-member-form').reset();
       loadMembers();
     } catch (err) {
-      showToast('Registration Error', err.message || 'Failed to save member', 'error');
+      showToast('Error', err.message || 'Failed to add member', 'error');
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Save & Register';
+      btn.textContent = 'Save & Register Member';
     }
   });
 
+  document.getElementById('search-input').addEventListener('input', renderMembersTable);
   document.addEventListener('DOMContentLoaded', loadMembers);
 </script>

@@ -1,28 +1,76 @@
-<!-- Mobile Bottom Navigation -->
-<nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-1.5 flex items-center justify-around select-none">
-  <a href="/" class="flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors <%= activePage === 'dashboard' ? 'text-blue-600 font-bold bg-blue-50/80' : 'text-slate-500 hover:text-slate-900' %>">
-    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-    <span class="text-[10px] mt-0.5">Home</span>
-  </a>
+<!-- Mobile Bottom Navigation (Exact CSS from MobileBottomNav.tsx) -->
+<nav
+  id="mobile-bottom-nav"
+  aria-label="Mobile Navigation"
+  class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 shadow-[0_-4px_16px_rgba(0,0,0,0.06)] px-2 pt-1.5 pb-safe select-none transition-all print:hidden"
+>
+  <div class="flex items-center justify-around max-w-md mx-auto">
+    <!-- Home -->
+    <a
+      href="/"
+      class="relative flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl transition-all duration-150 min-h-[48px] active:scale-95 <%= activePage === 'dashboard' ? 'bg-blue-50/90 text-blue-700' : 'text-slate-500 hover:text-slate-900' %>"
+    >
+      <div class="relative flex items-center justify-center">
+        <i data-lucide="layout-dashboard" class="w-5 h-5 <%= activePage === 'dashboard' ? 'text-blue-600 scale-110' : 'text-slate-500' %>"></i>
+        <% if (activePage === 'dashboard') { %>
+          <span class="absolute -top-1 right-[-4px] w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+        <% } %>
+      </div>
+      <span class="text-[10px] tracking-tight mt-0.5 <%= activePage === 'dashboard' ? 'font-bold text-blue-600' : 'font-medium text-slate-500' %>">
+        Home
+      </span>
+    </a>
 
-  <a href="/members" class="flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors <%= activePage === 'members' ? 'text-emerald-600 font-bold bg-emerald-50/80' : 'text-slate-500 hover:text-slate-900' %>">
-    <i data-lucide="users" class="w-5 h-5"></i>
-    <span class="text-[10px] mt-0.5">Members</span>
-  </a>
+    <!-- Members -->
+    <a
+      href="/members"
+      class="relative flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl transition-all duration-150 min-h-[48px] active:scale-95 <%= activePage === 'members' ? 'bg-emerald-50/90 text-emerald-800' : 'text-slate-500 hover:text-slate-900' %>"
+    >
+      <div class="relative flex items-center justify-center">
+        <i data-lucide="users" class="w-5 h-5 <%= activePage === 'members' ? 'text-emerald-600 scale-110' : 'text-slate-500' %>"></i>
+        <% if (activePage === 'members') { %>
+          <span class="absolute -top-1 right-[-4px] w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+        <% } %>
+      </div>
+      <span class="text-[10px] tracking-tight mt-0.5 <%= activePage === 'members' ? 'font-bold text-emerald-600' : 'font-medium text-slate-500' %>">
+        Members
+      </span>
+    </a>
 
-  <a href="/billing" class="flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors <%= activePage === 'billing' ? 'text-rose-600 font-bold bg-rose-50/80' : 'text-slate-500 hover:text-slate-900' %>">
-    <i data-lucide="receipt" class="w-5 h-5"></i>
-    <span class="text-[10px] mt-0.5">Billing</span>
-  </a>
+    <!-- Billing -->
+    <a
+      href="/billing"
+      class="relative flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl transition-all duration-150 min-h-[48px] active:scale-95 <%= activePage === 'billing' ? 'bg-rose-50/90 text-rose-800' : 'text-slate-500 hover:text-slate-900' %>"
+    >
+      <div class="relative flex items-center justify-center">
+        <i data-lucide="receipt" class="w-5 h-5 <%= activePage === 'billing' ? 'text-rose-600 scale-110' : 'text-slate-500' %>"></i>
+        <% if (activePage === 'billing') { %>
+          <span class="absolute -top-1 right-[-4px] w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+        <% } %>
+      </div>
+      <span class="text-[10px] tracking-tight mt-0.5 <%= activePage === 'billing' ? 'font-bold text-rose-600' : 'font-medium text-slate-500' %>">
+        Billing
+      </span>
+    </a>
 
-  <button type="button" onclick="toggleMobileDrawer()" class="flex flex-col items-center justify-center py-1 px-3 rounded-xl text-slate-500 hover:text-slate-900 transition-colors">
-    <i data-lucide="menu" class="w-5 h-5"></i>
-    <span class="text-[10px] mt-0.5">More</span>
-  </button>
+    <!-- More -->
+    <button
+      type="button"
+      onclick="toggleMobileDrawer()"
+      class="relative flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl transition-all duration-150 min-h-[48px] active:scale-95 cursor-pointer <%= (activePage === 'plans' || activePage === 'settings') ? 'bg-purple-50/90 text-purple-800' : 'text-slate-500 hover:text-slate-900' %>"
+    >
+      <div class="relative flex items-center justify-center">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </div>
+      <span class="text-[10px] tracking-tight mt-0.5 font-medium">
+        More
+      </span>
+    </button>
+  </div>
 </nav>
 
 <!-- Mobile Slide-out Drawer -->
-<div id="mobile-drawer" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden transition-opacity">
+<div id="mobile-drawer" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden transition-opacity">
   <div class="fixed inset-y-0 left-0 max-w-xs w-full bg-white shadow-2xl p-5 flex flex-col justify-between">
     <div>
       <div class="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -32,7 +80,7 @@
         </button>
       </div>
 
-      <nav class="mt-4 space-y-2">
+      <nav class="mt-4 space-y-1.5">
         <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold <%= activePage === 'dashboard' ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50' %>">
           <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
         </a>
@@ -43,7 +91,7 @@
           <i data-lucide="credit-card" class="w-5 h-5"></i> Membership Plans
         </a>
         <a href="/billing" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold <%= activePage === 'billing' ? 'bg-rose-50 text-rose-800' : 'text-slate-700 hover:bg-slate-50' %>">
-          <i data-lucide="receipt" class="w-5 h-5"></i> Billing
+          <i data-lucide="receipt" class="w-5 h-5"></i> Billing & Fees
         </a>
         <a href="/settings" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold <%= activePage === 'settings' ? 'bg-indigo-50 text-indigo-800' : 'text-slate-700 hover:bg-slate-50' %>">
           <i data-lucide="settings" class="w-5 h-5"></i> Settings
@@ -52,8 +100,9 @@
     </div>
 
     <div class="pt-4 border-t border-slate-100">
-      <button onclick="api.logout()" class="w-full py-2.5 px-3 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold flex items-center justify-center gap-2">
-        <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+      <button onclick="api.logout()" class="w-full py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors">
+        <i data-lucide="log-out" class="w-4 h-4"></i>
+        <span>Logout</span>
       </button>
     </div>
   </div>
