@@ -10,7 +10,6 @@ import { PlanReview } from '../models/PlanReview.js';
 import { FitnessNotification } from '../models/FitnessNotification.js';
 import { WeightProgress } from '../models/WeightProgress.js';
 import { AiFitnessService } from '../services/aiFitnessService.js';
-import { MlFitnessEngine } from '../services/mlFitnessEngine.js';
 import { calculateCalorieAndMacros, calculateBMI } from '../utils/nutritionCalculator.js';
 import { EDUCATIONAL_SUPPLEMENTS, SUPPLEMENT_DISCLAIMER } from '../utils/supplementGuide.js';
 import { sendSuccess, sendError } from '../utils/response.js';
@@ -920,44 +919,6 @@ router.get('/settings', (_req: AuthenticatedRequest, res: Response) => {
       weeklyPlanReady: 'Namaste {name}! Your personalized 7-Day fitness plan has been reviewed, approved, and is now ready.',
     },
   });
-});
-router.get('/ml/status', (_req: AuthenticatedRequest, res: Response) => {
-  const status = MlFitnessEngine.getStatus();
-  return sendSuccess(res, 'ML Model status & accuracy metrics retrieved successfully', status);
-});
-
-router.post('/ml/predict', async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const { memberId, ...customParams } = req.body;
-    let inputProfile = customParams;
-
-    if (memberId && mongoose.Types.ObjectId.isValid(memberId)) {
-      const profile = await FitnessProfile.findOne({ member: memberId, status: 'ACTIVE' }).lean();
-      if (profile && profile.currentWeightKg) {
-        inputProfile = { ...profile, ...customParams };
-      } else {
-        return sendSuccess(res, 'Member does not have a fitness profile yet', {
-          hasProfile: false,
-          memberId,
-          message: 'Member does not have a fitness profile or bodyweight recorded yet. Please record profile details first.',
-        });
-      }
-    }
-
-    const prediction = MlFitnessEngine.predict(inputProfile);
-    return sendSuccess(res, 'ML inference computed successfully', { ...prediction, hasProfile: true });
-  } catch (err: any) {
-    return sendError(res, err.message, 500);
-  }
-});
-
-router.post('/ml/retrain', async (_req: AuthenticatedRequest, res: Response) => {
-  try {
-    const retrainResult = await MlFitnessEngine.retrain();
-    return sendSuccess(res, 'ML models retrained and updated successfully', retrainResult);
-  } catch (err: any) {
-    return sendError(res, `Model retraining failed: ${err.message}`, 500);
-  }
 });
 
 export default router;

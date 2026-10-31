@@ -1433,32 +1433,6 @@ export const api = {
     });
     return handleResponse<any>(res);
   },
-
-  async getMlModelStatus() {
-    const res = await fetch(`${API_BASE}/ai-coach/ml/status`, {
-      headers: getHeaders(false),
-    });
-    return handleResponse<any>(res);
-  },
-
-  async predictMlPlan(data: any) {
-    const res = await fetch(`${API_BASE}/ai-coach/ml/predict`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(data),
-    });
-    return handleResponse<any>(res);
-  },
-
-  async retrainMlModel() {
-    const res = await fetch(`${API_BASE}/ai-coach/ml/retrain`, {
-      method: 'POST',
-      headers: getHeaders(),
-    });
-    const result = await handleResponse<any>(res);
-    window.dispatchEvent(new CustomEvent('fitcore:data-changed', { detail: { action: 'ML_MODEL_RETRAINED' } }));
-    return result;
-  },
 };
 
 

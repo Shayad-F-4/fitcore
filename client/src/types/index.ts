@@ -781,39 +781,5 @@ export interface AiCoachStatus {
   message: string;
 }
 
-export interface MlModelStatus {
-  isTrained: boolean;
-  algorithm: string;
-  totalTrainingSamples: number;
-  trainedAt: string;
-  nutritionR2Score: number;
-  workoutSplitAccuracy: number;
-  calorieMaeKcal: number;
-  proteinMaeG: number;
-  topPredictiveFeatures: Array<[string, number]>;
-  status: string;
-}
-
-export interface MlPredictionResult {
-  source: 'TRAINED_SCIKIT_LEARN_ML';
-  modelTrainedAt: string;
-  r2Accuracy: number;
-  nutrition: {
-    targetCalories: number;
-    targetProteinGrams: number;
-    targetCarbsGrams: number;
-    targetFatGrams: number;
-    waterIntakeLiters: number;
-  };
-  workout: {
-    recommendedSplit: 'FULL_BODY_3D' | 'UPPER_LOWER_4D' | 'PUSH_PULL_LEGS_5D' | 'PPL_SPLIT_6D';
-    splitAccuracy: number;
-    volumeMultiplier: number;
-    weeklyProgressionRatePct: number;
-  };
-  confidenceScore: number;
-  featureContributions: Array<{ feature: string; impact: string }>;
-}
-
 
 

@@ -6,7 +6,7 @@ export interface IAttendance extends Document {
   checkInTime: Date;
   checkOutTime?: Date;
   durationMinutes?: number | null;
-  method: 'QR_CODE' | 'MANUAL';
+  method: 'QR_CODE' | 'MANUAL' | 'MOBILE_ACCESS';
   checkedInBy?: mongoose.Types.ObjectId;
   notes?: string;
   createdAt: Date;

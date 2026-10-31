@@ -246,38 +246,4 @@ describe('AI Fitness Coach Integration Test Suite (Sagar Fitness Gym)', () => {
     expect(res.body.data.location).toContain('Pathardi');
     expect(res.body.data.currency).toBe('INR');
   });
-
-  it('13. GET /api/ai-coach/ml/status returns trained Scikit-Learn model metrics and R2 accuracy', async () => {
-    const res = await request(app)
-      .get('/api/ai-coach/ml/status')
-      .set('Authorization', `Bearer ${adminToken}`);
-
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.isTrained).toBe(true);
-    expect(res.body.data.nutritionR2Score).toBeGreaterThan(0.80);
-    expect(res.body.data.workoutSplitAccuracy).toBeGreaterThanOrEqual(0.95);
-    expect(res.body.data.totalTrainingSamples).toBeGreaterThanOrEqual(10000);
-    expect(res.body.data.topPredictiveFeatures.length).toBeGreaterThan(0);
-  });
-
-  it('14. POST /api/ai-coach/ml/predict computes zero-latency in-process ML inference', async () => {
-    const res = await request(app)
-      .post('/api/ai-coach/ml/predict')
-      .set('Authorization', `Bearer ${adminToken}`)
-      .send({
-        memberId: testMemberId,
-        workoutDaysPerWeek: 5,
-        fitnessGoal: 'MUSCLE_GAIN',
-      });
-
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.source).toBe('TRAINED_SCIKIT_LEARN_ML');
-    expect(res.body.data.nutrition.targetCalories).toBeGreaterThan(1800);
-    expect(res.body.data.nutrition.targetProteinGrams).toBeGreaterThan(100);
-    expect(res.body.data.workout.recommendedSplit).toBe('PUSH_PULL_LEGS_5D');
-    expect(res.body.data.workout.volumeMultiplier).toBeGreaterThanOrEqual(0.8);
-    expect(res.body.data.confidenceScore).toBeGreaterThan(0.85);
-  });
 });
