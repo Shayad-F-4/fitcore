@@ -581,21 +581,38 @@ router.post('/forgot-password', async (req, res: Response) => {
       // Dispatch real transactional email via Nodemailer
       const emailResult = await sendPasswordResetEmail(targetEmail, otp, user.fullName);
 
+      const isTest = process.env.NODE_ENV === 'test';
+      const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
+
       if (!emailResult.success && !emailResult.isDevFallback) {
+        // Email delivery failed (e.g. SMTP auth error) — log OTP to console for dev recovery
         console.error('[Password Reset Delivery Failed]', emailResult.error);
+        console.warn(`[DEV RECOVERY] OTP for ${targetEmail}: ${otp}`);
+
+        // In development/local mode: still allow reset by returning OTP in response
+        if (isDev) {
+          sendSuccess(
+            res,
+            `⚠️ Email delivery failed (SMTP error). OTP generated successfully — check server console logs to retrieve your OTP.`,
+            { resetToken: otp, emailError: emailResult.error }
+          );
+          return;
+        }
+
         sendError(
           res,
-          `Failed to dispatch OTP email to ${targetEmail}. Please check SMTP configuration.`,
+          `Failed to dispatch OTP email to ${targetEmail}. Please verify SMTP configuration or contact your administrator.`,
           500
         );
         return;
       }
 
-      const isTest = process.env.NODE_ENV === 'test';
       sendSuccess(
         res,
-        `Password reset OTP has been sent to ${targetEmail}. Please check your Gmail inbox or spam folder.`,
-        isTest ? { resetToken: otp } : undefined
+        emailResult.isDevFallback
+          ? `OTP generated (email not configured). Check server console for OTP code.`
+          : `Password reset OTP has been sent to ${targetEmail}. Please check your Gmail inbox or spam folder.`,
+        (isTest || emailResult.isDevFallback) ? { resetToken: otp } : undefined
       );
       return;
     }

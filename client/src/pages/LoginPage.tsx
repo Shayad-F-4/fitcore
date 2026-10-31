@@ -93,11 +93,16 @@ export const LoginPage: React.FC = () => {
 
     try {
       const res = await api.forgotPassword(forgotEmail.trim());
+      // Auto-fill OTP if server returned it (dev/fallback mode when email is not configured)
+      if (res?.resetToken) {
+        setResetToken(String(res.resetToken));
+      } else {
+        setResetToken('');
+      }
       setForgotMsg({
         type: 'success',
         text: res.message || `A 6-digit OTP code has been sent to ${forgotEmail.trim()}. Please check your Gmail inbox or spam.`,
       });
-      setResetToken(''); // Keep blank - user must manually enter OTP from their Gmail inbox
       setForgotStep('reset');
     } catch (err: any) {
       setForgotMsg({

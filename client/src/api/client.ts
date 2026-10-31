@@ -129,7 +129,7 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify({ email }),
     });
-    return handleResponse<{ message: string; resetToken?: string }>(res);
+    return handleResponse<{ resetToken?: string; emailError?: string }>(res);
   },
 
   async resetPassword(token: string, newPassword: string) {
