@@ -37,31 +37,12 @@ import expiryRoutes from './routes/expiry.routes.js';
 import inventoryRoutes from './routes/inventory.routes.js';
 import dietRoutes from './routes/diet.routes.js';
 import aiCoachRoutes from './routes/aiCoach.routes.js';
-import webRoutes from './routes/web.routes.js';
 import { runAutoExpiryReminders } from './services/whatsappService.js';
 
 import rateLimit from 'express-rate-limit';
 import compression from 'compression';
 
 const app = express();
-
-// View Engine & Static Assets Configuration (HTML + CSS + Plain JS via EJS)
-app.set('view engine', 'ejs');
-const candidateViews = [
-  path.resolve(process.cwd(), 'src/views'),
-  path.resolve(process.cwd(), 'views'),
-  path.resolve(process.cwd(), 'server/src/views'),
-  path.resolve(process.cwd(), 'server/views'),
-];
-const viewsPath = candidateViews.find((p) => fs.existsSync(p)) || path.resolve(process.cwd(), 'src/views');
-app.set('views', viewsPath);
-
-const candidatePublic = [
-  path.resolve(process.cwd(), 'public'),
-  path.resolve(process.cwd(), 'server/public'),
-];
-const publicPath = candidatePublic.find((p) => fs.existsSync(p)) || path.resolve(process.cwd(), 'public');
-app.use(express.static(publicPath));
 
 // High-performance gzip/deflate compression for all API and static responses
 app.use(
@@ -261,8 +242,43 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/diet', dietRoutes);
 app.use('/api/ai-coach', aiCoachRoutes);
 
-// Mount HTML + CSS + Vanilla JS Web Pages
-app.use('/', webRoutes);
+// Static file serving for Vanilla HTML/CSS/JS frontend (Zero build required)
+const getPublicDir = () => {
+  const direct = path.resolve(process.cwd(), 'public');
+  if (fs.existsSync(direct)) return direct;
+  const inServer = path.resolve(process.cwd(), 'server/public');
+  if (fs.existsSync(inServer)) return inServer;
+  return direct;
+};
+
+const publicDir = getPublicDir();
+app.use(express.static(publicDir));
+
+// Route handlers for HTML pages
+app.get('*', (req, res, next) => {
+  if (
+    req.path.startsWith('/api') ||
+    req.path.startsWith('/health') ||
+    req.path.startsWith('/uploads')
+  ) {
+    return next();
+  }
+
+  const cleanPath = req.path === '/' ? '/index.html' : req.path;
+  const targetFile = cleanPath.endsWith('.html') ? cleanPath : `${cleanPath}.html`;
+  const filePath = path.join(publicDir, targetFile);
+
+  if (fs.existsSync(filePath)) {
+    return res.sendFile(filePath);
+  }
+
+  const indexPath = path.join(publicDir, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+
+  return next();
+});
 
 // Global Error Handler
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

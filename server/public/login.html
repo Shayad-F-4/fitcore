@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Sagar Fitness Gym</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="min-h-screen w-full flex items-center justify-center bg-slate-950 font-sans select-none relative overflow-x-hidden">
+  <!-- Background Image with Dark Overlay -->
+  <div class="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat" style="background-image: url('/login-bg.webp');">
+    <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/65 backdrop-blur-[1px]"></div>
+  </div>
+
+  <!-- Decorative Corner Ribbons -->
+  <div class="absolute top-0 left-0 w-36 h-36 sm:w-56 sm:h-56 pointer-events-none z-10 overflow-hidden">
+    <div class="w-[180%] h-[180%] bg-gradient-to-br from-[#84cc16] via-[#65a30d] to-transparent transform -rotate-45 -translate-x-[45%] -translate-y-[45%] opacity-90 shadow-2xl"></div>
+  </div>
+  <div class="absolute bottom-0 right-0 w-44 h-44 sm:w-64 sm:h-64 pointer-events-none z-10 overflow-hidden">
+    <div class="w-[180%] h-[180%] bg-gradient-to-tl from-[#84cc16] via-[#4d7c0f] to-transparent transform -rotate-45 translate-x-[45%] translate-y-[45%] opacity-85 shadow-2xl"></div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 flex flex-col lg:flex-row items-center justify-between gap-8 min-h-screen">
+    <!-- Left Hero Text (Desktop) -->
+    <div class="hidden lg:flex flex-col justify-end w-full max-w-lg pb-12">
+      <div class="flex items-center gap-12">
+        <div class="flex flex-col items-center text-center">
+          <div class="w-12 h-12 rounded-xl bg-black/40 border border-lime-400/40 flex items-center justify-center text-lime-400 mb-2 shadow-lg">
+            <i data-lucide="dumbbell" class="w-6 h-6"></i>
+          </div>
+          <span class="text-xs font-black uppercase tracking-wider text-slate-100 leading-tight">MODERN<br>FACILITIES</span>
+        </div>
+        <div class="flex flex-col items-center text-center">
+          <div class="w-12 h-12 rounded-xl bg-black/40 border border-lime-400/40 flex items-center justify-center text-lime-400 mb-2 shadow-lg">
+            <i data-lucide="users" class="w-6 h-6"></i>
+          </div>
+          <span class="text-xs font-black uppercase tracking-wider text-slate-100 leading-tight">EXPERT<br>TRAINERS</span>
+        </div>
+        <div class="flex flex-col items-center text-center">
+          <div class="w-12 h-12 rounded-xl bg-black/40 border border-lime-400/40 flex items-center justify-center text-lime-400 mb-2 shadow-lg">
+            <i data-lucide="heart-pulse" class="w-6 h-6"></i>
+          </div>
+          <span class="text-xs font-black uppercase tracking-wider text-slate-100 leading-tight">HEALTHY<br>COMMUNITY</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Login Card -->
+    <div class="w-full flex flex-col items-center lg:items-end justify-center my-auto">
+      <div class="w-full max-w-[440px] bg-white rounded-3xl shadow-2xl border border-white/80 p-6 sm:p-8 text-slate-900">
+        <!-- Logo -->
+        <div class="flex items-center justify-center mb-3">
+          <img src="/logo.webp" alt="Sagar Fitness Gym" class="h-12 w-auto object-contain" onerror="this.src='/logo.png'">
+        </div>
+
+        <div class="relative flex items-center justify-center my-3">
+          <div class="w-full border-t border-slate-200"></div>
+          <span class="absolute bg-white px-3 text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Gym Management System</span>
+        </div>
+
+        <div class="text-center pt-1 pb-2">
+          <h1 class="text-2xl font-black text-slate-900 tracking-tight">Welcome Back</h1>
+          <p class="text-xs text-slate-500 font-medium mt-1">Sign in to manage your gym</p>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="login-error" class="hidden mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-semibold text-rose-700 flex items-start gap-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 mt-0.5 text-rose-600"></i>
+          <span id="login-error-text">Invalid credentials</span>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="mt-4 space-y-4" onsubmit="handleLogin(event)">
+          <div>
+            <label class="block text-xs font-bold text-slate-800 mb-1.5">Email Address or User ID</label>
+            <div class="relative flex items-center">
+              <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5"></i>
+              <input type="text" id="login-identifier" required placeholder="admin or frontdesk" class="w-full h-11 pl-10 pr-4 text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 font-medium">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-800 mb-1.5">Password</label>
+            <div class="relative flex items-center">
+              <i data-lucide="lock" class="w-4 h-4 text-slate-400 absolute left-3.5"></i>
+              <input type="password" id="login-password" required placeholder="••••••••" class="w-full h-11 pl-10 pr-10 text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 font-medium">
+              <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 text-slate-400 hover:text-slate-600 p-1">
+                <i data-lucide="eye" id="eye-icon" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-xs">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="remember-me" class="w-4 h-4 rounded border-slate-300 text-blue-600">
+              <span class="font-semibold text-slate-700">Remember me</span>
+            </label>
+            <button type="button" onclick="openForgotModal()" class="font-bold text-blue-600 hover:text-blue-700 hover:underline">Forgot password?</button>
+          </div>
+
+          <!-- Quick Demo Credentials Buttons -->
+          <div class="pt-1 flex gap-2">
+            <button type="button" onclick="fillCredentials('admin', 'password123')" class="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-[11px] font-bold text-slate-700 transition-colors">
+              🔑 Demo Admin
+            </button>
+            <button type="button" onclick="fillCredentials('frontdesk', 'password123')" class="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-[11px] font-bold text-slate-700 transition-colors">
+              👤 Demo Staff
+            </button>
+          </div>
+
+          <button type="submit" id="login-submit-btn" class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
+            <span>Sign In</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </form>
+      </div>
+
+      <div class="text-center text-xs text-slate-300/80 font-medium mt-3.5 flex items-center gap-2">
+        <span>Sagar Fitness Gym</span>
+        <span class="text-lime-400 font-bold">•</span>
+        <span>Pathardi, Maharashtra</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  <div id="forgot-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 space-y-4 modal-enter">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-900" id="forgot-modal-title">Password Recovery</h3>
+        <button type="button" onclick="closeForgotModal()" class="p-1 text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+
+      <div id="forgot-feedback" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+
+      <!-- Step 1: Send OTP -->
+      <form id="forgot-step-1" onsubmit="handleSendOTP(event)" class="space-y-4">
+        <p class="text-xs text-slate-600">Enter your registered email or User ID (e.g. <strong>admin</strong>). We will generate a 6-digit OTP code.</p>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Email or User ID</label>
+          <input type="text" id="forgot-email" required placeholder="admin or email@example.com" class="w-full h-11 px-3.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:border-blue-600">
+        </div>
+        <button type="submit" id="send-otp-btn" class="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md">
+          Send 6-Digit OTP
+        </button>
+      </form>
+
+      <!-- Step 2: Verify OTP and Reset -->
+      <form id="forgot-step-2" onsubmit="handleResetPassword(event)" class="space-y-4 hidden">
+        <p class="text-xs text-slate-600">Enter the 6-digit verification OTP and your new password:</p>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">6-Digit OTP Code</label>
+          <input type="text" id="reset-otp" required maxlength="6" placeholder="••••••" class="w-full h-11 text-center font-mono text-lg font-bold tracking-widest text-blue-700 bg-blue-50/50 border border-blue-200 rounded-xl focus:outline-none focus:border-blue-600">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">New Password</label>
+          <input type="password" id="reset-new-password" required minlength="6" placeholder="Minimum 6 characters" class="w-full h-10 px-3.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:border-blue-600">
+        </div>
+        <button type="submit" id="reset-submit-btn" class="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md">
+          Verify OTP & Save Password
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    // Initialize icons
+    lucide.createIcons();
+
+    // Check if already logged in
+    if (Auth.isAuthenticated()) {
+      window.location.replace('/index.html');
+    }
+
+    function togglePasswordVisibility() {
+      const pass = document.getElementById('login-password');
+      const isPass = pass.type === 'password';
+      pass.type = isPass ? 'text' : 'password';
+      const eye = document.getElementById('eye-icon');
+      eye.setAttribute('data-lucide', isPass ? 'eye-off' : 'eye');
+      lucide.createIcons();
+    }
+
+    function fillCredentials(id, pass) {
+      document.getElementById('login-identifier').value = id;
+      document.getElementById('login-password').value = pass;
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const identifier = document.getElementById('login-identifier').value.trim();
+      const password = document.getElementById('login-password').value;
+      const btn = document.getElementById('login-submit-btn');
+      const errBox = document.getElementById('login-error');
+      const errText = document.getElementById('login-error-text');
+
+      errBox.classList.add('hidden');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Signing In...</span>';
+
+      try {
+        const res = await API.login(identifier, password);
+        localStorage.setItem('fitcore_token', res.token);
+        localStorage.setItem('fitcore_user', JSON.stringify(res.user));
+        window.location.replace('/index.html');
+      } catch (err) {
+        errText.innerText = err.message || 'Invalid credentials. Please verify your details.';
+        errBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Sign In</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
+        lucide.createIcons();
+      }
+    }
+
+    function openForgotModal() {
+      document.getElementById('forgot-modal').classList.remove('hidden');
+      document.getElementById('forgot-step-1').classList.remove('hidden');
+      document.getElementById('forgot-step-2').classList.add('hidden');
+      document.getElementById('forgot-feedback').classList.add('hidden');
+    }
+
+    function closeForgotModal() {
+      document.getElementById('forgot-modal').classList.add('hidden');
+    }
+
+    async function handleSendOTP(e) {
+      e.preventDefault();
+      const email = document.getElementById('forgot-email').value.trim();
+      const btn = document.getElementById('send-otp-btn');
+      const fb = document.getElementById('forgot-feedback');
+
+      btn.disabled = true;
+      btn.innerText = 'Sending...';
+
+      try {
+        const res = await API.forgotPassword(email);
+        fb.className = 'p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200';
+        fb.innerText = res.message || 'OTP generated successfully!';
+        fb.classList.remove('hidden');
+
+        // Auto-fill OTP if returned in development mode
+        if (res.resetToken) {
+          document.getElementById('reset-otp').value = res.resetToken;
+        }
+
+        document.getElementById('forgot-step-1').classList.add('hidden');
+        document.getElementById('forgot-step-2').classList.remove('hidden');
+      } catch (err) {
+        fb.className = 'p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200';
+        fb.innerText = err.message || 'Failed to dispatch OTP';
+        fb.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Send 6-Digit OTP';
+      }
+    }
+
+    async function handleResetPassword(e) {
+      e.preventDefault();
+      const otp = document.getElementById('reset-otp').value.trim();
+      const newPassword = document.getElementById('reset-new-password').value;
+      const btn = document.getElementById('reset-submit-btn');
+      const fb = document.getElementById('forgot-feedback');
+
+      btn.disabled = true;
+      btn.innerText = 'Verifying...';
+
+      try {
+        const res = await API.resetPassword(otp, newPassword);
+        fb.className = 'p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200';
+        fb.innerText = res.message || 'Password reset successfully! You can now log in.';
+        fb.classList.remove('hidden');
+        setTimeout(() => closeForgotModal(), 2000);
+      } catch (err) {
+        fb.className = 'p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200';
+        fb.innerText = err.message || 'OTP verification failed';
+        fb.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Verify OTP & Save Password';
+      }
+    }
+  </script>
+</body>
+</html>

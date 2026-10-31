@@ -1,77 +1,53 @@
-// FitCore Vanilla JS API Client
+// FitCore — Sagar Fitness Gym Simple Vanilla API Helper
 const API_BASE = '/api';
 
-const api = {
+const API = {
   getToken() {
     return localStorage.getItem('fitcore_token');
   },
 
-  setToken(token) {
-    if (token) {
-      localStorage.setItem('fitcore_token', token);
-    } else {
-      localStorage.removeItem('fitcore_token');
-    }
-  },
-
-  getUser() {
-    try {
-      const u = localStorage.getItem('fitcore_user');
-      return u ? JSON.parse(u) : null;
-    } catch {
-      return null;
-    }
-  },
-
-  setUser(user) {
-    if (user) {
-      localStorage.setItem('fitcore_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('fitcore_user');
-    }
-  },
-
-  logout() {
-    localStorage.removeItem('fitcore_token');
-    localStorage.removeItem('fitcore_user');
-    window.location.href = '/login';
+  getHeaders(isJSON = true) {
+    const headers = {};
+    if (isJSON) headers['Content-Type'] = 'application/json';
+    const token = this.getToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
   },
 
   async request(endpoint, options = {}) {
-    const token = this.getToken();
-    const headers = {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    };
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
+    const isJSON = !(options.body instanceof FormData);
     const config = {
       ...options,
-      headers,
+      headers: {
+        ...this.getHeaders(isJSON),
+        ...options.headers,
+      },
     };
 
     try {
-      const res = await fetch(`${API_BASE}${endpoint}`, config);
-      const json = await res.json().catch(() => ({}));
+      const response = await fetch(`${API_BASE}${endpoint}`, config);
+      const data = await response.json().catch(() => ({}));
 
-      if (!res.ok) {
-        if (res.status === 401 && !window.location.pathname.includes('/login')) {
-          this.logout();
-          return;
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          localStorage.removeItem('fitcore_token');
+          localStorage.removeItem('fitcore_user');
+          if (!window.location.pathname.includes('login')) {
+            window.location.href = '/login.html';
+          }
         }
-        throw new Error(json.message || `Request failed with status ${res.status}`);
+        throw new Error(data.message || `Request failed with status ${response.status}`);
       }
 
-      return json.data !== undefined ? json.data : json;
+      return data.data !== undefined ? data.data : data;
     } catch (err) {
-      console.error(`[API Error] ${endpoint}:`, err);
+      console.error(`API Error on ${endpoint}:`, err);
       throw err;
     }
   },
 
+  // HTTP Shortcuts
   get(endpoint) {
     return this.request(endpoint, { method: 'GET' });
   },
@@ -79,31 +55,156 @@ const api = {
   post(endpoint, body) {
     return this.request(endpoint, {
       method: 'POST',
-      body: JSON.stringify(body),
+      body: body instanceof FormData ? body : JSON.stringify(body),
     });
   },
 
   put(endpoint, body) {
     return this.request(endpoint, {
       method: 'PUT',
-      body: JSON.stringify(body),
+      body: body instanceof FormData ? body : JSON.stringify(body),
     });
   },
 
-  delete(endpoint) {
+  del(endpoint) {
     return this.request(endpoint, { method: 'DELETE' });
+  },
+
+  // Auth Endpoints
+  login(identifier, password) {
+    return this.post('/auth/login', { identifier, password });
+  },
+
+  forgotPassword(email) {
+    return this.post('/auth/forgot-password', { email });
+  },
+
+  resetPassword(token, newPassword) {
+    return this.post('/auth/reset-password', { token, otp: token, newPassword });
+  },
+
+  getMe() {
+    return this.get('/auth/me');
+  },
+
+  changePassword(currentPassword, newPassword) {
+    return this.post('/auth/change-password', { currentPassword, newPassword });
+  },
+
+  // Staff Management
+  getStaff() {
+    return this.get('/auth/staff');
+  },
+
+  registerStaff(data) {
+    return this.post('/auth/register', data);
+  },
+
+  deleteStaff(id) {
+    return this.del(`/auth/staff/${id}`);
+  },
+
+  // Dashboard Endpoints
+  getDashboardStats() {
+    return this.get('/dashboard/stats');
+  },
+
+  getRecentPayments() {
+    return this.get('/dashboard/recent-payments');
+  },
+
+  getExpiringMembers(days = 7) {
+    return this.get(`/expiry/upcoming?days=${days}`);
+  },
+
+  // Members Endpoints
+  getMembers(search = '', status = '', page = 1, limit = 50) {
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (status && status !== 'ALL') params.append('status', status);
+    params.append('page', page);
+    params.append('limit', limit);
+    return this.get(`/members?${params.toString()}`);
+  },
+
+  getMember(id) {
+    return this.get(`/members/${id}`);
+  },
+
+  createMember(data) {
+    return this.post('/members', data);
+  },
+
+  updateMember(id, data) {
+    return this.put(`/members/${id}`, data);
+  },
+
+  deleteMember(id) {
+    return this.del(`/members/${id}`);
+  },
+
+  // Memberships & Renewals
+  renewMembership(data) {
+    return this.post('/memberships/renew', data);
+  },
+
+  freezeMembership(data) {
+    return this.post('/memberships/freeze', data);
+  },
+
+  unfreezeMembership(id) {
+    return this.post(`/memberships/${id}/unfreeze`, {});
+  },
+
+  // Plans Endpoints
+  getPlans() {
+    return this.get('/plans');
+  },
+
+  createPlan(data) {
+    return this.post('/plans', data);
+  },
+
+  updatePlan(id, data) {
+    return this.put(`/plans/${id}`, data);
+  },
+
+  deletePlan(id) {
+    return this.del(`/plans/${id}`);
+  },
+
+  // Billing & Payments
+  getPayments(page = 1, limit = 50) {
+    return this.get(`/payments?page=${page}&limit=${limit}`);
+  },
+
+  collectDue(data) {
+    return this.post('/payments/collect-due', data);
+  },
+
+  // Settings
+  getSettings() {
+    return this.get('/settings');
+  },
+
+  updateSettings(data) {
+    return this.put('/settings', data);
   },
 };
 
-// Global formatters and helpers
-function formatINR(amount) {
-  const num = Number(amount) || 0;
-  return '₹' + num.toLocaleString('en-IN');
+// UI Formatting Helpers
+function formatINR(val) {
+  const num = Number(val) || 0;
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(num);
 }
 
-function formatDateIN(dateStr) {
-  if (!dateStr) return 'N/A';
-  const d = new Date(dateStr);
+function formatDateIN(dateVal) {
+  if (!dateVal) return 'N/A';
+  const d = new Date(dateVal);
   if (isNaN(d.getTime())) return 'N/A';
   return d.toLocaleDateString('en-IN', {
     day: '2-digit',
@@ -112,29 +213,27 @@ function formatDateIN(dateStr) {
   });
 }
 
-function showToast(title, message = '', type = 'success') {
-  const container = document.getElementById('toast-container');
-  if (!container) return;
+function showToast(message, type = 'success') {
+  const existing = document.getElementById('fitcore-toast');
+  if (existing) existing.remove();
 
   const toast = document.createElement('div');
-  const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-amber-600';
-
-  toast.className = `${bg} text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm font-semibold transition-all duration-300 transform translate-y-2 opacity-0 z-50`;
+  toast.id = 'fitcore-toast';
+  toast.className = `fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-semibold transition-all duration-300 transform translate-y-0 ${
+    type === 'success'
+      ? 'bg-emerald-600 text-white'
+      : type === 'error'
+      ? 'bg-rose-600 text-white'
+      : 'bg-amber-500 text-white'
+  }`;
   toast.innerHTML = `
-    <div>
-      <div class="font-bold text-xs uppercase tracking-wider">${title}</div>
-      ${message ? `<div class="text-xs text-white/90 font-normal mt-0.5">${message}</div>` : ''}
-    </div>
+    <span>${message}</span>
+    <button onclick="this.parentElement.remove()" class="ml-2 hover:opacity-75">✕</button>
   `;
-
-  container.appendChild(toast);
+  document.body.appendChild(toast);
   setTimeout(() => {
-    toast.classList.remove('translate-y-2', 'opacity-0');
-  }, 10);
-
-  setTimeout(() => {
-    toast.classList.add('opacity-0');
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px)';
     setTimeout(() => toast.remove(), 300);
-  }, 3500);
+  }, 4000);
 }
-
