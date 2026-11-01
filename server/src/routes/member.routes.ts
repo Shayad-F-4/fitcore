@@ -745,15 +745,23 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) 
       }
     }
 
-    // Phone format validation (digits, minimum 7 characters)
-    const cleanPhone = phone.trim().replace(/[\s\-\(\)]/g, '');
-    if (cleanPhone.length < 7) {
-      sendError(res, 'Please provide a valid mobile/phone number (minimum 7 digits)', 400);
+    // Mobile number validation (strictly 10 digits)
+    let cleanPhone = phone.trim().replace(/\D/g, '');
+    if (cleanPhone.startsWith('91') && cleanPhone.length === 12) {
+      cleanPhone = cleanPhone.slice(2);
+    } else if (cleanPhone.startsWith('0') && cleanPhone.length === 11) {
+      cleanPhone = cleanPhone.slice(1);
+    } else if (cleanPhone.startsWith('1') && cleanPhone.length === 11) {
+      cleanPhone = cleanPhone.slice(1);
+    }
+
+    if (cleanPhone.length !== 10) {
+      sendError(res, 'Mobile number must be exactly 10 digits', 400);
       return;
     }
 
     // Prevent duplicate registrations by checking phone, and email if provided
-    const duplicateQuery: any[] = [{ phone: phone.trim() }];
+    const duplicateQuery: any[] = [{ phone: cleanPhone }];
     if (cleanEmail) {
       duplicateQuery.push({ email: cleanEmail });
     }
@@ -764,7 +772,7 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) 
     });
 
     if (existingMember) {
-      const duplicateField = existingMember.phone === phone.trim() ? 'phone number' : 'email';
+      const duplicateField = existingMember.phone === cleanPhone ? 'phone number' : 'email';
       sendError(
         res,
         `A member with this ${duplicateField} already exists (${existingMember.fullName} - ${existingMember.memberId}).`,
@@ -784,7 +792,7 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) 
       memberId,
       fullName: fullName.trim(),
       email: cleanEmail,
-      phone: phone.trim(),
+      phone: cleanPhone,
       gender: gender ? gender.toUpperCase() : undefined,
       dob: dob ? new Date(dob) : undefined,
       address: address || '',
@@ -907,12 +915,26 @@ router.put('/:id', authenticate, async (req: AuthenticatedRequest, res: Response
   try {
     const { fullName, email, phone, gender, dob, address, emergencyContact, branch, fitnessGoals, photoUrl, notes, status } = req.body;
 
+    let cleanPhone = undefined;
+    if (phone !== undefined) {
+      let p = String(phone).trim().replace(/\D/g, '');
+      if (p.startsWith('91') && p.length === 12) p = p.slice(2);
+      if (p.startsWith('0') && p.length === 11) p = p.slice(1);
+      if (p.startsWith('1') && p.length === 11) p = p.slice(1);
+
+      if (p.length !== 10) {
+        sendError(res, 'Mobile number must be exactly 10 digits', 400);
+        return;
+      }
+      cleanPhone = p;
+    }
+
     const member = await Member.findByIdAndUpdate(
       req.params.id,
       {
         fullName,
         email,
-        phone,
+        ...(cleanPhone ? { phone: cleanPhone } : {}),
         gender,
         dob: dob ? new Date(dob) : undefined,
         address,
