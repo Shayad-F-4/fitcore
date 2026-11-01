@@ -10,7 +10,6 @@ import {
   Plus,
   MoreVertical,
   X,
-  Printer,
   Snowflake,
   Sun,
   Archive,
@@ -34,7 +33,6 @@ import { useAuth } from '../context/AuthContext';
 import { Member, Membership, MembershipPlan } from '../types';
 import { RenewModal } from '../components/modals/RenewModal';
 import { FreezeModal } from '../components/modals/FreezeModal';
-import { MemberCardModal } from '../components/modals/MemberCardModal';
 import { MemberProfileModal } from '../components/modals/MemberProfileModal';
 import { DeleteMemberModal } from '../components/modals/DeleteMemberModal';
 import { ArchiveMemberModal } from '../components/modals/ArchiveMemberModal';
@@ -129,7 +127,6 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
   const [actionError, setActionError] = useState<string | null>(null);
 
   // Modals state
-  const [selectedCardMember, setSelectedCardMember] = useState<Member | null>(null);
   const [selectedRenewSub, setSelectedRenewSub] = useState<Membership | null>(null);
   const [selectedFreezeSub, setSelectedFreezeSub] = useState<Membership | null>(null);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
@@ -1189,18 +1186,6 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
                                       <Edit2 className="w-3.5 h-3.5 text-slate-400" />
                                       <span>Edit Member Details</span>
                                     </button>
-
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setActiveMenuId(null);
-                                        setSelectedCardMember(member);
-                                      }}
-                                      className="w-full px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-                                    >
-                                      <Printer className="w-3.5 h-3.5 text-slate-400" />
-                                      <span>Digital ID Pass</span>
-                                    </button>
                                   </div>
 
                                   <div className="py-1">
@@ -1560,13 +1545,6 @@ export const MembersPage: React.FC<MembersPageProps> = ({ onOpenRegister, onOpen
           fetchMembers(pagination.page);
           fetchStats();
         }}
-      />
-
-      {/* 7. Digital Member Card Pass Modal */}
-      <MemberCardModal
-        member={selectedCardMember}
-        isOpen={Boolean(selectedCardMember)}
-        onClose={() => setSelectedCardMember(null)}
       />
     </div>
   );

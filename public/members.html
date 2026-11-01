@@ -331,10 +331,6 @@
             <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
             <span>WhatsApp</span>
           </button>
-          <button onclick="openCardModalFromProfile()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition-all">
-            <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
-            <span>Print Pass</span>
-          </button>
           <button onclick="openRenewModalFromProfile()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold transition-all">
             <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
             <span>Renew</span>
@@ -411,54 +407,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL 3: MEMBERSHIP PASS / ID CARD ==================== -->
-  <div id="card-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
-    <div class="w-full max-w-sm bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 space-y-4 modal-enter">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100 no-print">
-        <h3 class="text-base font-bold text-slate-900">Membership Pass</h3>
-        <button onclick="closeCardModal()" class="p-1 text-slate-400 hover:text-slate-600">✕</button>
-      </div>
-
-      <!-- Printable ID Pass -->
-      <div id="printable-member-pass" class="border border-slate-200 rounded-2xl p-5 bg-white shadow-sm space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-          <img src="/logo.webp" alt="Sagar Fitness Gym" class="h-7 w-auto object-contain" onerror="this.src='/logo.png'">
-          <span id="card-status-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold badge-active">ACTIVE</span>
-        </div>
-
-        <div class="flex items-center gap-3.5">
-          <div id="card-avatar" class="w-16 h-16 rounded-xl bg-blue-600 text-white font-bold text-2xl flex items-center justify-center shrink-0">
-            M
-          </div>
-          <div class="min-w-0">
-            <h4 id="card-name" class="font-black text-sm text-slate-900 truncate">Rahul Sharma</h4>
-            <p id="card-id" class="font-mono text-blue-700 font-bold text-xs mt-0.5">ID: FC-1011</p>
-            <p id="card-plan" class="text-xs text-slate-600 font-medium mt-0.5 truncate">Annual Package</p>
-            <p class="text-[10px] text-slate-400">Pathardi Facility</p>
-          </div>
-        </div>
-
-        <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600">
-          <div>
-            <p><strong>Joined:</strong> <span id="card-joined">N/A</span></p>
-            <p><strong>Valid Till:</strong> <span id="card-validity" class="font-bold text-slate-900">N/A</span></p>
-          </div>
-          <div class="w-12 h-12 bg-slate-100 border border-slate-300 rounded-lg flex items-center justify-center font-mono text-[9px] text-center font-bold text-slate-600">
-            QR PASS
-          </div>
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-2 pt-2 no-print">
-        <button onclick="window.print()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md">
-          <i data-lucide="printer" class="w-3.5 h-3.5"></i>
-          <span>Print Pass</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== MODAL 4: RENEW MEMBERSHIP ==================== -->
+  <!-- ==================== MODAL 3: RENEW MEMBERSHIP ==================== -->
   <div id="renew-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
     <div class="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 space-y-4 modal-enter">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -1162,32 +1111,7 @@ _Cooldown: 5-10 mins slow walking + static stretching_`,
       document.getElementById('profile-modal').classList.add('hidden');
     }
 
-    // Modal 3: Card Pass Helpers
-    function openCardModalFromProfile() {
-      if (!activeMemberDetail) return;
-      const m = activeMemberDetail;
-      const sub = m.activeMembership || {};
-
-      document.getElementById('card-name').innerText = m.fullName;
-      document.getElementById('card-id').innerText = `ID: ${m.memberId || 'FC-MEMBER'}`;
-      document.getElementById('card-plan').innerText = sub.plan?.name || 'General Athlete Pass';
-      document.getElementById('card-joined').innerText = formatDateIN(m.createdAt || m.joinDate);
-      document.getElementById('card-validity').innerText = formatDateIN(sub.endDate);
-      const cardAvatar = document.getElementById('card-avatar');
-      if (m.photoUrl) {
-        cardAvatar.innerHTML = `<img src="${m.photoUrl}" alt="${m.fullName}" class="w-full h-full rounded-xl object-cover">`;
-      } else {
-        cardAvatar.innerText = m.fullName ? m.fullName[0].toUpperCase() : 'M';
-      }
-
-      document.getElementById('card-modal').classList.remove('hidden');
-      if (window.lucide) lucide.createIcons();
-    }
-    function closeCardModal() {
-      document.getElementById('card-modal').classList.add('hidden');
-    }
-
-    // Modal 4: Renew Helpers
+    // Modal 3: Renew Helpers
     function openRenewModal(memberId, name) {
       document.getElementById('renew-member-id').value = memberId;
       document.getElementById('renew-member-name').innerText = name;
