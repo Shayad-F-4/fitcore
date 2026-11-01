@@ -1092,17 +1092,20 @@ _Cooldown: 5-10 mins slow walking + static stretching_`,
         if (payments.length === 0) {
           pBody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">No payment receipts on file</td></tr>`;
         } else {
-          pBody.innerHTML = payments.map((p, idx) => `
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-3 font-mono font-bold text-blue-700">${p.receiptNumber || `SF-${1000 + idx}`}</td>
-              <td class="py-2.5 px-3 text-slate-500">${formatDateIN(p.createdAt || p.paymentDate)}</td>
-              <td class="py-2.5 px-3 font-bold text-emerald-700">${formatINR(p.amountPaid)}</td>
-              <td class="py-2.5 px-3 uppercase text-slate-600 font-semibold">${p.paymentMethod || 'CASH'}</td>
-              <td class="py-2.5 px-3 text-right">
-                <a href="/billing.html" class="text-blue-600 hover:underline font-bold text-[11px]">Print</a>
-              </td>
-            </tr>
-          `).join('');
+          pBody.innerHTML = payments.map((p, idx) => {
+            const paid = p.amount !== undefined ? p.amount : (p.amountPaid || 0);
+            return `
+              <tr class="hover:bg-slate-50">
+                <td class="py-2.5 px-3 font-mono font-bold text-blue-700">${p.receiptNumber || `SF-${1000 + idx}`}</td>
+                <td class="py-2.5 px-3 text-slate-500">${formatDateIN(p.createdAt || p.paymentDate)}</td>
+                <td class="py-2.5 px-3 font-bold text-emerald-700">${formatINR(paid)}</td>
+                <td class="py-2.5 px-3 uppercase text-slate-600 font-semibold">${p.paymentMethod || 'CASH'}</td>
+                <td class="py-2.5 px-3 text-right">
+                  <a href="/billing.html?receipt=${p._id}" class="text-blue-600 hover:underline font-bold text-[11px]">Print</a>
+                </td>
+              </tr>
+            `;
+          }).join('');
         }
 
         if (window.lucide) lucide.createIcons();

@@ -150,21 +150,22 @@
           const m = p.member || {};
           const plan = p.membership?.plan || {};
           const recNum = p.receiptNumber || `SF-${1000 + idx}`;
-          const isPaid = p.balanceRemaining === 0 || p.status === 'PAID';
+          const paidAmount = p.amount !== undefined ? p.amount : (p.amountPaid || 0);
+          const isPaid = (p.balanceRemaining === 0 || p.status === 'PAID') && paidAmount > 0;
 
           return `
             <tr class="hover:bg-slate-50 transition-colors">
               <td class="py-3.5 px-4 font-mono font-bold text-blue-700">${recNum}</td>
               <td class="py-3.5 px-4 text-slate-500 font-medium">${formatDateIN(p.createdAt || p.paymentDate)}</td>
               <td class="py-3.5 px-4 font-bold text-slate-900">${m.fullName || 'N/A'}</td>
-              <td class="py-3.5 px-4 font-bold text-emerald-700">${formatINR(p.amountPaid)}</td>
+              <td class="py-3.5 px-4 font-bold text-emerald-700">${formatINR(paidAmount)}</td>
               <td class="py-3.5 px-4 font-semibold ${p.balanceRemaining > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}">
                 ${formatINR(p.balanceRemaining || 0)}
               </td>
               <td class="py-3.5 px-4 uppercase font-semibold text-slate-600">${p.paymentMethod || 'CASH'}</td>
               <td class="py-3.5 px-4">
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                  isPaid ? 'badge-active' : 'badge-expiring'
+                  p.status === 'PAID' ? 'badge-active' : 'badge-expiring'
                 }">${p.status || (isPaid ? 'PAID' : 'PARTIAL')}</span>
               </td>
               <td class="py-3.5 px-4 text-right">
@@ -177,6 +178,13 @@
         }).join('');
 
         if (window.lucide) lucide.createIcons();
+
+        // Check if specific receipt is requested via URL
+        const params = new URLSearchParams(window.location.search);
+        const recId = params.get('receipt');
+        if (recId) {
+          viewReceipt(recId);
+        }
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-500 font-semibold">Failed to load billing ledger</td></tr>`;
       }
@@ -193,7 +201,8 @@
       document.getElementById('rec-member-name').innerText = m.fullName || 'N/A';
       document.getElementById('rec-member-phone').innerText = m.phone || 'N/A';
       document.getElementById('rec-plan-name').innerText = plan.name || 'General Membership Pass';
-      document.getElementById('rec-paid').innerText = formatINR(p.amountPaid);
+      const paid = p.amount !== undefined ? p.amount : (p.amountPaid || 0);
+      document.getElementById('rec-paid').innerText = formatINR(paid);
       document.getElementById('rec-balance').innerText = formatINR(p.balanceRemaining || 0);
       document.getElementById('rec-mode').innerText = p.paymentMethod || 'CASH';
 
