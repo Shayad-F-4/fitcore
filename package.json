@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "FitCore - Premium Gym Management Ecosystem",
   "private": true,
+  "type": "module",
   "scripts": {
     "install:all": "npm install && npm install --prefix server && npm install --prefix client",
     "dev:server": "npm run dev --prefix server",

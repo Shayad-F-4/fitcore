@@ -228,11 +228,17 @@
         // 1. Stats
         const stats = await API.getDashboardStats();
         if (stats) {
-          document.getElementById('stat-today-revenue').innerText = formatINR(stats.todayRevenue || 0);
-          document.getElementById('stat-active-members').innerText = stats.activeMembers || 0;
-          document.getElementById('stat-expiring-count').innerText = stats.expiringIn7Days || 0;
-          document.getElementById('stat-pending-dues').innerText = formatINR(stats.pendingDues || 0);
-          document.getElementById('expiry-count-badge').innerText = `${stats.expiringIn7Days || 0} Alerts`;
+          const m = stats.metrics || stats;
+          const todayRev = m.todayRevenue !== undefined ? m.todayRevenue : 0;
+          const activeMem = m.activeMembers !== undefined ? m.activeMembers : (m.totalMembers || 0);
+          const expCount = m.expiringIn7Days !== undefined ? m.expiringIn7Days : (m.expiringMemberships || 0);
+          const dues = m.pendingDues !== undefined ? m.pendingDues : (m.pendingDuesTotal || 0);
+
+          document.getElementById('stat-today-revenue').innerText = formatINR(todayRev);
+          document.getElementById('stat-active-members').innerText = activeMem;
+          document.getElementById('stat-expiring-count').innerText = expCount;
+          document.getElementById('stat-pending-dues').innerText = formatINR(dues);
+          document.getElementById('expiry-count-badge').innerText = `${expCount} Alerts`;
         }
 
         // 2. Expiring Members

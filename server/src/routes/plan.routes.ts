@@ -35,7 +35,7 @@ router.post('/', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), async (r
       type: type || 'MONTHLY',
       durationDays: finalDuration,
       price: Number(price),
-      description: description || '',
+      description: (description && description.trim()) || 'General Gym Membership Access',
       features: Array.isArray(features) ? features : [],
       isPopular: Boolean(isPopular),
       badge: badge || '',

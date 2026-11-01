@@ -188,23 +188,28 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
       .filter((sub) => sub.member && !sub.member.isArchived)
       .slice(0, 15);
 
+    const metrics = {
+      totalMembers,
+      activeMembers,
+      expiringMemberships: expiringMembershipsCount,
+      expiringIn7Days: expiringMembershipsCount,
+      alreadyExpiredCount: expiredMembershipsCount,
+      newMembersThisMonth,
+      liveOccupancy,
+      gymCapacity,
+      occupancyPercentage,
+      todayTotalCheckins,
+      todayRevenue: revenueSummaryAgg[0]?.todayRevenue || 0,
+      monthlyRevenue: revenueSummaryAgg[0]?.monthlyRevenue || 0,
+      totalRevenue: revenueSummaryAgg[0]?.totalRevenue || 0,
+      pendingDues: pendingDuesAgg[0]?.total || 0,
+      pendingDuesTotal: pendingDuesAgg[0]?.total || 0,
+      pendingDuesCount: pendingDuesAgg[0]?.count || 0,
+    };
+
     sendSuccess(res, 'Dashboard metrics', {
-      metrics: {
-        totalMembers,
-        activeMembers,
-        expiringMemberships: expiringMembershipsCount,
-        alreadyExpiredCount: expiredMembershipsCount,
-        newMembersThisMonth,
-        liveOccupancy,
-        gymCapacity,
-        occupancyPercentage,
-        todayTotalCheckins,
-        todayRevenue: revenueSummaryAgg[0]?.todayRevenue || 0,
-        monthlyRevenue: revenueSummaryAgg[0]?.monthlyRevenue || 0,
-        totalRevenue: revenueSummaryAgg[0]?.totalRevenue || 0,
-        pendingDuesTotal: pendingDuesAgg[0]?.total || 0,
-        pendingDuesCount: pendingDuesAgg[0]?.count || 0,
-      },
+      ...metrics,
+      metrics,
       expiringMemberships: visibleExpiring,
       expiredMemberships: visibleExpired,
       recentMembers,

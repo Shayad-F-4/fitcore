@@ -24,7 +24,7 @@ const MembershipPlanSchema = new Schema<IMembershipPlan>(
     },
     durationDays: { type: Number, required: true, min: 1 },
     price: { type: Number, required: true, min: 0 },
-    description: { type: String, required: true },
+    description: { type: String, default: 'General gym access and workout protocol' },
     features: [{ type: String }],
     active: { type: Boolean, default: true, index: true },
     isPopular: { type: Boolean, default: false },

@@ -9,3 +9,4 @@ for (const target of targetDirs) {
   fs.cpSync(srcDir, target, { recursive: true, force: true });
   console.log(`[Build] Copied Vanilla HTML/CSS/JS frontend to ${target}`);
 }
+
