@@ -90,6 +90,9 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
             todayRevenue: {
               $sum: { $cond: [{ $gte: ['$paymentDate', startOfToday] }, '$amount', 0] },
             },
+            todayTransactionsCount: {
+              $sum: { $cond: [{ $gte: ['$paymentDate', startOfToday] }, 1, 0] },
+            },
           },
         },
       ]),
@@ -200,6 +203,7 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
       occupancyPercentage,
       todayTotalCheckins,
       todayRevenue: revenueSummaryAgg[0]?.todayRevenue || 0,
+      todayTransactionsCount: revenueSummaryAgg[0]?.todayTransactionsCount || 0,
       monthlyRevenue: revenueSummaryAgg[0]?.monthlyRevenue || 0,
       totalRevenue: revenueSummaryAgg[0]?.totalRevenue || 0,
       pendingDues: pendingDuesAgg[0]?.total || 0,
