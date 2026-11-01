@@ -171,7 +171,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
-            <input type="text" id="reg-name" required placeholder="e.g. Rahul Sharma" class="w-full h-10 px-3.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-blue-600 font-medium">
+            <input type="text" id="reg-name" required oninput="buildWhatsAppPlanText()" placeholder="e.g. Rahul Sharma" class="w-full h-10 px-3.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-blue-600 font-medium">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Mobile Phone *</label>
@@ -229,8 +229,73 @@
           </div>
         </div>
 
-        <button type="submit" id="reg-submit-btn" class="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer">
-          Complete Registration & Save
+        <!-- Diet & Workout Protocol (Direct WhatsApp Dispatch) -->
+        <div class="p-4 bg-gradient-to-br from-emerald-50/70 via-slate-50 to-teal-50/40 border border-emerald-200/80 rounded-2xl space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                <i data-lucide="utensils" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-slate-900">Diet & Workout Protocol</h4>
+                <p class="text-[10px] text-emerald-700 font-medium">Direct WhatsApp Dispatch • Not saved to DB</p>
+              </div>
+            </div>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-emerald-300 shadow-2xs">
+              <input type="checkbox" id="reg-send-whatsapp" checked onchange="handleDietToggleChange()" class="w-3.5 h-3.5 text-emerald-600 rounded focus:ring-emerald-500 border-slate-300 cursor-pointer">
+              <span class="text-[11px] font-bold text-emerald-800">Send WhatsApp</span>
+            </label>
+          </div>
+
+          <div id="diet-workout-fields" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">🥗 Select Diet Plan</label>
+                <select id="reg-diet-select" onchange="buildWhatsAppPlanText()" class="w-full h-9 px-2.5 text-xs border border-emerald-300 rounded-xl focus:outline-none focus:border-emerald-600 bg-white font-medium">
+                  <option value="fat_loss" selected>Weight Loss & Fat Cut (1500 kcal)</option>
+                  <option value="muscle_gain">Lean Muscle Gain (2200 kcal)</option>
+                  <option value="veg_protein">Pure Veg High-Protein Nutrition</option>
+                  <option value="general_fitness">General Health & Balanced Routine</option>
+                  <option value="none">-- No Diet Plan --</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">🏋️ Select Workout Routine</label>
+                <select id="reg-workout-select" onchange="buildWhatsAppPlanText()" class="w-full h-9 px-2.5 text-xs border border-emerald-300 rounded-xl focus:outline-none focus:border-emerald-600 bg-white font-medium">
+                  <option value="beginner_fullbody" selected>3-Day Beginner Full Body Split</option>
+                  <option value="ppl_split">5-Day Push / Pull / Legs (PPL)</option>
+                  <option value="hypertrophy_6day">6-Day Hypertrophy Split</option>
+                  <option value="fatburn_cardio">Fat Loss Cardio & HIIT Circuit</option>
+                  <option value="none">-- No Workout Plan --</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- WhatsApp Message Preview Box -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="font-bold text-slate-700 flex items-center gap-1">
+                  <i data-lucide="message-square" class="w-3 h-3 text-emerald-600"></i>
+                  <span>WhatsApp Message Preview (Editable):</span>
+                </span>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="buildWhatsAppPlanText(true)" class="text-blue-600 hover:text-blue-800 text-[10px] font-bold underline cursor-pointer">
+                    Reset Template
+                  </button>
+                  <button type="button" onclick="testSendWhatsAppPlan()" class="text-emerald-700 hover:text-emerald-900 text-[10px] font-bold px-2 py-0.5 bg-emerald-100 hover:bg-emerald-200 rounded-md transition-colors cursor-pointer">
+                    Preview in WhatsApp
+                  </button>
+                </div>
+              </div>
+              <textarea id="reg-whatsapp-text" rows="5" class="w-full p-2.5 text-[11px] font-mono border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-emerald-600 leading-relaxed text-slate-800 shadow-inner" placeholder="Diet and workout plan text that will be sent to the member's WhatsApp..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" id="reg-submit-btn" class="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span id="reg-submit-text">Complete Registration & Send to WhatsApp</span>
         </button>
       </form>
     </div>
@@ -769,10 +834,174 @@
       document.getElementById('btn-remove-photo').classList.add('hidden');
     }
 
+    // ==================== DIET & WORKOUT PROTOCOL TEMPLATES ====================
+    const DIET_TEMPLATES = {
+      fat_loss: `🥗 *DIET PROTOCOL: WEIGHT LOSS & FAT CUT (1500 kcal)*
+• *Morning (Empty Stomach)*: 1 glass warm lemon water + 4 soaked almonds
+• *Breakfast (8:30 AM)*: 2 boiled egg whites OR 1 bowl vegetable oats / Besan chilla + green tea
+• *Mid-Morning (11:30 AM)*: 1 seasonal fruit (apple/orange) OR 1 glass fresh buttermilk
+• *Lunch (1:30 PM)*: 2 multigrain rotis + 1 bowl dal/sprouts + seasonal sabzi + green salad + 1 bowl curd
+• *Evening Snack (5:00 PM)*: Roasted chana or makhana + green tea / black coffee
+• *Dinner (8:00 PM)*: 150g grilled paneer / tofu / chicken breast + warm vegetable soup (avoid heavy carbs at night)
+• 💧 *Hydration*: Drink 3.5 - 4 Litres of water daily`,
+
+      muscle_gain: `🥗 *DIET PROTOCOL: LEAN MUSCLE GAIN & STRENGTH (2200 kcal)*
+• *Morning (7:00 AM)*: 1 banana + 5 soaked almonds + 2 walnuts
+• *Breakfast (8:30 AM)*: 3-4 eggs (2 whole, 2 whites) OR 100g paneer bhurji + 2 whole wheat toasts + peanut butter
+• *Pre-Workout (30 min prior)*: 1 banana / black coffee
+• *Post-Workout*: 1 scoop whey protein OR 4 boiled egg whites / rich sattu drink
+• *Lunch (1:30 PM)*: 2-3 rotis + 1 cup rice + 150g chicken breast / paneer / soya chunks + thick dal + curd
+• *Evening Snack (5:00 PM)*: Boiled sweet potato OR boiled sprouts chaat
+• *Dinner (8:30 PM)*: 2 rotis + grilled paneer / fish / chicken + green vegetables + fresh cucumber salad
+• 💧 *Hydration*: Drink 4 Litres of clean water daily`,
+
+      veg_protein: `🥗 *DIET PROTOCOL: PURE VEGETARIAN HIGH-PROTEIN*
+• *Morning (7:00 AM)*: Warm water with chia seeds + 5 soaked almonds
+• *Breakfast (8:30 AM)*: Moong dal chilla with paneer stuffing OR sprout salad + 1 glass soy/toned milk
+• *Pre-Workout*: 1 banana with 1 tbsp peanut butter
+• *Post-Workout*: 150g tofu / roasted soya chunks salad OR sattu shake
+• *Lunch (1:30 PM)*: 2 jowar or wheat rotis + 1 bowl thick rajma / chole / dal + 100g low-fat curd + salad
+• *Evening Snack (5:00 PM)*: Roasted makhana + roasted chana + green tea
+• *Dinner (8:00 PM)*: 150g grilled paneer tikka / soya paneer + sautéed vegetables + fresh vegetable soup
+• 💧 *Hydration*: Drink 3.5 Litres of water daily`,
+
+      general_fitness: `🥗 *DIET PROTOCOL: BALANCED HEALTH & TONING*
+• *Morning (7:00 AM)*: Warm water with lemon & raw honey
+• *Breakfast (8:30 AM)*: Vegetable poha / upma / 2 idli sambar with boiled sprouts
+• *Mid-Morning*: 1 seasonal fruit (papaya, apple, or watermelon)
+• *Lunch (1:30 PM)*: 2 rotis + seasonal green sabzi + 1 bowl dal + fresh salad + curd
+• *Evening (5:00 PM)*: Handful of mixed dry fruits + green tea
+• *Dinner (8:00 PM)*: Light khichdi / dal daliya / vegetable soup with grilled paneer
+• 💧 *Hydration*: Drink 3 Litres of water daily`,
+
+      none: ''
+    };
+
+    const WORKOUT_TEMPLATES = {
+      beginner_fullbody: `🏋️ *WORKOUT SCHEDULE: 3-DAY BEGINNER FULL BODY SPLIT*
+_Warmup: 5-10 mins treadmill/cycle + mobility stretches_
+• *Monday (Full Body A)*: Bodyweight Squats (3x12), Push-ups / Machine Chest Press (3x10), Lat Pulldown (3x12), DB Shoulder Press (3x12), Plank (3x30 sec)
+• *Wednesday (Full Body B)*: Leg Press (3x12), Seated Cable Row (3x12), Incline DB Press (3x10), Dumbbell Bicep Curls (3x12), Tricep Rope Pushdown (3x12)
+• *Friday (Full Body C)*: Goblet Squats (3x12), Overhead Shoulder Press (3x12), DB Walking Lunges (3x10/leg), Cable Rows (3x12), Hanging Knee Raises (3x15)
+_Cooldown: 5-10 mins slow walking + static stretching_`,
+
+      ppl_split: `🏋️ *WORKOUT SCHEDULE: 5-DAY PUSH / PULL / LEGS (PPL) SPLIT*
+• *Monday (Push - Chest, Shoulders, Triceps)*: Flat Bench Press (4x8-10), Incline DB Press (3x10), DB Lateral Raises (4x12), Cable Chest Fly (3x12), Overhead Tricep Extension (3x12)
+• *Tuesday (Pull - Back, Biceps)*: Lat Pulldown (4x10), Barbell Bent-Over Row (4x10), Seated Cable Row (3x12), Face Pulls (3x15), Bicep Barbell Curls (3x10), Hammer Curls (3x12)
+• *Wednesday (Legs & Abs)*: Barbell Squats (4x8-10), Leg Press (3x12), Romanian Deadlifts (3x10), Leg Extensions superset Hamstring Curls (3x12), Calf Raises (4x15), Hanging Leg Raises (3x15)
+• *Thursday*: Active Rest / Core & Cardio Walk
+• *Friday (Push & Shoulders Focus)*: DB Shoulder Press (4x8-10), Incline Press (3x10), Lateral Raises (4x15), Dips / Cable Pushdown (3x12)
+• *Saturday (Pull & Arms Focus)*: Pull-ups / Cable Row (4x10), DB Shrugs (3x12), Preacher Curls (3x12), Tricep Skullcrushers (3x12)
+• *Sunday*: Complete Rest & Muscle Recovery`,
+
+      hypertrophy_6day: `🏋️ *WORKOUT SCHEDULE: 6-DAY HYPERTROPHY SPLIT*
+• *Monday (Chest & Triceps)*: Flat Bench Press, Incline DB Press, Cable Fly, Dips, Rope Pushdown
+• *Tuesday (Back & Biceps)*: Deadlifts, Lat Pulldowns, T-Bar Rows, Barbell Curls, Hammer Curls
+• *Wednesday (Legs & Calves)*: Squats, Leg Press, Hamstring Curls, Walking Lunges, Calf Raises
+• *Thursday (Shoulders & Abs)*: Overhead Press, Lateral Raises, Front Raises, Face Pulls, Planks
+• *Friday (Arms Special)*: Superset Bicep & Tricep exercises + Forearms
+• *Saturday (Conditioning & Legs)*: Leg extensions, Goblet Squats, HIIT Cardio 20 mins
+• *Sunday*: Complete Rest Day`,
+
+      fatburn_cardio: `🏋️ *WORKOUT SCHEDULE: FAT LOSS CARDIO & HIIT FUNCTIONAL*
+• *Daily Warmup*: 15 mins Incline Treadmill Walk + 10 mins Cross Trainer
+• *Functional HIIT Circuit (4 Rounds)*:
+  1. Jumping Jacks (45 sec)
+  2. Kettlebell / DB Squats (15 reps)
+  3. Mountain Climbers (45 sec)
+  4. Battle Ropes / Burpees (30 sec)
+  5. Bicycle Crunches & Plank (45 sec)
+• *Finisher*: 10 mins Stationary Cycle at moderate resistance`,
+
+      none: ''
+    };
+
+    let userEditedPlanPreview = false;
+
+    function handleDietToggleChange() {
+      const isChecked = document.getElementById('reg-send-whatsapp').checked;
+      const fields = document.getElementById('diet-workout-fields');
+      const submitText = document.getElementById('reg-submit-text');
+      const submitBtn = document.getElementById('reg-submit-btn');
+
+      if (isChecked) {
+        fields.classList.remove('hidden');
+        submitText.innerText = 'Complete Registration & Send to WhatsApp';
+        submitBtn.className = 'w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2';
+      } else {
+        fields.classList.add('hidden');
+        submitText.innerText = 'Complete Registration & Save';
+        submitBtn.className = 'w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2';
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function buildWhatsAppPlanText(forceReset = false) {
+      if (forceReset) userEditedPlanPreview = false;
+      if (userEditedPlanPreview && !forceReset) return;
+
+      const name = document.getElementById('reg-name').value.trim() || 'Athlete';
+      const dietKey = document.getElementById('reg-diet-select').value;
+      const workoutKey = document.getElementById('reg-workout-select').value;
+
+      const dietText = DIET_TEMPLATES[dietKey] || '';
+      const workoutText = WORKOUT_TEMPLATES[workoutKey] || '';
+
+      let text = `🏋️ *SAGAR FITNESS GYM • PATHARDI*\n`;
+      text += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+      text += `Hello *${name}*, Welcome to the Sagar Fitness Gym family! 💪🔥\n\n`;
+      text += `Here is your customized *Diet & Workout Protocol* to achieve your fitness goals:\n\n`;
+
+      if (dietText) {
+        text += `${dietText}\n\n`;
+      }
+
+      if (workoutText) {
+        text += `${workoutText}\n\n`;
+      }
+
+      if (!dietText && !workoutText) {
+        text += `_General fitness protocol will be assigned by your floor trainer._\n\n`;
+      }
+
+      text += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+      text += `💡 *Important Guidelines*:\n`;
+      text += `• Warm-up 5-10 minutes before every workout.\n`;
+      text += `• Maintain hydration throughout the day (3-4L water).\n`;
+      text += `• Ask our gym trainers anytime for proper form & posture guidance.\n\n`;
+      text += `Let's crush your fitness journey! 🚀\n`;
+      text += `*Sagar Fitness Gym, Pathardi*`;
+
+      const textarea = document.getElementById('reg-whatsapp-text');
+      if (textarea) {
+        textarea.value = text;
+      }
+    }
+
+    function testSendWhatsAppPlan() {
+      const phone = document.getElementById('reg-phone').value.trim();
+      const text = document.getElementById('reg-whatsapp-text').value.trim();
+      if (!phone) {
+        showToast('Please enter the athlete Mobile Phone number first.', 'warning');
+        document.getElementById('reg-phone').focus();
+        return;
+      }
+      openWhatsAppMessage(phone, text);
+    }
+
     // Modal 1: Register Helpers
     function openRegisterModal() {
       removePhoto();
       document.getElementById('register-modal').classList.remove('hidden');
+      document.getElementById('reg-send-whatsapp').checked = true;
+      userEditedPlanPreview = false;
+      handleDietToggleChange();
+      buildWhatsAppPlanText(true);
+      const textarea = document.getElementById('reg-whatsapp-text');
+      if (textarea) {
+        textarea.oninput = () => { userEditedPlanPreview = true; };
+      }
+      if (window.lucide) lucide.createIcons();
     }
     function closeRegisterModal() {
       stopCamera();
@@ -797,14 +1026,20 @@
     async function handleRegisterSubmit(e) {
       e.preventDefault();
       const btn = document.getElementById('reg-submit-btn');
+      const submitText = document.getElementById('reg-submit-text');
       btn.disabled = true;
-      btn.innerText = 'Registering Member...';
+      const originalText = submitText.innerText;
+      submitText.innerText = 'Registering Member...';
 
       const select = document.getElementById('reg-plan');
       const opt = select.selectedOptions[0];
+      const phone = document.getElementById('reg-phone').value.trim();
+      const sendWhatsApp = document.getElementById('reg-send-whatsapp').checked;
+      const planText = document.getElementById('reg-whatsapp-text').value.trim();
+
       const payload = {
         fullName: document.getElementById('reg-name').value.trim(),
-        phone: document.getElementById('reg-phone').value.trim(),
+        phone: phone,
         email: document.getElementById('reg-email').value.trim() || undefined,
         gender: document.getElementById('reg-gender').value,
         planId: select.value,
@@ -816,14 +1051,20 @@
 
       try {
         await API.createMember(payload);
-        showToast('Member admitted successfully with photo!');
         closeRegisterModal();
         loadMembers();
+
+        if (sendWhatsApp && planText && phone) {
+          openWhatsAppMessage(phone, planText);
+          showToast('Member admitted & Diet/Workout plan dispatched to WhatsApp!');
+        } else {
+          showToast('Member admitted successfully with photo!');
+        }
       } catch (err) {
         showToast(err.message || 'Registration failed', 'error');
       } finally {
         btn.disabled = false;
-        btn.innerText = 'Complete Registration & Save';
+        submitText.innerText = originalText;
       }
     }
 
