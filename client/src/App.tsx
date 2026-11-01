@@ -40,9 +40,6 @@ const RenewModal = lazy(() =>
 const FreezeModal = lazy(() =>
   import('./components/modals/FreezeModal').then((m) => ({ default: m.FreezeModal }))
 );
-const MemberCardModal = lazy(() =>
-  import('./components/modals/MemberCardModal').then((m) => ({ default: m.MemberCardModal }))
-);
 const ReceiptModal = lazy(() =>
   import('./components/modals/ReceiptModal').then((m) => ({ default: m.ReceiptModal }))
 );
@@ -68,7 +65,6 @@ export const App: React.FC = () => {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [selectedRenewSub, setSelectedRenewSub] = useState<Membership | null>(null);
   const [selectedFreezeSub, setSelectedFreezeSub] = useState<Membership | null>(null);
-  const [selectedCardMember, setSelectedCardMember] = useState<Member | null>(null);
   const [selectedReceiptPayment, setSelectedReceiptPayment] = useState<Payment | null>(null);
   const [selectedCollectDueItem, setSelectedCollectDueItem] = useState<any | null>(null);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -231,7 +227,6 @@ export const App: React.FC = () => {
             memberId={selectedProfileId}
             isOpen={Boolean(selectedProfileId)}
             onClose={() => setSelectedProfileId(null)}
-            onOpenCardModal={(m) => setSelectedCardMember(m)}
             onOpenRenewModal={(sub) => setSelectedRenewSub(sub)}
             onOpenFreezeModal={(sub) => setSelectedFreezeSub(sub)}
             onOpenCollectDue={(item) => setSelectedCollectDueItem(item)}
@@ -255,14 +250,6 @@ export const App: React.FC = () => {
             isOpen={Boolean(selectedFreezeSub)}
             onClose={() => setSelectedFreezeSub(null)}
             onSuccess={() => {}}
-          />
-        )}
-
-        {selectedCardMember && (
-          <MemberCardModal
-            member={selectedCardMember}
-            isOpen={Boolean(selectedCardMember)}
-            onClose={() => setSelectedCardMember(null)}
           />
         )}
 

@@ -38,7 +38,6 @@ interface MemberProfileModalProps {
   memberId: string | null;
   isOpen: boolean;
   onClose: () => void;
-  onOpenCardModal?: (member: Member) => void;
   onOpenRenewModal?: (membership: Membership) => void;
   onOpenFreezeModal?: (membership: Membership) => void;
   onOpenCollectDue?: (dueItem: any) => void;
@@ -50,7 +49,6 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
   memberId,
   isOpen,
   onClose,
-  onOpenCardModal,
   onOpenRenewModal,
   onOpenFreezeModal,
   onOpenCollectDue,
@@ -431,19 +429,6 @@ export const MemberProfileModal: React.FC<MemberProfileModalProps> = ({
                   </div>
                   <span>{isEditing ? 'Cancel Edit' : 'Edit'}</span>
                 </button>
-
-                {onOpenCardModal && (
-                  <button
-                    type="button"
-                    onClick={() => onOpenCardModal(member)}
-                    className="group inline-flex items-center gap-1.5 h-8 pl-1.5 pr-2.5 rounded-lg text-xs font-semibold text-slate-800 bg-white/90 hover:bg-white border border-white/50 hover:border-white transition-all active:scale-95 shadow-sm"
-                  >
-                    <div className="w-5.5 h-5.5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100 transition-colors group-hover:bg-indigo-100">
-                      <Printer className="w-3 h-3 shrink-0" />
-                    </div>
-                    <span>Print Card</span>
-                  </button>
-                )}
 
                 {currentSub && onOpenRenewModal && (
                   <button

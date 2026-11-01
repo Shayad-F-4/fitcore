@@ -101,7 +101,7 @@ export const LoginPage: React.FC = () => {
       }
       setForgotMsg({
         type: 'success',
-        text: res.message || `A 6-digit OTP code has been sent to ${forgotEmail.trim()}. Please check your Gmail inbox or spam.`,
+        text: (res as any)?.message || `A 6-digit OTP code has been sent to ${forgotEmail.trim()}. Please check your Gmail inbox or spam.`,
       });
       setForgotStep('reset');
     } catch (err: any) {
