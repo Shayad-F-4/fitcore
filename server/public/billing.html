@@ -116,7 +116,7 @@
       </div>
 
       <div class="flex justify-end gap-2 pt-2 no-print">
-        <button onclick="window.print()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md">
+        <button onclick="printReceipt()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md">
           <i data-lucide="printer" class="w-3.5 h-3.5"></i>
           <span>Print Fee Receipt</span>
         </button>
@@ -202,6 +202,101 @@
 
     function closeReceiptModal() {
       document.getElementById('receipt-modal').classList.add('hidden');
+    }
+
+    function printReceipt() {
+      const recNumber = document.getElementById('rec-number').innerText;
+      const recDate = document.getElementById('rec-date').innerText;
+      const memName = document.getElementById('rec-member-name').innerText;
+      const memPhone = document.getElementById('rec-member-phone').innerText;
+      const planName = document.getElementById('rec-plan-name').innerText;
+      const recPaid = document.getElementById('rec-paid').innerText;
+      const recBalance = document.getElementById('rec-balance').innerText;
+      const recMode = document.getElementById('rec-mode').innerText;
+
+      const printWindow = window.open('', '_blank', 'width=680,height=750');
+      if (!printWindow) {
+        window.print();
+        return;
+      }
+
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Fee Payment Receipt - ${recNumber}</title>
+            <meta charset="utf-8">
+            <style>
+              * { box-sizing: border-box; margin: 0; padding: 0; font-family: monospace, -apple-system, sans-serif; }
+              body { background: #fff; color: #1e293b; padding: 30px; display: flex; justify-content: center; }
+              .receipt-wrap { width: 100%; max-width: 440px; border: 2px dashed #94a3b8; border-radius: 16px; padding: 24px; }
+              .text-center { text-align: center; }
+              .logo { max-height: 48px; margin: 0 auto 8px; display: block; }
+              h2 { font-size: 16px; font-weight: 900; letter-spacing: 1px; color: #0f172a; margin-bottom: 4px; }
+              .sub { font-size: 11px; color: #64748b; margin-bottom: 2px; }
+              .border-b { border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 12px; }
+              .border-t { border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 12px; }
+              .flex-between { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
+              .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; margin: 12px 0; }
+              .card p { font-size: 11px; margin-bottom: 4px; color: #334155; }
+              .card strong { color: #0f172a; }
+              .paid-amount { font-size: 15px; font-weight: 900; color: #047857; }
+              .footer { font-size: 10px; color: #94a3b8; text-align: center; margin-top: 16px; }
+            </style>
+          </head>
+          <body>
+            <div class="receipt-wrap">
+              <div class="text-center border-b">
+                <img src="/logo.webp" alt="Sagar Fitness Gym" class="logo" onerror="this.src='/logo.png'">
+                <h2>SAGAR FITNESS GYM</h2>
+                <p class="sub">Pathardi, Ahmednagar, Maharashtra, India</p>
+                <p class="sub">Contact: +91 98811 22334 • info@sagarfitness.com</p>
+              </div>
+
+              <div class="flex-between">
+                <span>Receipt: <strong style="color: #1d4ed8;">${recNumber}</strong></span>
+                <span>Date: <strong>${recDate}</strong></span>
+              </div>
+
+              <div class="card">
+                <p><strong>Athlete Name:</strong> ${memName}</p>
+                <p><strong>Mobile Phone:</strong> ${memPhone}</p>
+                <p><strong>Package Plan:</strong> ${planName}</p>
+              </div>
+
+              <div class="border-t">
+                <div class="flex-between" style="font-weight: bold; font-size: 13px;">
+                  <span>Amount Paid:</span>
+                  <span class="paid-amount">${recPaid}</span>
+                </div>
+                <div class="flex-between" style="color: #64748b;">
+                  <span>Balance Remaining:</span>
+                  <span>${recBalance}</span>
+                </div>
+                <div class="flex-between" style="color: #64748b;">
+                  <span>Payment Mode:</span>
+                  <span style="font-weight: bold; text-transform: uppercase;">${recMode}</span>
+                </div>
+              </div>
+
+              <div class="footer border-t">
+                <p>Thank you for training at Sagar Fitness Gym!</p>
+                <p>Certified computer-generated fee invoice.</p>
+              </div>
+            </div>
+            <script>
+              window.onload = function() {
+                setTimeout(function() {
+                  window.focus();
+                  window.print();
+                  setTimeout(function() { window.close(); }, 500);
+                }, 200);
+              };
+            <\/script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
     }
   </script>
 </body>

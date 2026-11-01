@@ -75,27 +75,30 @@ body {
   border: 1px solid #BFDBFE;
 }
 
-/* Print Layout for Receipts & Member Passes */
+/* Print Layout for Receipts & Invoices */
 @media print {
-  body * {
-    visibility: hidden;
+  body {
+    background: white !important;
   }
-  #printable-receipt, #printable-receipt *,
-  #printable-member-pass, #printable-member-pass * {
-    visibility: visible;
-  }
-  #printable-receipt, #printable-member-pass {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 24px;
-    background: white;
-    border: none;
-    box-shadow: none;
-  }
-  .no-print {
+  .no-print, nav, aside, #sidebar-container, #navbar-container, #mobile-nav-container {
     display: none !important;
+  }
+  #receipt-modal {
+    position: static !important;
+    display: block !important;
+    background: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  #printable-receipt {
+    display: block !important;
+    width: 100% !important;
+    max-width: 460px !important;
+    margin: 20px auto !important;
+    padding: 24px !important;
+    background: white !important;
+    border: 1px dashed #94a3b8 !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
   }
 }

@@ -251,4 +251,25 @@ router.get('/notification-logs', authenticate, async (req: AuthenticatedRequest,
   }
 });
 
+// GET /api/expiry/upcoming - List of memberships expiring in the next N days
+router.get('/upcoming', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const days = parseInt(req.query.days as string, 10) || 7;
+    const now = new Date();
+    const futureDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+    const expiring = await Membership.find({
+      status: 'ACTIVE',
+      expiryDate: { $gte: now, $lte: futureDate },
+    })
+      .populate('member', 'fullName phone photoUrl memberId')
+      .populate('plan', 'name price durationDays')
+      .sort({ expiryDate: 1 });
+
+    sendSuccess(res, `Memberships expiring within ${days} days`, expiring);
+  } catch (error: any) {
+    sendError(res, error.message || 'Failed to fetch upcoming expirations', 500);
+  }
+});
+
 export default router;

@@ -9,6 +9,7 @@ import { FollowUp } from '../models/FollowUp.js';
 import { AuditLog } from '../models/AuditLog.js';
 import { User } from '../models/User.js';
 import { NotificationLog } from '../models/NotificationLog.js';
+import { Branch } from '../models/Branch.js';
 import { sendSuccess, sendError, sendPaginated } from '../utils/response.js';
 import { authenticate, requireRole, AuthenticatedRequest } from '../middlewares/auth.js';
 import { recordAuditLog } from '../utils/audit.js';
@@ -711,7 +712,7 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) 
       dob,
       address,
       emergencyContact,
-      branch,
+      branch: inputBranch,
       fitnessGoals,
       photoUrl,
       notes,
@@ -724,8 +725,14 @@ router.post('/', authenticate, async (req: AuthenticatedRequest, res: Response) 
       customMemberId,
     } = req.body;
 
-    if (!fullName || !phone || !branch) {
-      sendError(res, 'Full name, phone number, and branch are required', 400);
+    let branch = inputBranch || req.user?.branchId;
+    if (!branch) {
+      const defaultBranch = await Branch.findOne();
+      branch = defaultBranch?._id;
+    }
+
+    if (!fullName || !phone) {
+      sendError(res, 'Full name and phone number are required', 400);
       return;
     }
 

@@ -542,11 +542,14 @@
         const select = document.getElementById('reg-plan');
         const renewSelect = document.getElementById('renew-plan');
 
-        const optionsHtml = plansList.map(p => `
-          <option value="${p._id}" data-price="${p.price}" data-duration="${p.duration}">
-            ${p.name} — ${formatINR(p.price)} (${p.duration} Days)
-          </option>
-        `).join('');
+        const optionsHtml = plansList.map(p => {
+          const days = p.durationDays || p.duration || 30;
+          return `
+            <option value="${p._id}" data-price="${p.price}" data-duration="${days}">
+              ${p.name} — ${formatINR(p.price)} (${days} Days)
+            </option>
+          `;
+        }).join('');
 
         select.innerHTML = '<option value="">-- Choose a Plan --</option>' + optionsHtml;
         renewSelect.innerHTML = optionsHtml;
