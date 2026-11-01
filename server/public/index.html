@@ -84,8 +84,8 @@
         </button>
       </div>
 
-      <!-- 4 Summary Stats Cards with Exact Sagar Fitness Colors -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- 5 Summary Stats Cards with Exact Sagar Fitness Colors -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <!-- Card 1: Today's Revenue (Emerald) -->
         <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
@@ -93,43 +93,55 @@
             <h3 class="text-2xl font-black text-emerald-600 mt-1" id="stat-today-revenue">₹0</h3>
             <p class="text-[11px] text-slate-500 font-semibold mt-1">Daily collection</p>
           </div>
-          <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-xs shrink-0">
             <i data-lucide="trending-up" class="w-6 h-6"></i>
           </div>
         </div>
 
-        <!-- Card 2: Active Members (Blue) -->
-        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
+        <!-- Card 2: Total Revenue (Purple) -->
+        <a href="/billing.html" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between hover:border-purple-300 hover:shadow-md transition-all group cursor-pointer">
           <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Members</p>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-purple-600 transition-colors">Total Revenue</p>
+            <h3 class="text-2xl font-black text-purple-700 mt-1" id="stat-total-revenue">₹0</h3>
+            <p class="text-[11px] text-slate-500 font-semibold mt-1">Lifetime collection</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-xs group-hover:bg-purple-100 transition-colors shrink-0">
+            <i data-lucide="wallet" class="w-6 h-6"></i>
+          </div>
+        </a>
+
+        <!-- Card 3: Active Members (Blue) -->
+        <a href="/members.html" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between hover:border-blue-300 hover:shadow-md transition-all group cursor-pointer">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-blue-600 transition-colors">Active Members</p>
             <h3 class="text-2xl font-black text-blue-600 mt-1" id="stat-active-members">0</h3>
             <p class="text-[11px] text-slate-500 font-semibold mt-1">Enrolled athletes</p>
           </div>
-          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
+          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs group-hover:bg-blue-100 transition-colors shrink-0">
             <i data-lucide="users" class="w-6 h-6"></i>
           </div>
-        </div>
+        </a>
 
-        <!-- Card 3: Expiry Alerts (Amber) -->
-        <div onclick="filterRoster('EXPIRED')" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between hover:border-amber-300 hover:shadow-md transition-all group cursor-pointer">
+        <!-- Card 4: Expiry Alerts (Amber) -->
+        <div onclick="filterWatchlist('EXPIRED')" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between hover:border-amber-300 hover:shadow-md transition-all group cursor-pointer">
           <div>
             <p class="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-amber-600 transition-colors">Expiry Alerts</p>
             <h3 class="text-2xl font-black text-amber-600 mt-1" id="stat-expiring-count">0</h3>
             <p class="text-[11px] text-slate-500 font-semibold mt-1" id="stat-expiring-subtext">0 Expired • 0 Expiring</p>
           </div>
-          <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-xs group-hover:bg-amber-100 transition-colors">
+          <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-xs group-hover:bg-amber-100 transition-colors shrink-0">
             <i data-lucide="alert-triangle" class="w-6 h-6"></i>
           </div>
         </div>
 
-        <!-- Card 4: Pending Dues (Rose) -->
+        <!-- Card 5: Pending Dues (Rose) -->
         <a href="/members.html?filter=DUES" class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between hover:border-rose-300 hover:shadow-md transition-all group cursor-pointer">
           <div>
             <p class="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-rose-600 transition-colors">Pending Dues</p>
             <h3 class="text-2xl font-black text-rose-600 mt-1" id="stat-pending-dues">₹0</h3>
             <p class="text-[11px] text-slate-500 font-semibold mt-1">Click to view & collect</p>
           </div>
-          <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-xs group-hover:bg-rose-100 transition-colors">
+          <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-xs group-hover:bg-rose-100 transition-colors shrink-0">
             <i data-lucide="hand-coins" class="w-6 h-6"></i>
           </div>
         </a>
@@ -355,10 +367,14 @@
         if (stats) {
           const m = stats.metrics || stats;
           const todayRev = m.todayRevenue !== undefined ? m.todayRevenue : 0;
+          const totalRev = m.totalRevenue !== undefined ? m.totalRevenue : (m.lifetimeRevenue || 0);
           const activeMem = m.activeMembers !== undefined ? m.activeMembers : (m.totalMembers || 0);
           const dues = m.pendingDues !== undefined ? m.pendingDues : (m.pendingDuesTotal || 0);
 
           document.getElementById('stat-today-revenue').innerText = formatINR(todayRev);
+          if (document.getElementById('stat-total-revenue')) {
+            document.getElementById('stat-total-revenue').innerText = formatINR(totalRev);
+          }
           document.getElementById('stat-active-members').innerText = activeMem;
           document.getElementById('stat-pending-dues').innerText = formatINR(dues);
         }

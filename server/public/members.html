@@ -48,76 +48,6 @@
         </div>
 
         <!-- Filter Badges -->
-        <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
-          <button onclick="setFilter('ALL')" id="filter-btn-ALL" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white transition-colors cursor-pointer whitespace-nowrap shrink-0">All</button>
-          <button onclick="setFilter('ACTIVE')" id="filter-btn-ACTIVE" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap shrink-0">Active</button>
-          <button onclick="setFilter('DUES')" id="filter-btn-DUES" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap shrink-0">Pending Dues</button>
-          <button onclick="setFilter('EXPIRING')" id="filter-btn-EXPIRING" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap shrink-0">Expiring</button>
-          <button onclick="setFilter('EXPIRED')" id="filter-btn-EXPIRED" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap shrink-0">Expired</button>
-          <button onclick="setFilter('FROZEN')" id="filter-btn-FROZEN" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer whitespace-nowrap shrink-0">Frozen</button>
-        </div>
-      </div>
-
-      <!-- Members Table -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs min-w-[700px]">
-            <thead class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-100 select-none">
-              <tr>
-                <th class="py-3.5 px-4">Athlete Details</th>
-                <th class="py-3.5 px-4">Phone Number</th>
-                <th class="py-3.5 px-4">Active Plan</th>
-                <th class="py-3.5 px-4">Expiry Date</th>
-                <th class="py-3.5 px-4">Status</th>
-                <th class="py-3.5 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="members-table-body" class="divide-y divide-slate-100">
-              <tr>
-                <td colspan="6" class="py-12 text-center text-slate-400 font-medium">Loading members list...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <!-- Shared Mobile Bottom Navigation Container -->
-  <div id="mobile-nav-container"></div>
-
-  <!-- ==================== MODAL 1: REGISTER MEMBER ==================== -->
-  <div id="register-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
-    <div class="w-full max-w-lg bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 sm:p-7 space-y-4 max-h-[92vh] overflow-y-auto modal-enter">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-            <i data-lucide="user-plus" class="w-4 h-4"></i>
-          </div>
-          <h3 class="text-base font-bold text-slate-900">New Member Admission</h3>
-        </div>
-        <button type="button" onclick="closeRegisterModal()" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">✕</button>
-      </div>
-
-      <form onsubmit="handleRegisterSubmit(event)" class="space-y-3.5">
-        <!-- Athlete Photograph Section (Camera + Front/Back Flip + File Upload) -->
-        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-slate-800">Athlete Photograph <span class="text-slate-400 font-normal">(Optional)</span></label>
-            <span id="camera-status-text" class="text-[10px] font-semibold text-blue-600"></span>
-          </div>
-
-          <div class="flex items-center gap-4">
-            <!-- Photo Preview / Live Video Box -->
-            <div class="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-300 bg-white flex items-center justify-center overflow-hidden shrink-0 relative shadow-inner">
-              <!-- Video Stream -->
-              <video id="camera-video" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
-              <!-- Captured Photo Preview -->
-              <img id="photo-preview" class="w-full h-full object-cover hidden" alt="Member Photo">
-              <!-- Placeholder when empty -->
-              <div id="photo-placeholder" class="text-center text-slate-400 p-2">
-                <i data-lucide="camera" class="w-6 h-6 mx-auto mb-1 text-slate-300"></i>
-                <span class="text-[10px] font-semibold text-slate-400">No Photo</span>
               </div>
             </div>
 
@@ -131,7 +61,6 @@
                 </button>
 
                 <!-- Capture Shot Button (Visible when camera is active) -->
-                <button type="button" id="btn-capture-shot" onclick="capturePhoto()" class="hidden px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md">
                   <i data-lucide="check" class="w-3.5 h-3.5"></i>
                   <span>Snap Picture</span>
                 </button>
@@ -459,8 +388,6 @@
       </div>
 
       <form onsubmit="handleFreezeSubmit(event)" class="space-y-3">
-        <input type="hidden" id="freeze-sub-id">
-        <p class="text-xs text-slate-600">Freeze membership days so athlete does not lose remaining time during travel or injury.</p>
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Freeze Duration (Days) *</label>
@@ -739,17 +666,11 @@
     }
 
     function stopCamera() {
-      if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
-        cameraStream = null;
-      }
       const video = document.getElementById('camera-video');
-      if (video) {
         video.srcObject = null;
         video.classList.add('hidden');
-      }
 
-      document.getElementById('btn-start-camera').classList.remove('hidden');
       document.getElementById('btn-capture-shot').classList.add('hidden');
       document.getElementById('btn-flip-camera').classList.add('hidden');
       document.getElementById('btn-cancel-camera').classList.add('hidden');

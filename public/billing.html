@@ -32,6 +32,42 @@
         </div>
       </div>
 
+      <!-- Billing Summary Metrics -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Revenue Collected</p>
+            <h3 class="text-2xl font-black text-purple-700 mt-1" id="billing-total-revenue">₹0</h3>
+            <p class="text-[11px] text-slate-500 font-semibold mt-1">Lifetime payments</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shadow-xs shrink-0">
+            <i data-lucide="wallet" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Transactions</p>
+            <h3 class="text-2xl font-black text-blue-700 mt-1" id="billing-tx-count">0</h3>
+            <p class="text-[11px] text-slate-500 font-semibold mt-1">Issued receipts</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs shrink-0">
+            <i data-lucide="receipt" class="w-6 h-6"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Outstanding Balance</p>
+            <h3 class="text-2xl font-black text-rose-600 mt-1" id="billing-pending-dues">₹0</h3>
+            <p class="text-[11px] text-slate-500 font-semibold mt-1">Pending collection</p>
+          </div>
+          <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-xs shrink-0">
+            <i data-lucide="hand-coins" class="w-6 h-6"></i>
+          </div>
+        </div>
+      </div>
+
       <!-- Payments Table -->
       <div class="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
         <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
@@ -203,6 +239,19 @@
         const res = await API.getPayments();
         paymentsList = Array.isArray(res) ? res : (res.payments || []);
         document.getElementById('billing-count-badge').innerText = `${paymentsList.length} Transactions`;
+
+        // Update Billing Summary Metrics
+        const totalRev = paymentsList.reduce((acc, p) => acc + (p.amount !== undefined ? p.amount : (p.amountPaid || 0)), 0);
+        const totalPending = paymentsList.reduce((acc, p) => acc + (p.balanceRemaining || 0), 0);
+        if (document.getElementById('billing-total-revenue')) {
+          document.getElementById('billing-total-revenue').innerText = formatINR(totalRev);
+        }
+        if (document.getElementById('billing-tx-count')) {
+          document.getElementById('billing-tx-count').innerText = paymentsList.length;
+        }
+        if (document.getElementById('billing-pending-dues')) {
+          document.getElementById('billing-pending-dues').innerText = formatINR(totalPending);
+        }
 
         if (paymentsList.length === 0) {
           tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400 font-medium">No payment transactions found in ledger</td></tr>`;
