@@ -132,28 +132,28 @@ document.addEventListener('DOMContentLoaded', () => {
     navbarContainer.innerHTML = `
       <header class="h-16 bg-white border-b border-slate-200 px-4 sm:px-6 flex items-center justify-between select-none relative z-30">
         <!-- Left: Mobile Brand & Global Search Bar -->
-        <div class="flex items-center gap-4 flex-1 max-w-xl">
+        <div class="flex items-center gap-4 flex-1 max-w-2xl">
           <a href="/index.html" class="lg:hidden flex items-center shrink-0">
             <img src="/logo.webp" alt="Sagar Fitness Gym" class="h-8 w-auto object-contain" onerror="this.src='/logo.png'">
           </a>
 
           <!-- Global Instant Member Search Bar -->
-          <div class="relative w-full max-w-sm hidden sm:block">
+          <div class="relative w-full max-w-xl hidden sm:block">
             <div class="relative flex items-center">
-              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 pointer-events-none"></i>
+              <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-3.5 pointer-events-none"></i>
               <input
                 type="text"
                 id="global-search-input"
                 oninput="handleGlobalSearch(event)"
                 onfocus="handleGlobalSearch(event)"
-                placeholder="Search athlete by name or phone..."
+                placeholder="Search athlete by name, phone or member ID..."
                 autocomplete="off"
-                class="w-full h-9.5 pl-9 pr-3 text-xs bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 font-medium transition-all"
+                class="w-full h-11 pl-11 pr-4 text-sm bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 rounded-2xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 font-medium shadow-2xs transition-all"
               >
             </div>
 
             <!-- Global Search Dropdown Results -->
-            <div id="global-search-dropdown" class="hidden absolute left-0 right-0 top-11 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden max-h-72 overflow-y-auto z-50 divide-y divide-slate-100">
+            <div id="global-search-dropdown" class="hidden absolute left-0 right-0 top-13 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden max-h-80 overflow-y-auto z-50 divide-y divide-slate-100">
             </div>
           </div>
         </div>
