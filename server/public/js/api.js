@@ -108,8 +108,18 @@ const API = {
     return this.get('/dashboard/stats');
   },
 
-  getRecentPayments() {
-    return this.get('/dashboard/recent-payments');
+  async getRecentPayments() {
+    try {
+      const res = await this.get('/dashboard/recent-payments');
+      return Array.isArray(res) ? res : (res.data || []);
+    } catch {
+      try {
+        const fallback = await this.get('/payments?limit=10');
+        return Array.isArray(fallback) ? fallback : (fallback.payments || fallback.data || []);
+      } catch {
+        return [];
+      }
+    }
   },
 
   getExpiringMembers(days = 7) {

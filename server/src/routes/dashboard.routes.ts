@@ -222,4 +222,18 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
   }
 });
 
+router.get('/recent-payments', authenticate, async (_req: AuthenticatedRequest, res: Response) => {
+  try {
+    const payments = await Payment.find({ status: { $in: ['PAID', 'PARTIAL'] } })
+      .populate('member', 'fullName memberId phone photoUrl')
+      .populate({ path: 'membership', populate: { path: 'plan', select: 'name' } })
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .lean();
+    sendSuccess(res, 'Recent payments', payments);
+  } catch (error: any) {
+    sendError(res, error.message || 'Failed to fetch recent payments', 500);
+  }
+});
+
 export default router;

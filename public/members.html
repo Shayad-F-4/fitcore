@@ -574,7 +574,25 @@
 
       try {
         const res = await API.getMembers(search, currentFilter);
-        membersList = Array.isArray(res) ? res : (res.members || []);
+        let raw = Array.isArray(res) ? res : (res.members || []);
+
+        function getPriority(status) {
+          if (status === 'EXPIRED') return 1;
+          if (status === 'EXPIRING') return 2;
+          if (status === 'ACTIVE') return 3;
+          return 4;
+        }
+
+        if (currentFilter === 'ALL' && !search) {
+          raw.sort((a, b) => {
+            const pDiff = getPriority(a.status) - getPriority(b.status);
+            if (pDiff !== 0) return pDiff;
+            const aDate = new Date(a.currentMembership?.expiryDate || a.createdAt).getTime();
+            const bDate = new Date(b.currentMembership?.expiryDate || b.createdAt).getTime();
+            return aDate - bDate;
+          });
+        }
+        membersList = raw;
 
         if (membersList.length === 0) {
           tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-400 font-medium">No members found matching your search.</td></tr>`;
