@@ -1,8 +1,17 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
-const srcDir = path.resolve('server/public');
-const targetDirs = [path.resolve('public'), path.resolve('dist'), path.resolve('client/dist')];
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, '..');
+
+const srcDir = path.resolve(rootDir, 'server/public');
+const targetDirs = [
+  path.resolve(rootDir, 'public'),
+  path.resolve(rootDir, 'dist'),
+  path.resolve(rootDir, 'client/dist'),
+];
 
 for (const target of targetDirs) {
   fs.mkdirSync(target, { recursive: true });
