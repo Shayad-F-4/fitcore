@@ -99,6 +99,75 @@
       </div>
 
       <form onsubmit="handleRegisterSubmit(event)" class="space-y-3.5">
+        <!-- Athlete Photograph Section (Camera + Front/Back Flip + File Upload) -->
+        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-slate-800">Athlete Photograph <span class="text-slate-400 font-normal">(Optional)</span></label>
+            <span id="camera-status-text" class="text-[10px] font-semibold text-blue-600"></span>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <!-- Photo Preview / Live Video Box -->
+            <div class="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-300 bg-white flex items-center justify-center overflow-hidden shrink-0 relative shadow-inner">
+              <!-- Video Stream -->
+              <video id="camera-video" autoplay playsinline muted class="w-full h-full object-cover hidden"></video>
+              <!-- Captured Photo Preview -->
+              <img id="photo-preview" class="w-full h-full object-cover hidden" alt="Member Photo">
+              <!-- Placeholder when empty -->
+              <div id="photo-placeholder" class="text-center text-slate-400 p-2">
+                <i data-lucide="camera" class="w-6 h-6 mx-auto mb-1 text-slate-300"></i>
+                <span class="text-[10px] font-semibold text-slate-400">No Photo</span>
+              </div>
+            </div>
+
+            <!-- Camera & Upload Controls -->
+            <div class="flex-1 space-y-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <!-- Start Camera Button -->
+                <button type="button" id="btn-start-camera" onclick="startCamera()" class="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs border border-blue-200 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs">
+                  <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                  <span>Take Photo</span>
+                </button>
+
+                <!-- Capture Shot Button (Visible when camera is active) -->
+                <button type="button" id="btn-capture-shot" onclick="capturePhoto()" class="hidden px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md">
+                  <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                  <span>Snap Picture</span>
+                </button>
+
+                <!-- Flip Camera Button (Front / Back switch on phones) -->
+                <button type="button" id="btn-flip-camera" onclick="flipCamera()" class="hidden px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md" title="Switch between Front (Selfie) and Back (Rear) Camera">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                  <span id="flip-label">Flip (Front)</span>
+                </button>
+
+                <!-- Cancel Camera -->
+                <button type="button" id="btn-cancel-camera" onclick="stopCamera()" class="hidden px-2.5 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs transition-colors cursor-pointer">
+                  Cancel
+                </button>
+
+                <!-- Upload File Button -->
+                <label class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs border border-slate-300 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs">
+                  <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                  <span>Upload File</span>
+                  <input type="file" id="photo-file-input" accept="image/*" class="hidden" onchange="handleFileUpload(event)">
+                </label>
+
+                <!-- Clear / Retake Button -->
+                <button type="button" id="btn-remove-photo" onclick="removePhoto()" class="hidden px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs border border-rose-200 transition-colors cursor-pointer">
+                  Remove
+                </button>
+              </div>
+
+              <p class="text-[11px] text-slate-500 leading-tight">
+                Phone & tablet support: Use <strong>Take Photo</strong> and tap <strong>Flip Camera</strong> to toggle front selfie or rear back camera.
+              </p>
+            </div>
+          </div>
+          <!-- Hidden canvas for rendering video snapshot -->
+          <canvas id="photo-canvas" class="hidden"></canvas>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
@@ -493,13 +562,15 @@
           if (status === 'EXPIRED') badgeClass = 'badge-expired';
           if (status === 'FROZEN') badgeClass = 'badge-frozen';
 
+          const avatarHtml = m.photoUrl
+            ? `<img src="${m.photoUrl}" alt="${m.fullName}" class="w-8 h-8 rounded-xl object-cover shrink-0 border border-slate-200">`
+            : `<div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0">${m.fullName ? m.fullName[0].toUpperCase() : 'M'}</div>`;
+
           return `
             <tr class="hover:bg-slate-50 transition-colors">
               <td class="py-3.5 px-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0">
-                    ${m.fullName ? m.fullName[0].toUpperCase() : 'M'}
-                  </div>
+                  ${avatarHtml}
                   <div>
                     <button onclick="viewMemberProfile('${m._id}')" class="font-bold text-slate-900 hover:text-blue-600 transition-colors text-left cursor-pointer">
                       ${m.fullName}
@@ -560,11 +631,151 @@
       sendExpiryWhatsApp(name, phone, expiryDate, planName);
     }
 
+    // Camera & Photograph State
+    let cameraStream = null;
+    let currentFacingMode = 'user'; // 'user' (Front) or 'environment' (Back)
+    let capturedPhotoData = '';
+
+    async function startCamera(mode = currentFacingMode) {
+      stopCamera();
+      currentFacingMode = mode;
+      const video = document.getElementById('camera-video');
+      const preview = document.getElementById('photo-preview');
+      const placeholder = document.getElementById('photo-placeholder');
+      const statusText = document.getElementById('camera-status-text');
+
+      try {
+        statusText.innerText = 'Connecting camera...';
+        const constraints = {
+          video: {
+            facingMode: { ideal: currentFacingMode },
+            width: { ideal: 640 },
+            height: { ideal: 640 }
+          },
+          audio: false
+        };
+
+        cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = cameraStream;
+        video.classList.remove('hidden');
+        preview.classList.add('hidden');
+        placeholder.classList.add('hidden');
+
+        document.getElementById('btn-start-camera').classList.add('hidden');
+        document.getElementById('btn-capture-shot').classList.remove('hidden');
+        document.getElementById('btn-flip-camera').classList.remove('hidden');
+        document.getElementById('btn-cancel-camera').classList.remove('hidden');
+        document.getElementById('btn-remove-photo').classList.add('hidden');
+
+        const modeLabel = currentFacingMode === 'user' ? 'Front' : 'Back';
+        document.getElementById('flip-label').innerText = `Flip (${modeLabel})`;
+        statusText.innerText = `● Camera Active (${modeLabel})`;
+        if (window.lucide) lucide.createIcons();
+      } catch (err) {
+        console.error('Camera access error:', err);
+        statusText.innerText = '';
+        showToast('Camera access denied or unavailable. Please use "Upload File" to pick a photo.', 'warning');
+        stopCamera();
+      }
+    }
+
+    function flipCamera() {
+      const newMode = currentFacingMode === 'user' ? 'environment' : 'user';
+      startCamera(newMode);
+    }
+
+    function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      const video = document.getElementById('camera-video');
+      if (video) {
+        video.srcObject = null;
+        video.classList.add('hidden');
+      }
+
+      document.getElementById('btn-start-camera').classList.remove('hidden');
+      document.getElementById('btn-capture-shot').classList.add('hidden');
+      document.getElementById('btn-flip-camera').classList.add('hidden');
+      document.getElementById('btn-cancel-camera').classList.add('hidden');
+      document.getElementById('camera-status-text').innerText = '';
+
+      const preview = document.getElementById('photo-preview');
+      const placeholder = document.getElementById('photo-placeholder');
+      if (capturedPhotoData) {
+        preview.src = capturedPhotoData;
+        preview.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+        document.getElementById('btn-remove-photo').classList.remove('hidden');
+      } else {
+        preview.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        document.getElementById('btn-remove-photo').classList.add('hidden');
+      }
+    }
+
+    function capturePhoto() {
+      const video = document.getElementById('camera-video');
+      const canvas = document.getElementById('photo-canvas');
+      if (!video || !canvas) return;
+
+      canvas.width = video.videoWidth || 480;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+
+      // Mirror front selfie camera horizontally for natural feel
+      if (currentFacingMode === 'user') {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      capturedPhotoData = canvas.toDataURL('image/jpeg', 0.85);
+      stopCamera();
+      showToast('Photo captured successfully!');
+    }
+
+    function handleFileUpload(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 5 * 1024 * 1024) {
+        showToast('Please select a photo under 5MB', 'error');
+        return;
+      }
+
+      stopCamera();
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        capturedPhotoData = event.target.result;
+        const preview = document.getElementById('photo-preview');
+        const placeholder = document.getElementById('photo-placeholder');
+        preview.src = capturedPhotoData;
+        preview.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+        document.getElementById('btn-remove-photo').classList.remove('hidden');
+        showToast('Photo attached!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removePhoto() {
+      stopCamera();
+      capturedPhotoData = '';
+      document.getElementById('photo-file-input').value = '';
+      document.getElementById('photo-preview').classList.add('hidden');
+      document.getElementById('photo-placeholder').classList.remove('hidden');
+      document.getElementById('btn-remove-photo').classList.add('hidden');
+    }
+
     // Modal 1: Register Helpers
     function openRegisterModal() {
+      removePhoto();
       document.getElementById('register-modal').classList.remove('hidden');
     }
     function closeRegisterModal() {
+      stopCamera();
       document.getElementById('register-modal').classList.add('hidden');
     }
     function handlePlanSelectChange() {
@@ -587,7 +798,7 @@
       e.preventDefault();
       const btn = document.getElementById('reg-submit-btn');
       btn.disabled = true;
-      btn.innerText = 'Registering...';
+      btn.innerText = 'Registering Member...';
 
       const select = document.getElementById('reg-plan');
       const opt = select.selectedOptions[0];
@@ -597,6 +808,7 @@
         email: document.getElementById('reg-email').value.trim() || undefined,
         gender: document.getElementById('reg-gender').value,
         planId: select.value,
+        photoUrl: capturedPhotoData || undefined,
         startDate: new Date().toISOString(),
         amountPaid: Number(document.getElementById('reg-paid').value) || 0,
         paymentMethod: document.getElementById('reg-method').value,
@@ -604,7 +816,7 @@
 
       try {
         await API.createMember(payload);
-        showToast('Member admitted successfully!');
+        showToast('Member admitted successfully with photo!');
         closeRegisterModal();
         loadMembers();
       } catch (err) {
@@ -627,7 +839,12 @@
         const payments = m.payments || [];
 
         document.getElementById('prof-name').innerText = m.fullName;
-        document.getElementById('prof-avatar').innerText = m.fullName ? m.fullName[0].toUpperCase() : 'M';
+        const profAvatar = document.getElementById('prof-avatar');
+        if (m.photoUrl) {
+          profAvatar.innerHTML = `<img src="${m.photoUrl}" alt="${m.fullName}" class="w-full h-full rounded-2xl object-cover">`;
+        } else {
+          profAvatar.innerText = m.fullName ? m.fullName[0].toUpperCase() : 'M';
+        }
         document.getElementById('prof-id').innerText = `ID: ${m.memberId || 'N/A'}`;
         document.getElementById('prof-phone').innerText = m.phone || 'No Phone';
         document.getElementById('prof-gender').innerText = m.gender || 'MALE';
@@ -715,7 +932,12 @@
       document.getElementById('card-plan').innerText = sub.plan?.name || 'General Athlete Pass';
       document.getElementById('card-joined').innerText = formatDateIN(m.createdAt || m.joinDate);
       document.getElementById('card-validity').innerText = formatDateIN(sub.endDate);
-      document.getElementById('card-avatar').innerText = m.fullName ? m.fullName[0].toUpperCase() : 'M';
+      const cardAvatar = document.getElementById('card-avatar');
+      if (m.photoUrl) {
+        cardAvatar.innerHTML = `<img src="${m.photoUrl}" alt="${m.fullName}" class="w-full h-full rounded-xl object-cover">`;
+      } else {
+        cardAvatar.innerText = m.fullName ? m.fullName[0].toUpperCase() : 'M';
+      }
 
       document.getElementById('card-modal').classList.remove('hidden');
       if (window.lucide) lucide.createIcons();
