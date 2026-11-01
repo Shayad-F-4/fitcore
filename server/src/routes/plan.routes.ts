@@ -22,17 +22,18 @@ router.get('/', async (req, res: Response) => {
 // Create new plan (Admin only)
 router.post('/', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { name, type, durationDays, price, description, features, isPopular, badge } = req.body;
+    const { name, type, durationDays, duration, price, description, features, isPopular, badge } = req.body;
+    const finalDuration = durationDays !== undefined ? Number(durationDays) : (duration !== undefined ? Number(duration) : undefined);
 
-    if (!name || !durationDays || price === undefined) {
+    if (!name || !finalDuration || price === undefined) {
       sendError(res, 'Name, duration (days), and price are required', 400);
       return;
     }
 
     const plan = await MembershipPlan.create({
-      name,
+      name: name.trim(),
       type: type || 'MONTHLY',
-      durationDays: Number(durationDays),
+      durationDays: finalDuration,
       price: Number(price),
       description: description || '',
       features: Array.isArray(features) ? features : [],
@@ -60,7 +61,11 @@ router.post('/', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), async (r
 // Update plan
 router.put('/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const plan = await MembershipPlan.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updateData = { ...req.body };
+    if (updateData.duration !== undefined && updateData.durationDays === undefined) {
+      updateData.durationDays = Number(updateData.duration);
+    }
+    const plan = await MembershipPlan.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!plan) {
       sendError(res, 'Plan not found', 404);
       return;

@@ -108,7 +108,7 @@
             <div>
               <div class="flex items-center justify-between">
                 <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200">
-                  ${p.duration} DAYS
+                  ${p.durationDays || p.duration || 30} DAYS
                 </span>
                 <span class="text-xs font-bold ${p.isActive ? 'text-emerald-600' : 'text-slate-400'}">
                   ${p.isActive ? '● Active' : '○ Inactive'}
@@ -157,7 +157,7 @@
       document.getElementById('plan-modal-title').innerText = 'Edit Membership Package';
       document.getElementById('plan-edit-id').value = plan._id;
       document.getElementById('plan-name').value = plan.name;
-      document.getElementById('plan-duration').value = plan.duration;
+      document.getElementById('plan-duration').value = plan.durationDays || plan.duration || 30;
       document.getElementById('plan-price').value = plan.price;
       document.getElementById('plan-desc').value = plan.description || '';
       document.getElementById('plan-modal').classList.remove('hidden');
@@ -175,9 +175,11 @@
       btn.disabled = true;
       btn.innerText = 'Saving...';
 
+      const days = Number(document.getElementById('plan-duration').value);
       const payload = {
         name: document.getElementById('plan-name').value.trim(),
-        duration: Number(document.getElementById('plan-duration').value),
+        durationDays: days,
+        duration: days,
         price: Number(document.getElementById('plan-price').value),
         description: document.getElementById('plan-desc').value.trim(),
       };

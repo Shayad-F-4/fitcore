@@ -363,6 +363,143 @@ router.post('/:id/freeze', authenticate, async (req: AuthenticatedRequest, res: 
   }
 });
 
+// Universal Renew endpoint (accepts memberId or membershipId)
+router.post('/renew', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { memberId, membershipId, planId, durationDays, amountPaid, paymentMethod } = req.body;
+
+    let membership = null;
+    if (membershipId) {
+      membership = await Membership.findById(membershipId).populate('plan');
+    } else if (memberId) {
+      membership = await Membership.findOne({ member: memberId, status: { $ne: 'EXPIRED' } })
+        .sort({ expiryDate: -1 })
+        .populate('plan');
+      if (!membership) {
+        membership = await Membership.findOne({ member: memberId })
+          .sort({ expiryDate: -1 })
+          .populate('plan');
+      }
+    }
+
+    if (!membership) {
+      sendError(res, 'Membership record not found for this member', 404);
+      return;
+    }
+
+    const previousExpiryDate = new Date(membership.expiryDate);
+    const baseDate = previousExpiryDate > new Date() ? previousExpiryDate : new Date();
+
+    let plan = membership.plan as any;
+    if (planId) {
+      plan = await MembershipPlan.findById(planId);
+      if (plan) membership.plan = plan._id;
+    }
+
+    const addDays = Number(durationDays) || (plan ? (plan.durationDays || plan.duration || 30) : 30);
+    const newExpiryDate = new Date(baseDate);
+    newExpiryDate.setDate(baseDate.getDate() + addDays);
+
+    const paid = Number(amountPaid) || (plan ? plan.price : 0);
+
+    membership.renewalHistory.push({
+      renewedAt: new Date(),
+      previousExpiryDate,
+      newExpiryDate,
+      amountPaid: paid,
+    });
+
+    membership.expiryDate = newExpiryDate;
+    membership.status = 'ACTIVE';
+    membership.amountPaid += paid;
+    await membership.save();
+
+    await Member.findByIdAndUpdate(membership.member, { status: 'ACTIVE' });
+
+    const receiptNumber = await generateReceiptNumber();
+
+    const payment = await Payment.create({
+      receiptNumber,
+      member: membership.member,
+      membership: membership._id,
+      amount: paid,
+      paymentMethod: paymentMethod || 'CASH',
+      status: 'PAID',
+      type: 'RENEWAL',
+      balanceRemaining: 0,
+      notes: `Membership renewal extended until ${newExpiryDate.toISOString().split('T')[0]}`,
+      recordedBy: req.user?.userId || membership.member,
+      paymentDate: new Date(),
+    });
+
+    await recordAuditLog({
+      userId: req.user?.userId,
+      userName: req.user?.email,
+      userRole: req.user?.role,
+      action: 'MEMBERSHIP_RENEWED',
+      entity: 'Membership',
+      entityId: membership._id.toString(),
+      details: { newExpiryDate, amountPaid: paid },
+    });
+
+    const populatedPayment = await Payment.findById(payment._id)
+      .populate('member')
+      .populate('recordedBy', 'fullName email role')
+      .populate({ path: 'membership', populate: { path: 'plan' } });
+
+    sendSuccess(res, 'Membership renewed successfully', { membership, payment: populatedPayment || payment });
+  } catch (error: any) {
+    sendError(res, error.message || 'Failed to renew membership', 500);
+  }
+});
+
+// Universal Freeze endpoint (accepts membershipId and freezeDays or date range)
+router.post('/freeze', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { membershipId, memberId, freezeDays, fromDate, toDate, reason } = req.body;
+
+    let membership = null;
+    if (membershipId) {
+      membership = await Membership.findById(membershipId);
+    } else if (memberId) {
+      membership = await Membership.findOne({ member: memberId, status: 'ACTIVE' }).sort({ expiryDate: -1 });
+    }
+
+    if (!membership) {
+      sendError(res, 'Active membership record not found', 404);
+      return;
+    }
+
+    const start = fromDate ? new Date(fromDate) : new Date();
+    const days = Number(freezeDays) || 15;
+    const end = toDate ? new Date(toDate) : new Date(start.getTime() + days * 24 * 60 * 60 * 1000);
+
+    membership.status = 'FROZEN';
+    membership.freezeHistory.push({
+      fromDate: start,
+      toDate: end,
+      reason: reason || 'Temporary membership pause',
+    });
+
+    await membership.save();
+    await Member.findByIdAndUpdate(membership.member, { status: 'FROZEN' });
+
+    await recordAuditLog({
+      userId: req.user?.userId,
+      userName: req.user?.email,
+      userRole: req.user?.role,
+      action: 'MEMBERSHIP_FROZEN',
+      entity: 'Membership',
+      entityId: membership._id.toString(),
+      details: { fromDate: start, toDate: end, reason },
+    });
+
+    sendSuccess(res, 'Membership frozen successfully', membership);
+  } catch (error: any) {
+    sendError(res, error.message || 'Failed to freeze membership', 500);
+  }
+});
+
 // Thaw / Unfreeze membership
 router.post('/:id/thaw', authenticate, async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -407,6 +544,32 @@ router.post('/:id/thaw', authenticate, async (req: AuthenticatedRequest, res: Re
   } catch (error: any) {
     sendError(res, error.message || 'Failed to unfreeze membership', 500);
   }
+});
+
+router.post('/:id/unfreeze', authenticate, async (req: AuthenticatedRequest, res: Response) => {
+  const membership = await Membership.findById(req.params.id);
+  if (!membership) {
+    sendError(res, 'Membership not found', 404);
+    return;
+  }
+  if (membership.status !== 'FROZEN') {
+    sendError(res, 'Membership is not currently frozen', 400);
+    return;
+  }
+  const lastFreeze = membership.freezeHistory[membership.freezeHistory.length - 1];
+  if (lastFreeze) {
+    lastFreeze.thawedAt = new Date();
+    const freezeStart = new Date(lastFreeze.fromDate).getTime();
+    const freezeEnd = Math.min(new Date(lastFreeze.toDate).getTime(), Date.now());
+    const frozenDays = Math.max(1, Math.round((freezeEnd - freezeStart) / (1000 * 3600 * 24)));
+    const currentExpiry = new Date(membership.expiryDate);
+    currentExpiry.setDate(currentExpiry.getDate() + frozenDays);
+    membership.expiryDate = currentExpiry;
+  }
+  membership.status = 'ACTIVE';
+  await membership.save();
+  await Member.findByIdAndUpdate(membership.member, { status: 'ACTIVE' });
+  sendSuccess(res, 'Membership un-frozen successfully', membership);
 });
 
 export default router;
