@@ -194,6 +194,17 @@
             </select>
           </div>
         </div>
+        <!-- Naya Field: Blood Group -->
+<div>
+  <label class="block text-xs font-bold text-slate-700 mb-1">Blood Group</label>
+  <select id="reg-blood-group" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-blue-600 bg-white font-medium">
+    <option value="O+">O+ (Universal Donor)</option>
+    <option value="A+">A+</option>
+    <option value="B+">B+</option>
+    <option value="AB+">AB+</option>
+    <option value="O-">O-</option>
+  </select>
+</div>
 
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">Select Membership Package *</label>
@@ -1042,6 +1053,7 @@ _Cooldown: 5-10 mins slow walking + static stretching_`,
         phone: phone,
         email: document.getElementById('reg-email').value.trim() || undefined,
         gender: document.getElementById('reg-gender').value,
+        bloodGroup: document.getElementById('reg-blood-group').value,
         planId: select.value,
         photoUrl: capturedPhotoData || undefined,
         startDate: new Date().toISOString(),
