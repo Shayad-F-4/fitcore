@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import { Branch } from '../models/Branch.js';
 import { User } from '../models/User.js';
 import { Member } from '../models/Member.js';
-import { Attendance } from '../models/Attendance.js';
 import { Membership } from '../models/Membership.js';
 import { GymSettings } from '../models/GymSettings.js';
 import { ENV } from '../config/env.js';
@@ -58,14 +57,7 @@ export async function migrateToSingleGym() {
   );
   console.log(`[Migration] Updated ${userUpdate.modifiedCount} users to single gym location.`);
 
-  // 4. Safely reassign all attendance logs to this single primary branch
-  const attendanceUpdate = await Attendance.updateMany(
-    {},
-    { $set: { branch: primaryBranchId } }
-  );
-  console.log(`[Migration] Updated ${attendanceUpdate.modifiedCount} attendance records to single gym location.`);
-
-  // 5. Safely reassign all memberships to this single primary branch
+  // 4. Safely reassign all memberships to this single primary branch
   const membershipUpdate = await Membership.updateMany(
     {},
     { $set: { branch: primaryBranchId } }

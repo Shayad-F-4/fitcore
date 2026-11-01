@@ -6,7 +6,6 @@ import { ENV } from '../src/config/env.js';
 import { runExpirationCheck } from '../src/services/expirationService.js';
 import { Notification } from '../src/models/Notification.js';
 import { Member } from '../src/models/Member.js';
-import { Attendance } from '../src/models/Attendance.js';
 import { Membership } from '../src/models/Membership.js';
 import { User } from '../src/models/User.js';
 
@@ -251,50 +250,6 @@ describe('FitCore End-to-End API Suite (20 Acceptance Scenarios)', () => {
     expect(Array.isArray(res.body.data)).toBe(true);
   });
 
-  // Scenario 15: Check-in Active Member
-  it('15. Checks in an active member via Member ID and records duration', async () => {
-    // Clear any previous attendance records for FC-1001 to prevent debounce 429
-    const member = await Member.findOne({ memberId: 'FC-1001' });
-    if (member) {
-      await Attendance.deleteMany({ member: member._id });
-    }
-
-    // Check in David Hayes FC-1001
-    const checkInRes = await request(app)
-      .post('/api/attendance/check-in')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({
-        identifier: 'FC-1001',
-        branchId,
-        method: 'MANUAL',
-      });
-    expect([200, 201]).toContain(checkInRes.status);
-    expect(checkInRes.body.data.member).toBeDefined();
-  });
-
-  // Scenario 16: Handle Expired / Frozen Membership Warnings
-  it('16. Accurately flags expired or frozen memberships during check-in', async () => {
-    // FC-1007 is seeded as EXPIRED
-    const member = await Member.findOne({ memberId: 'FC-1007' });
-    if (member) {
-      if (member.isArchived) {
-        member.isArchived = false;
-        await member.save();
-      }
-      await Attendance.deleteMany({ member: member._id });
-    }
-
-    const checkInRes = await request(app)
-      .post('/api/attendance/check-in')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({
-        identifier: 'FC-1007',
-        branchId,
-      });
-    expect([200, 201]).toContain(checkInRes.status);
-    expect(checkInRes.body.data.membershipValid).toBe(false);
-  });
-
   // Scenario 17: Calculate Real Dashboard Statistics
   it('17. Derives real dashboard statistics from database collections', async () => {
     const res = await request(app)
@@ -490,14 +445,6 @@ describe('FitCore End-to-End API Suite (20 Acceptance Scenarios)', () => {
       .set('Authorization', `Bearer ${authToken}`);
     const foundInArchived = archivedListRes.body.data.some((m: any) => m._id === registeredMemberId);
     expect(foundInArchived).toBe(true);
-
-    // 5. Attendance Check-in must be rejected for archived member
-    const checkInRes = await request(app)
-      .post('/api/attendance/check-in')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send({ identifier: memberCheck?.memberId });
-    expect(checkInRes.status).toBe(404);
-    expect(checkInRes.body.message).toContain('No active member found');
   });
 
   // Scenario 27: Restore Archived Member

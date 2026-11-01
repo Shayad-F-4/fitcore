@@ -2,7 +2,6 @@ import { Router, Response } from 'express';
 import { Member } from '../models/Member.js';
 import { Membership } from '../models/Membership.js';
 import { Payment } from '../models/Payment.js';
-import { Attendance } from '../models/Attendance.js';
 import { AuditLog } from '../models/AuditLog.js';
 import { Branch } from '../models/Branch.js';
 import { sendSuccess, sendError } from '../utils/response.js';
@@ -68,15 +67,8 @@ router.get('/stats', authenticate, async (req: AuthenticatedRequest, res: Respon
       Member.countDocuments({ isArchived: false, ...branchFilter }),
       Member.countDocuments({ status: 'ACTIVE', isArchived: false, ...branchFilter }),
       Member.countDocuments({ joinDate: { $gte: startOfMonth }, isArchived: false, ...branchFilter }),
-      Attendance.countDocuments({
-        checkInTime: { $gte: startOfToday },
-        checkOutTime: null,
-        ...branchFilter,
-      }),
-      Attendance.countDocuments({
-        checkInTime: { $gte: startOfToday },
-        ...branchFilter,
-      }),
+      Promise.resolve(0),
+      Promise.resolve(0),
       // Single consolidated payment aggregation for today, this month, and all time
       Payment.aggregate([
         { $match: { status: { $in: ['PAID', 'PARTIAL'] } } },

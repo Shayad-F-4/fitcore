@@ -15,8 +15,6 @@ import { seedDatabase } from './scripts/seed.js';
 import { ensureCoreUsers } from './scripts/ensureUsers.js';
 import { migrateToSingleGym } from './scripts/migrateSingleGym.js';
 import { ensureDefaultPlans } from './scripts/ensurePlans.js';
-import { ensureDefaultProducts } from './scripts/ensureProducts.js';
-import { ensureVerifiedFoods } from './scripts/ensureFoods.js';
 import { runExpirationCheck } from './services/expirationService.js';
 
 // Route imports
@@ -25,7 +23,6 @@ import branchRoutes from './routes/branch.routes.js';
 import planRoutes from './routes/plan.routes.js';
 import memberRoutes from './routes/member.routes.js';
 import membershipRoutes from './routes/membership.routes.js';
-import attendanceRoutes from './routes/attendance.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import auditRoutes from './routes/audit.routes.js';
@@ -34,9 +31,6 @@ import notificationRoutes from './routes/notification.routes.js';
 import followUpRoutes from './routes/followUp.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
 import expiryRoutes from './routes/expiry.routes.js';
-import inventoryRoutes from './routes/inventory.routes.js';
-import dietRoutes from './routes/diet.routes.js';
-import aiCoachRoutes from './routes/aiCoach.routes.js';
 import { runAutoExpiryReminders } from './services/whatsappService.js';
 
 import rateLimit from 'express-rate-limit';
@@ -230,7 +224,6 @@ app.use('/api/plans', planRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/members/:memberId/follow-ups', followUpRoutes);
 app.use('/api/memberships', membershipRoutes);
-app.use('/api/attendance', attendanceRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/audit-logs', auditRoutes);
@@ -238,17 +231,20 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/expiry', expiryRoutes);
-app.use('/api/inventory', inventoryRoutes);
-app.use('/api/diet', dietRoutes);
-app.use('/api/ai-coach', aiCoachRoutes);
 
-// Static file serving for Vanilla HTML/CSS/JS frontend (Zero build required)
+// Static file serving for Vanilla HTML/CSS/JS frontend (Robust root or server lookup)
 const getPublicDir = () => {
-  const direct = path.resolve(process.cwd(), 'public');
-  if (fs.existsSync(direct)) return direct;
-  const inServer = path.resolve(process.cwd(), 'server/public');
-  if (fs.existsSync(inServer)) return inServer;
-  return direct;
+  const candidates = [
+    path.resolve(process.cwd(), '../public'),
+    path.resolve(process.cwd(), 'public'),
+    path.resolve(process.cwd(), 'server/public'),
+  ];
+  for (const dir of candidates) {
+    if (fs.existsSync(dir) && fs.existsSync(path.join(dir, 'index.html'))) {
+      return dir;
+    }
+  }
+  return path.resolve(process.cwd(), 'public');
 };
 
 const publicDir = getPublicDir();
@@ -299,10 +295,6 @@ const startServer = async () => {
     await migrateToSingleGym().catch((e) => console.error('[Single Gym Migration Error]', e));
     // Ensure standard Sagar Fitness Gym membership plans exist
     await ensureDefaultPlans().catch((e) => console.error('[Plans Setup Error]', e));
-    // Ensure default inventory products exist
-    await ensureDefaultProducts().catch((e) => console.error('[Inventory Setup Error]', e));
-    // Ensure verified gym nutrition foods exist
-    await ensureVerifiedFoods().catch((e) => console.error('[Diet Setup Error]', e));
 
     // Auto-seed if database is clean
     const userCount = await User.countDocuments();

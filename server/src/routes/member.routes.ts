@@ -4,7 +4,6 @@ import { Member } from '../models/Member.js';
 import { Membership } from '../models/Membership.js';
 import { MembershipPlan } from '../models/MembershipPlan.js';
 import { Payment } from '../models/Payment.js';
-import { Attendance } from '../models/Attendance.js';
 import { FollowUp } from '../models/FollowUp.js';
 import { AuditLog } from '../models/AuditLog.js';
 import { User } from '../models/User.js';
@@ -654,10 +653,9 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res: Response
       return;
     }
 
-    const [memberships, payments, rawAttendance, followUps, auditHistory] = await Promise.all([
+    const [memberships, payments, followUps, auditHistory] = await Promise.all([
       Membership.find({ member: member._id }).populate('plan').sort({ createdAt: -1 }),
       Payment.find({ member: member._id }).populate('recordedBy', 'fullName').sort({ paymentDate: -1 }),
-      Attendance.find({ member: member._id }).populate('branch', 'name').sort({ checkInTime: -1 }).limit(30),
       FollowUp.find({ member: member._id }).populate('recordedBy', 'fullName role').sort({ createdAt: -1 }),
       AuditLog.find({
         $or: [
@@ -667,19 +665,7 @@ router.get('/:id', authenticate, async (req: AuthenticatedRequest, res: Response
       }).sort({ createdAt: -1 }).limit(20),
     ]);
 
-    // Compute visit duration for attendance records
-    const attendance = rawAttendance.map((att) => {
-      let durationMinutes = null;
-      if (att.checkOutTime) {
-        durationMinutes = Math.round(
-          (new Date(att.checkOutTime).getTime() - new Date(att.checkInTime).getTime()) / (1000 * 60)
-        );
-      }
-      return {
-        ...att.toObject(),
-        durationMinutes,
-      };
-    });
+    const attendance: any[] = [];
 
     const activeMembership = memberships.find((m) => m.status === 'ACTIVE' || m.status === 'FROZEN') || null;
     const memberObj = member.toObject();
@@ -973,7 +959,6 @@ router.delete('/:id', authenticate, requireRole('SUPER_ADMIN', 'GYM_ADMIN'), asy
       Member.findByIdAndDelete(member._id),
       member.user ? User.findByIdAndDelete(member.user) : Promise.resolve(),
       Membership.deleteMany({ member: member._id }),
-      Attendance.deleteMany({ member: member._id }),
       Payment.deleteMany({ member: member._id }),
       FollowUp.deleteMany({ member: member._id }),
       NotificationLog.deleteMany({ member: member._id }),

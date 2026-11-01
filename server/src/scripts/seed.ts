@@ -6,7 +6,6 @@ import { MembershipPlan } from '../models/MembershipPlan.js';
 import { Member } from '../models/Member.js';
 import { Membership } from '../models/Membership.js';
 import { Payment } from '../models/Payment.js';
-import { Attendance } from '../models/Attendance.js';
 import { AuditLog } from '../models/AuditLog.js';
 import { Notification } from '../models/Notification.js';
 import { NotificationLog } from '../models/NotificationLog.js';
@@ -26,7 +25,6 @@ export const seedDatabase = async () => {
       Member.deleteMany({}),
       Membership.deleteMany({}),
       Payment.deleteMany({}),
-      Attendance.deleteMany({}),
       AuditLog.deleteMany({}),
       Notification.deleteMany({}),
       NotificationLog.deleteMany({}),
@@ -553,122 +551,6 @@ export const seedDatabase = async () => {
           : `Full payment for ${m.plan.name}`,
         recordedBy: receptionistUser._id,
         paymentDate: startDate,
-      });
-    }
-
-    // 5. Create Realistic Attendance & Live Occupancy for Today
-    console.log('[Seed] Creating realistic attendance and live occupancy...');
-    const now = new Date();
-
-    // Member 1 (Rohan Deshmukh): Checked in 45 mins ago, inside gym!
-    const in45m = new Date(now.getTime() - 45 * 60 * 1000);
-    await Attendance.create({
-      member: createdMembers[0]._id,
-      branch: flagshipBranch._id,
-      checkInTime: in45m,
-      method: 'QR_CODE',
-      checkedInBy: receptionistUser._id,
-    });
-
-    // Member 2 (Tanvi Kulkarni): Checked in 25 mins ago, inside gym!
-    const in25m = new Date(now.getTime() - 25 * 60 * 1000);
-    await Attendance.create({
-      member: createdMembers[1]._id,
-      branch: flagshipBranch._id,
-      checkInTime: in25m,
-      method: 'MANUAL',
-      checkedInBy: receptionistUser._id,
-    });
-
-    // Member 5 (Aditya Patil): Checked in 15 mins ago, inside gym!
-    const in15m = new Date(now.getTime() - 15 * 60 * 1000);
-    await Attendance.create({
-      member: createdMembers[4]._id,
-      branch: banerBranch._id,
-      checkInTime: in15m,
-      method: 'QR_CODE',
-    });
-
-    // Member 6 (Pooja Gaikwad): Checked in 90 mins ago, inside gym!
-    const in90m = new Date(now.getTime() - 90 * 60 * 1000);
-    await Attendance.create({
-      member: createdMembers[5]._id,
-      branch: flagshipBranch._id,
-      checkInTime: in90m,
-      method: 'QR_CODE',
-    });
-
-    // Member 9 (Sanket Jadhav): Checked in 10 mins ago, inside gym!
-    const in10m = new Date(now.getTime() - 10 * 60 * 1000);
-    await Attendance.create({
-      member: createdMembers[8]._id,
-      branch: flagshipBranch._id,
-      checkInTime: in10m,
-      method: 'QR_CODE',
-    });
-
-    // Member 11 (Nikhil Sawant): Checked in 75 mins ago, inside gym!
-    const in75m = new Date(now.getTime() - 75 * 60 * 1000);
-    await Attendance.create({
-      member: createdMembers[10]._id,
-      branch: banerBranch._id,
-      checkInTime: in75m,
-      method: 'MANUAL',
-      checkedInBy: receptionistUser._id,
-    });
-
-    // Member 3 (Swapnil Shinde): Checked in 3 hours ago, checked out 1 hour ago
-    const in3h = new Date(now.getTime() - 3 * 3600 * 1000);
-    const out1h = new Date(now.getTime() - 1 * 3600 * 1000);
-    await Attendance.create({
-      member: createdMembers[2]._id,
-      branch: kothrudBranch._id,
-      checkInTime: in3h,
-      checkOutTime: out1h,
-      method: 'QR_CODE',
-    });
-
-    // Member 4 (Sneha Joshi): Checked in morning (7:15 AM) and out (8:40 AM)
-    const morningIn = new Date(now);
-    morningIn.setHours(7, 15, 0, 0);
-    const morningOut = new Date(now);
-    morningOut.setHours(8, 40, 0, 0);
-    await Attendance.create({
-      member: createdMembers[3]._id,
-      branch: flagshipBranch._id,
-      checkInTime: morningIn,
-      checkOutTime: morningOut,
-      method: 'QR_CODE',
-    });
-
-    // Member 12 (Prathamesh Kadam): Checked in 10:00 AM, out 11:30 AM
-    const midIn = new Date(now);
-    midIn.setHours(10, 0, 0, 0);
-    const midOut = new Date(now);
-    midOut.setHours(11, 30, 0, 0);
-    await Attendance.create({
-      member: createdMembers[11]._id,
-      branch: flagshipBranch._id,
-      checkInTime: midIn,
-      checkOutTime: midOut,
-      method: 'QR_CODE',
-    });
-
-    // Historical attendance across past 5 days for analytics charts
-    for (let dayOffset = 1; dayOffset <= 5; dayOffset++) {
-      const pastDay = new Date(now);
-      pastDay.setDate(pastDay.getDate() - dayOffset);
-      pastDay.setHours(8 + (dayOffset % 4), 30, 0, 0);
-
-      const pastOut = new Date(pastDay);
-      pastOut.setHours(pastOut.getHours() + 1, 30, 0, 0);
-
-      await Attendance.create({
-        member: createdMembers[dayOffset % createdMembers.length]._id,
-        branch: flagshipBranch._id,
-        checkInTime: pastDay,
-        checkOutTime: pastOut,
-        method: 'QR_CODE',
       });
     }
 
