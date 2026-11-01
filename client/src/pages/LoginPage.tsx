@@ -317,7 +317,7 @@ export const LoginPage: React.FC = () => {
               </div>
 
               {/* Remember Me & Forgot Password Row */}
-              <div className="flex items-center justify-between text-xs pt-0.5">
+              <div className="flex items-center text-xs pt-0.5">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -329,17 +329,6 @@ export const LoginPage: React.FC = () => {
                     Remember me
                   </span>
                 </label>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setForgotMsg(null);
-                    setShowForgotModal(true);
-                  }}
-                  className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors cursor-pointer"
-                >
-                  Forgot password?
-                </button>
               </div>
 
               {/* Sign In Button */}
@@ -394,174 +383,6 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Forgot Password / Real OTP Recovery Modal */}
-      {showForgotModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden p-6 sm:p-7 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <KeyRound className="w-4 h-4" />
-                </div>
-                <h3 className="text-base font-bold text-slate-900">
-                  {forgotStep === 'request' ? 'Password Recovery' : 'Enter 6-Digit OTP'}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForgotModal(false);
-                  setForgotMsg(null);
-                }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                aria-label="Close Modal"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {forgotMsg && (
-              <div
-                className={`p-3 rounded-xl text-xs flex items-start gap-2.5 ${
-                  forgotMsg.type === 'success'
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    : 'bg-rose-50 text-rose-700 border border-rose-200'
-                }`}
-              >
-                {forgotMsg.type === 'success' ? (
-                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
-                ) : (
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
-                )}
-                <span className="leading-snug font-medium">{forgotMsg.text}</span>
-              </div>
-            )}
-
-            {forgotStep === 'request' ? (
-              <form onSubmit={handleForgotSubmit} className="space-y-4 pt-1">
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Enter your registered email address or User ID (e.g. <strong>admin</strong>). We will send a <strong>6-digit verification OTP code</strong> directly to your email inbox.
-                </p>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                    Registered Email or User ID
-                  </label>
-                  <div className="relative flex items-center">
-                    <div className="absolute left-3.5 text-slate-400 pointer-events-none flex items-center justify-center">
-                      <Mail className="w-4.5 h-4.5" />
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      value={forgotEmail}
-                      onChange={(e) => setForgotEmail(e.target.value)}
-                      placeholder="e.g. admin or your Gmail address"
-                      className="w-full h-12 pl-11 pr-4 text-sm bg-white border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setForgotStep('reset');
-                      setForgotMsg(null);
-                    }}
-                    className="text-xs text-blue-600 hover:text-blue-700 hover:underline font-bold cursor-pointer"
-                  >
-                    Already have an OTP?
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={forgotLoading}
-                    className="h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center gap-2 transition-all shadow-md shadow-blue-600/20 disabled:opacity-60 cursor-pointer"
-                  >
-                    {forgotLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    <span>Send 6-Digit OTP</span>
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={handleResetSubmit} className="space-y-4 pt-1">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600 leading-relaxed">
-                  A 6-digit verification code was sent to <strong className="text-slate-900">{forgotEmail}</strong>. Enter it below with your new password:
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-center">
-                    6-Digit Verification Code (OTP)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    value={resetToken}
-                    onChange={(e) => setResetToken(e.target.value.replace(/\D/g, ''))}
-                    placeholder="••••••"
-                    className="w-full h-12 text-center text-xl font-bold font-mono tracking-[10px] text-blue-700 bg-blue-50/50 border border-blue-200 rounded-xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Minimum 6 characters"
-                    className="w-full h-11 px-3.5 text-sm border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/10 font-medium"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
-                    Confirm New Password
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    minLength={6}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Re-enter new password"
-                    className="w-full h-11 px-3.5 text-sm border border-slate-300 rounded-xl focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/10 font-medium"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between pt-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setForgotStep('request');
-                      setForgotMsg(null);
-                    }}
-                    className="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer"
-                  >
-                    ← Change Email / Resend
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={forgotLoading}
-                    className="h-11 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm flex items-center gap-2 transition-all shadow-md shadow-blue-600/20 disabled:opacity-60 cursor-pointer"
-                  >
-                    {forgotLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    <span>Verify OTP & Save Password</span>
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

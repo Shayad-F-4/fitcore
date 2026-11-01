@@ -78,7 +78,7 @@
             <label class="block text-xs font-bold text-slate-800 mb-1.5">Email Address or User ID</label>
             <div class="relative flex items-center">
               <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute left-3.5"></i>
-              <input type="text" id="login-identifier" required placeholder="admin or frontdesk" class="w-full h-11 pl-10 pr-4 text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 font-medium">
+              <input type="text" id="login-identifier" required placeholder="Enter username or email" class="w-full h-11 pl-10 pr-4 text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 font-medium">
             </div>
           </div>
 
@@ -93,22 +93,11 @@
             </div>
           </div>
 
-          <div class="flex items-center justify-between text-xs">
+          <div class="flex items-center text-xs">
             <label class="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" id="remember-me" class="w-4 h-4 rounded border-slate-300 text-blue-600">
               <span class="font-semibold text-slate-700">Remember me</span>
             </label>
-            <button type="button" onclick="openForgotModal()" class="font-bold text-blue-600 hover:text-blue-700 hover:underline">Forgot password?</button>
-          </div>
-
-          <!-- Quick Demo Credentials Buttons -->
-          <div class="pt-1 flex gap-2">
-            <button type="button" onclick="fillCredentials('admin', 'password123')" class="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-[11px] font-bold text-slate-700 transition-colors">
-              🔑 Demo Admin
-            </button>
-            <button type="button" onclick="fillCredentials('frontdesk', 'password123')" class="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-[11px] font-bold text-slate-700 transition-colors">
-              👤 Demo Staff
-            </button>
           </div>
 
           <button type="submit" id="login-submit-btn" class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2">
@@ -123,46 +112,6 @@
         <span class="text-lime-400 font-bold">•</span>
         <span>Pathardi, Maharashtra</span>
       </div>
-    </div>
-  </div>
-
-  <!-- Forgot Password Modal -->
-  <div id="forgot-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
-    <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 space-y-4 modal-enter">
-      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <h3 class="text-base font-bold text-slate-900" id="forgot-modal-title">Password Recovery</h3>
-        <button type="button" onclick="closeForgotModal()" class="p-1 text-slate-400 hover:text-slate-600">✕</button>
-      </div>
-
-      <div id="forgot-feedback" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
-
-      <!-- Step 1: Send OTP -->
-      <form id="forgot-step-1" onsubmit="handleSendOTP(event)" class="space-y-4">
-        <p class="text-xs text-slate-600">Enter your registered email or User ID (e.g. <strong>admin</strong>). We will generate a 6-digit OTP code.</p>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Email or User ID</label>
-          <input type="text" id="forgot-email" required placeholder="admin or email@example.com" class="w-full h-11 px-3.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:border-blue-600">
-        </div>
-        <button type="submit" id="send-otp-btn" class="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md">
-          Send 6-Digit OTP
-        </button>
-      </form>
-
-      <!-- Step 2: Verify OTP and Reset -->
-      <form id="forgot-step-2" onsubmit="handleResetPassword(event)" class="space-y-4 hidden">
-        <p class="text-xs text-slate-600">Enter the 6-digit verification OTP and your new password:</p>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">6-Digit OTP Code</label>
-          <input type="text" id="reset-otp" required maxlength="6" placeholder="••••••" class="w-full h-11 text-center font-mono text-lg font-bold tracking-widest text-blue-700 bg-blue-50/50 border border-blue-200 rounded-xl focus:outline-none focus:border-blue-600">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">New Password</label>
-          <input type="password" id="reset-new-password" required minlength="6" placeholder="Minimum 6 characters" class="w-full h-10 px-3.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:border-blue-600">
-        </div>
-        <button type="submit" id="reset-submit-btn" class="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md">
-          Verify OTP & Save Password
-        </button>
-      </form>
     </div>
   </div>
 
@@ -184,11 +133,6 @@
       const eye = document.getElementById('eye-icon');
       eye.setAttribute('data-lucide', isPass ? 'eye-off' : 'eye');
       lucide.createIcons();
-    }
-
-    function fillCredentials(id, pass) {
-      document.getElementById('login-identifier').value = id;
-      document.getElementById('login-password').value = pass;
     }
 
     async function handleLogin(e) {
@@ -217,75 +161,9 @@
         lucide.createIcons();
       }
     }
-
-    function openForgotModal() {
-      document.getElementById('forgot-modal').classList.remove('hidden');
-      document.getElementById('forgot-step-1').classList.remove('hidden');
-      document.getElementById('forgot-step-2').classList.add('hidden');
-      document.getElementById('forgot-feedback').classList.add('hidden');
-    }
-
-    function closeForgotModal() {
-      document.getElementById('forgot-modal').classList.add('hidden');
-    }
-
-    async function handleSendOTP(e) {
-      e.preventDefault();
-      const email = document.getElementById('forgot-email').value.trim();
-      const btn = document.getElementById('send-otp-btn');
-      const fb = document.getElementById('forgot-feedback');
-
-      btn.disabled = true;
-      btn.innerText = 'Sending...';
-
-      try {
-        const res = await API.forgotPassword(email);
-        fb.className = 'p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200';
-        fb.innerText = res.message || 'OTP generated successfully!';
-        fb.classList.remove('hidden');
-
-        // Auto-fill OTP if returned in development mode
-        if (res.resetToken) {
-          document.getElementById('reset-otp').value = res.resetToken;
-        }
-
-        document.getElementById('forgot-step-1').classList.add('hidden');
-        document.getElementById('forgot-step-2').classList.remove('hidden');
-      } catch (err) {
-        fb.className = 'p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200';
-        fb.innerText = err.message || 'Failed to dispatch OTP';
-        fb.classList.remove('hidden');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Send 6-Digit OTP';
-      }
-    }
-
-    async function handleResetPassword(e) {
-      e.preventDefault();
-      const otp = document.getElementById('reset-otp').value.trim();
-      const newPassword = document.getElementById('reset-new-password').value;
-      const btn = document.getElementById('reset-submit-btn');
-      const fb = document.getElementById('forgot-feedback');
-
-      btn.disabled = true;
-      btn.innerText = 'Verifying...';
-
-      try {
-        const res = await API.resetPassword(otp, newPassword);
-        fb.className = 'p-3 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200';
-        fb.innerText = res.message || 'Password reset successfully! You can now log in.';
-        fb.classList.remove('hidden');
-        setTimeout(() => closeForgotModal(), 2000);
-      } catch (err) {
-        fb.className = 'p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200';
-        fb.innerText = err.message || 'OTP verification failed';
-        fb.classList.remove('hidden');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Verify OTP & Save Password';
-      }
-    }
+  </script>
+</body>
+</html>
   </script>
 </body>
 </html>
