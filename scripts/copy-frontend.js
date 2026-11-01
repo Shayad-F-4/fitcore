@@ -9,7 +9,6 @@ const rootDir = path.resolve(__dirname, '..');
 const srcDir = path.resolve(rootDir, 'server/public');
 const targetDirs = [
   path.resolve(rootDir, 'public'),
-  path.resolve(rootDir, 'dist'),
 ];
 
 for (const target of targetDirs) {

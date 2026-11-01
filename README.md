@@ -1,8 +1,10 @@
 # Sagar Fitness Gym — Gym Management System
 
 > **Official Production Application for Sagar Fitness Gym (Single Location, Pathardi, Maharashtra, India)**
+> - **Frontend (Vercel):** `https://fitcore-livid.vercel.app`
+> - **Backend API (Render):** `https://sagar-fitness-backend.onrender.com/api`
 
-A stable, secure, and production-ready gym management system engineered with React 18, TypeScript, Vite, Tailwind CSS, Node.js, Express, MongoDB, and Mongoose. Specifically tailored for single-gym operations with tax-free billing, real-time member check-ins, automated subscription tracking, and role-based operational access.
+A stable, fast, and production-ready gym management system engineered with modern Vanilla HTML5, Tailwind CSS, JavaScript, Node.js, Express, MongoDB, and Mongoose. Tailored for single-gym operations with tax-free billing, real-time member check-ins, automated subscription tracking, and role-based operational access.
 
 ---
 
@@ -10,14 +12,13 @@ A stable, secure, and production-ready gym management system engineered with Rea
 
 ### Single-Gym Architecture
 - **Single Physical Location**: Sagar Fitness Gym, Pathardi, Maharashtra, India.
-- **No Multi-Branch Overhead**: All branch switchers, multi-branch dropdowns, branch comparison analytics, and branch routing have been eliminated.
-- **Data Model**: All database records (Members, Memberships, Attendance, Payments, Audit Logs) operate under the single Sagar Fitness Gym configuration (`SAGAR-01`).
-- **Reporting & Timezone**: Configured for Indian Rupee (`₹` / `INR`) and `Asia/Kolkata` (IST, UTC+5:30) date formatting (`DD/MM/YYYY`).
+- **Zero Complex Overhead**: No unnecessary multi-branch overhead; all database records (Members, Memberships, Attendance, Payments, Audit Logs) operate under the single Sagar Fitness Gym configuration (`SAGAR-01`).
+- **Currency & Regional Formatting**: Indian Rupee (`₹` / `INR`) and `Asia/Kolkata` (IST, UTC+5:30) date formatting (`DD/MM/YYYY`).
 
 ### Tax-Free Billing Engine
-- **Tax-Free Operations**: Sagar Fitness Gym does not charge GST or tax percentages.
+- **Tax-Free Operations**: Sagar Fitness Gym charges flat membership pricing with zero GST or hidden taxes.
 - **Direct Calculation**:
-  $$\text{Remaining Balance} = \text{Membership Fee} - \text{Total Valid Payments}$$
+  $$\text{Remaining Balance} = \text{Plan Fee} - \text{Total Valid Payments}$$
 - **Duplicate Prevention**: Backend idempotency validation prevents double submissions on payments and registrations.
 
 ---
@@ -37,212 +38,76 @@ The application strictly implements two operational roles:
 | **Audit Logs Inspection** | Full Access | ❌ Restricted (403) |
 | **Staff Accounts & Credentials** | Full Access | ❌ Restricted (403) |
 | **Gym Settings & Business Profile** | Full Access | ❌ Restricted (403) |
-| **Database Backups & Maintenance** | Full Access | ❌ Restricted (403) |
 
 ---
 
-## 🔒 3. Authentication & Security
+## 🛠️ 3. Technology Stack
 
-- **Server-Side Credential Validation**: Password verification strictly executes on the backend using `bcryptjs` with salt rounds.
-- **No Client-Side Mock Fallback**: All mock login buttons, instant demo cards, and hardcoded client credentials have been removed.
-- **Login Rate Limiting**: Secured via `express-rate-limit` (maximum 50 attempts per 15-minute window per IP) on `/api/auth/login` and `/api/auth/forgot-password`.
-- **CORS Protection**: Restricted to the validated `CLIENT_URL` with credentials allowed.
-- **Password Recovery Workflow**:
-  - Cryptographically secure 32-byte tokens generated via `crypto.randomBytes(32)`.
-  - Only the SHA-256 hash of the token is stored in MongoDB.
-  - Strict 15-minute expiration window.
-  - Tokens are invalidated immediately upon single use.
-  - Safe generic responses prevent user email enumeration.
-- **Graceful Shutdown**: Intercepts `SIGINT` and `SIGTERM` signals to cleanly drain active connections and close the MongoDB connection before process termination.
-
----
-
-## 🛠️ 4. Technology Stack
-
-- **Frontend**:
-  - React 18 & TypeScript (Vite 6 bundler)
-  - Tailwind CSS with custom light theme tokens (`#F5F7FA` page background, `#2563EB` primary blue, `#FFFFFF` cards)
-  - Lucide React (Icons)
-  - html2canvas & jsPDF (High-resolution receipt PDF generation)
-- **Backend**:
+- **Frontend (`public/`)**:
+  - Modern HTML5 + Tailwind CSS (Responsive modern light UI)
+  - Vanilla JavaScript (`app.js`, `api.js`, `components.js`)
+  - FontAwesome 6 icons
+  - Zero build step required — instant live reloads
+- **Backend (`server/`)**:
   - Node.js (v18+) & Express 4
-  - TypeScript & TSX
+  - TypeScript & TSX runtime
   - MongoDB 6+ & Mongoose 8
-  - JWT (`jsonwebtoken`) & bcryptjs
-  - Helmet security headers & Morgan logging
-- **Testing**:
-  - Vitest 3 & Supertest integration suite (33 automated test scenarios)
+  - JWT (`jsonwebtoken`) & `bcryptjs`
+  - Helmet security headers & Express Rate Limiting
+- **Automated Testing**:
+  - Vitest 3 & Supertest integration suite (81 passing automated tests)
 
 ---
 
-## 🚀 5. Getting Started (Local Development)
+## 🚀 4. Getting Started (Local Development)
 
 ### Prerequisites
 - **Node.js**: v18.0.0 or higher
-- **MongoDB**: Local MongoDB instance (`mongodb://127.0.0.1:27017/fitcore`) or MongoDB Atlas URI
+- **MongoDB**: Local MongoDB instance (`mongodb://127.0.0.1:27017/sagar_fitness`) or MongoDB Atlas URI
 
-### Installation
-Clone or navigate to the repository root:
+### Installation & Launch
 ```bash
-# Install root, server, and client dependencies
+# 1. Install dependencies
 npm install
 npm install --prefix server
-npm install --prefix client
-```
 
-### Environment Configuration
-Copy `.env.example` files to `.env`:
-```bash
-# Root / Server
+# 2. Configure environment (copy server/.env.example to server/.env)
 cp server/.env.example server/.env
 
-# Client
-cp client/.env.example client/.env
+# 3. Start local server
+npm run dev
 ```
 
-### Database Seeding & Admin Setup
-To initialize the single gym configuration and seed starter members, plans, and administrative accounts:
-```bash
-npm run seed --prefix server
-```
+Or on Windows, simply double-click **`run.bat`**!
 
-The initial seeded accounts are:
-- **Gym Admin**: `admin@sagarfitness.com` (Username: `admin`, Password: `password123`)
-- **Front Desk**: `desk@sagarfitness.com` (Username: `desk`, Password: `password123`)
+- **Application URL**: `http://localhost:5000`
+- **API Health Check**: `http://localhost:5000/api/health`
 
-*Note: For production deployments, change these passwords immediately via Settings > Profile & Security or during the initial seed.*
-
-### Starting Development Servers
-```bash
-# Terminal 1: Backend Server (Port 5000)
-npm run dev --prefix server
-
-# Terminal 2: Frontend Client (Port 5173)
-npm run dev --prefix client
-```
-- Frontend UI: `http://localhost:5173`
-- API Health Check: `http://localhost:5000/api/health`
+### Initial Admin Credentials
+- **Gym Owner / Super Admin**: `admin@sagarfitness.com` (Password: `Admin@123` or `password123`)
+- **Admin**: `shayadfakir2006@gmail.com`
 
 ---
 
-## 🧪 6. Automated Testing
+## 🧪 5. Automated Testing
 
-Run the full end-to-end integration test suite (33 test scenarios covering health, authentication, RBAC, member registration, duplicate prevention, payment calculations, receipt generation, and single gym settings):
+Run the full end-to-end integration test suite:
 
 ```bash
 npm test --prefix server
 ```
 
-Expected output:
-```
-✓ tests/api.test.ts (33 tests)
-Test Files  1 passed (1)
-Tests       33 passed (33)
-```
+All 81 tests pass cleanly (100% green).
 
 ---
 
-## 📦 7. Production Build & Deployment
+## 📋 6. Environment Variables Reference
 
-### Step 1: Build the Client
-```bash
-cd client
-npm run build
-```
-This produces an optimized, code-split production bundle in `client/dist`.
-
-### Step 2: Build the Server
-```bash
-cd server
-npm run build
-```
-This compiles TypeScript to vanilla ES modules in `server/dist`.
-
-### Step 3: Configure Production Environment Variables
-In your production hosting environment (e.g., Ubuntu VPS, Render, Railway, AWS EC2):
-```ini
-NODE_ENV=production
-PORT=5000
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/sagar_fitness?retryWrites=true&w=majority
-JWT_SECRET=generate_with_crypto_randomBytes_64_characters_minimum
-JWT_EXPIRES_IN=7d
-CLIENT_URL=https://gym.sagarfitness.com
-```
-
-### Step 4: Run the Production Server
-```bash
-cd server
-npm start
-```
-Or with PM2 process manager:
-```bash
-pm2 start dist/server.js --name "sagar-fitness-api"
-```
-
-### Step 5: Nginx Reverse Proxy Configuration (SPA Fallback)
-Sample Nginx block serving `client/dist` and proxying `/api` to the backend:
-```nginx
-server {
-    listen 80;
-    server_name gym.sagarfitness.com;
-
-    # Frontend Static Files
-    root /var/www/sagarfitness/client/dist;
-    index index.html;
-
-    # SPA routing fallback
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Backend API Proxy
-    location /api/ {
-        proxy_pass http://127.0.0.1:5000/api/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Uploads (Photo storage)
-    location /uploads/ {
-        proxy_pass http://127.0.0.1:5000/uploads/;
-    }
-}
-```
-
----
-
-## 💾 8. Database Backup & Restore
-
-### Automated JSON Backups
-The system includes built-in automated daily backups stored in `server/backups/`. Authorized administrators can trigger manual snapshots and download JSON backups directly from **Settings > Database Backup & Restore**.
-
-### Production MongoDump & MongoRestore
-
-#### Backup:
-```bash
-mongodump --uri="mongodb+srv://<username>:<password>@cluster0.mongodb.net/sagar_fitness" --out=/var/backups/sagar_fitness_$(date +%F)
-```
-
-#### Restore:
-```bash
-mongorestore --uri="mongodb+srv://<username>:<password>@cluster0.mongodb.net/sagar_fitness" --drop /var/backups/sagar_fitness_<date>/sagar_fitness
-```
-
----
-
-## 📋 9. Required Environment Variables Reference
-
-| Variable Name | Required | Default / Example | Purpose |
+| Variable Name | Required | Example | Purpose |
 | :--- | :---: | :--- | :--- |
-| `NODE_ENV` | Yes | `production` | Enables strict security checks and suppresses debug stacks |
-| `PORT` | Yes | `5000` | Port for Express backend server |
+| `NODE_ENV` | Yes | `production` | Enables strict production security mode |
+| `PORT` | Yes | `5000` | Port for Express server |
 | `MONGODB_URI` | Yes | `mongodb+srv://...` | MongoDB database connection URI |
-| `JWT_SECRET` | Yes | `32+ char random hex` | Secret key used to sign and verify JWT tokens |
+| `JWT_SECRET` | Yes | `32+ char random string` | Secret key used to sign and verify JWT tokens |
 | `JWT_EXPIRES_IN` | No | `7d` | Active token duration before re-login required |
-| `CLIENT_URL` | Yes | `https://gym.sagarfitness.com` | Allowed frontend origin for CORS |
-| `VITE_API_URL` | Optional | `/api` | Base path for frontend API calls |
+| `CLIENT_URL` | Yes | `http://localhost:5000` | Allowed frontend origin for CORS |
