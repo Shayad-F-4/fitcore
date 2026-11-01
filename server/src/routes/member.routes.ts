@@ -306,7 +306,7 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
     }
 
     // Membership Status filter
-    if (status && status !== 'ALL') {
+    if (status && status !== 'ALL' && status !== 'DUES') {
       filter.status = status;
     }
 
@@ -387,7 +387,7 @@ router.get('/', authenticate, async (req: AuthenticatedRequest, res: Response) =
     }
 
     // Payment Status Filter (Paid vs Pending Payment)
-    if (paymentStatus === 'PENDING_PAYMENT') {
+    if (paymentStatus === 'PENDING_PAYMENT' || tab === 'DUES' || status === 'DUES') {
       const duesFromSubs = await Membership.find({
         isArchived: { $ne: true },
         $expr: { $gt: ['$amountDue', '$amountPaid'] },

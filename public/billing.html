@@ -24,6 +24,12 @@
           <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Billing & Receipts Ledger</h1>
           <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">Track member fee collections, outstanding dues and print invoices</p>
         </div>
+        <div>
+          <button onclick="openCollectDueModal()" class="w-full sm:w-auto px-4 py-2.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+            <i data-lucide="hand-coins" class="w-4 h-4"></i>
+            <span>Collect Pending Due</span>
+          </button>
+        </div>
       </div>
 
       <!-- Payments Table -->
@@ -124,6 +130,63 @@
     </div>
   </div>
 
+  <!-- Collect Due Modal -->
+  <div id="collect-due-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
+    <div class="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 space-y-4 modal-enter">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Collect Pending Fee Due</h3>
+          <p class="text-xs text-slate-500 font-medium">Record fee payment against outstanding balance</p>
+        </div>
+        <button onclick="closeCollectDueModal()" class="p-1 text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+
+      <form onsubmit="handleCollectDueSubmit(event)" class="space-y-3.5">
+        <input type="hidden" id="due-membership-id">
+
+        <div id="due-member-select-wrap">
+          <label class="block text-xs font-bold text-slate-700 mb-1">Select Member with Dues *</label>
+          <select id="due-member-select" onchange="onDueMemberSelectChange()" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-rose-600 font-semibold">
+            <option value="">Loading members with pending dues...</option>
+          </select>
+        </div>
+
+        <div class="p-3 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between">
+          <div>
+            <p class="text-[11px] font-bold text-rose-800 uppercase tracking-wide">Outstanding Balance</p>
+            <p id="due-balance-display" class="text-xl font-black text-rose-700 mt-0.5">₹0</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-200/70 text-rose-800">Pending Due</span>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Amount to Collect (₹) *</label>
+          <input type="number" id="due-pay-amount" required min="1" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-rose-600 font-bold text-emerald-700">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Payment Mode</label>
+            <select id="due-pay-method" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-rose-600 font-semibold">
+              <option value="CASH">Cash</option>
+              <option value="UPI">UPI</option>
+              <option value="CARD">Card</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Reference / Note</label>
+            <input type="text" id="due-pay-ref" placeholder="UPI ref / remark" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-rose-600 font-medium">
+          </div>
+        </div>
+
+        <button type="submit" id="due-collect-btn" class="w-full h-10 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+          <i data-lucide="hand-coins" class="w-4 h-4"></i>
+          <span>Record Payment & Clear Due</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <script src="/js/api.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/components.js"></script>
@@ -169,9 +232,17 @@
                 }">${p.status || (isPaid ? 'PAID' : 'PARTIAL')}</span>
               </td>
               <td class="py-3.5 px-4 text-right">
-                <button onclick="viewReceipt('${p._id}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer">
-                  Invoice
-                </button>
+                <div class="flex items-center justify-end gap-1.5">
+                  ${p.balanceRemaining > 0 && p.membership?._id ? `
+                    <button onclick="openCollectDueModalForSub('${p.membership._id}', ${p.balanceRemaining}, '${(m.fullName || 'Athlete').replace(/'/g, "\\'")}')" title="Collect Remaining Balance (${formatINR(p.balanceRemaining)})" class="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors cursor-pointer border border-rose-200 flex items-center gap-1 shadow-2xs">
+                      <i data-lucide="hand-coins" class="w-3.5 h-3.5 text-rose-600"></i>
+                      <span>Collect</span>
+                    </button>
+                  ` : ''}
+                  <button onclick="viewReceipt('${p._id}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer">
+                    Invoice
+                  </button>
+                </div>
               </td>
             </tr>
           `;
@@ -306,6 +377,91 @@
         </html>
       `);
       printWindow.document.close();
+    }
+
+    let duesMembershipsList = [];
+
+    async function openCollectDueModal() {
+      const select = document.getElementById('due-member-select');
+      document.getElementById('due-member-select-wrap').classList.remove('hidden');
+      document.getElementById('due-membership-id').value = '';
+      document.getElementById('due-balance-display').innerText = '₹0';
+      document.getElementById('due-pay-amount').value = '';
+      document.getElementById('collect-due-modal').classList.remove('hidden');
+
+      try {
+        const res = await API.get('/payments/dues');
+        duesMembershipsList = res.memberships || [];
+        if (duesMembershipsList.length === 0) {
+          select.innerHTML = '<option value="">No members with pending dues found 🎉</option>';
+          return;
+        }
+
+        select.innerHTML = '<option value="">-- Select Member (${duesMembershipsList.length} with dues) --</option>' +
+          duesMembershipsList.map(item => `
+            <option value="${item.membershipId}" data-balance="${item.balanceDue}">
+              ${item.member?.fullName || 'Athlete'} — Due: ${formatINR(item.balanceDue)} (${item.plan?.name || 'Pass'})
+            </option>
+          `).join('');
+      } catch (err) {
+        select.innerHTML = '<option value="">Failed to load dues list</option>';
+      }
+    }
+
+    function openCollectDueModalForSub(membershipId, balance, memberName) {
+      document.getElementById('due-member-select-wrap').classList.add('hidden');
+      document.getElementById('due-membership-id').value = membershipId;
+      document.getElementById('due-balance-display').innerText = formatINR(balance);
+      document.getElementById('due-pay-amount').value = balance;
+      document.getElementById('collect-due-modal').classList.remove('hidden');
+    }
+
+    function closeCollectDueModal() {
+      document.getElementById('collect-due-modal').classList.add('hidden');
+    }
+
+    function onDueMemberSelectChange() {
+      const select = document.getElementById('due-member-select');
+      const opt = select.options[select.selectedIndex];
+      const balance = Number(opt?.getAttribute('data-balance')) || 0;
+      document.getElementById('due-membership-id').value = select.value;
+      document.getElementById('due-balance-display').innerText = formatINR(balance);
+      document.getElementById('due-pay-amount').value = balance;
+    }
+
+    async function handleCollectDueSubmit(e) {
+      e.preventDefault();
+      const subId = document.getElementById('due-membership-id').value;
+      const amount = Number(document.getElementById('due-pay-amount').value) || 0;
+      const method = document.getElementById('due-pay-method').value;
+      const ref = document.getElementById('due-pay-ref').value.trim();
+      const btn = document.getElementById('due-collect-btn');
+
+      if (!subId) {
+        showToast('Please select a member with outstanding dues', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>Processing Payment...</span>';
+
+      try {
+        await API.collectDue({
+          membershipId: subId,
+          amountPaid: amount,
+          paymentMethod: method,
+          transactionRef: ref
+        });
+        showToast('Fee payment recorded successfully!');
+        closeCollectDueModal();
+        loadPayments();
+      } catch (err) {
+        showToast(err.message || 'Payment collection failed', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="hand-coins" class="w-4 h-4"></i><span>Record Payment & Clear Due</span>';
+        if (window.lucide) lucide.createIcons();
+      }
     }
   </script>
 </body>

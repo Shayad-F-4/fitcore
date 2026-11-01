@@ -51,6 +51,10 @@
         <div class="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
           <button onclick="setFilter('ALL')" id="filter-btn-ALL" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white transition-colors cursor-pointer">All</button>
           <button onclick="setFilter('ACTIVE')" id="filter-btn-ACTIVE" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Active</button>
+          <button onclick="setFilter('DUES')" id="filter-btn-DUES" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors cursor-pointer flex items-center gap-1">
+            <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-600"></i>
+            <span>Pending Dues</span>
+          </button>
           <button onclick="setFilter('EXPIRING')" id="filter-btn-EXPIRING" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Expiring</button>
           <button onclick="setFilter('EXPIRED')" id="filter-btn-EXPIRED" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Expired</button>
           <button onclick="setFilter('FROZEN')" id="filter-btn-FROZEN" class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">Frozen</button>
@@ -524,10 +528,15 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       await loadPlans();
-      await loadMembers();
 
-      // Check URL parameters for direct modal opens
+      // Check URL parameters for direct filters or modal opens
       const params = new URLSearchParams(window.location.search);
+      if (params.get('filter') === 'DUES') {
+        await setFilter('DUES');
+      } else {
+        await loadMembers();
+      }
+
       if (params.get('action') === 'new') {
         openRegisterModal();
       } else if (params.get('view')) {
@@ -573,7 +582,7 @@
         }
 
         tbody.innerHTML = membersList.map(m => {
-          const sub = m.activeMembership || {};
+          const sub = m.currentMembership || m.activeMembership || {};
           const status = m.status || 'ACTIVE';
           let badgeClass = 'badge-active';
           if (status === 'EXPIRING') badgeClass = 'badge-expiring';
@@ -583,6 +592,9 @@
           const avatarHtml = m.photoUrl
             ? `<img src="${m.photoUrl}" alt="${m.fullName}" class="w-8 h-8 rounded-xl object-cover shrink-0 border border-slate-200">`
             : `<div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs shrink-0">${m.fullName ? m.fullName[0].toUpperCase() : 'M'}</div>`;
+
+          const hasDue = m.balanceDue && m.balanceDue > 0;
+          const safeName = (m.fullName || 'Athlete').replace(/'/g, "\\'");
 
           return `
             <tr class="hover:bg-slate-50 transition-colors">
@@ -600,17 +612,24 @@
               <td class="py-3.5 px-4 font-mono text-slate-600 font-medium">${m.phone || 'N/A'}</td>
               <td class="py-3.5 px-4 font-semibold text-slate-700">${sub.plan?.name || 'Standard Pass'}</td>
               <td class="py-3.5 px-4 font-bold ${status === 'EXPIRING' ? 'text-amber-600' : status === 'EXPIRED' ? 'text-rose-600' : 'text-slate-700'}">
-                ${formatDateIN(sub.endDate)}
+                ${formatDateIN(sub.expiryDate || sub.endDate)}
               </td>
               <td class="py-3.5 px-4">
                 <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${badgeClass}">${status}</span>
+                ${hasDue ? `<span class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">Due ${formatINR(m.balanceDue)}</span>` : ''}
               </td>
               <td class="py-3.5 px-4 text-right">
                 <div class="flex items-center justify-end gap-1.5">
-                  <button onclick="sendDirectWhatsApp('${m.fullName}', '${m.phone}', '${sub.endDate}', '${sub.plan?.name || ''}')" title="WhatsApp Message" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer">
+                  ${hasDue && sub._id ? `
+                    <button onclick="openDueModal('${sub._id}', ${m.balanceDue}, '${safeName}')" title="Collect Outstanding Due" class="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] shadow-xs transition-colors flex items-center gap-1 cursor-pointer">
+                      <i data-lucide="hand-coins" class="w-3.5 h-3.5"></i>
+                      <span>Collect Due</span>
+                    </button>
+                  ` : ''}
+                  <button onclick="sendDirectWhatsApp('${safeName}', '${m.phone}', '${sub.expiryDate || sub.endDate}', '${sub.plan?.name || ''}')" title="WhatsApp Message" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer">
                     <i data-lucide="message-square" class="w-4 h-4"></i>
                   </button>
-                  <button onclick="openRenewModal('${m._id}', '${m.fullName}')" title="Renew" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer">
+                  <button onclick="openRenewModal('${m._id}', '${safeName}')" title="Renew" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer">
                     <i data-lucide="rotate-cw" class="w-4 h-4"></i>
                   </button>
                   <button onclick="viewMemberProfile('${m._id}')" title="View Profile" class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer">
@@ -635,7 +654,7 @@
       });
       const activeBtn = document.getElementById(`filter-btn-${status}`);
       if (activeBtn) {
-        activeBtn.className = 'filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white transition-colors cursor-pointer';
+        activeBtn.className = `filter-tab px-3.5 py-1.5 rounded-xl text-xs font-bold ${status === 'DUES' ? 'bg-rose-600' : 'bg-blue-600'} text-white transition-colors cursor-pointer`;
       }
       loadMembers();
     }
@@ -1027,12 +1046,13 @@ _Cooldown: 5-10 mins slow walking + static stretching_`,
       modal.classList.remove('hidden');
 
       try {
-        const m = await API.getMember(id);
-        activeMemberDetail = m;
-        const sub = m.activeMembership || {};
-        const payments = m.payments || [];
+        const res = await API.getMember(id);
+        const m = res.member || res;
+        const sub = res.currentMembership || m.activeMembership || (res.memberships && res.memberships[0]) || {};
+        const payments = res.payments || m.payments || [];
+        activeMemberDetail = { ...m, activeMembership: sub, payments };
 
-        document.getElementById('prof-name').innerText = m.fullName;
+        document.getElementById('prof-name').innerText = m.fullName || 'Athlete';
         const profAvatar = document.getElementById('prof-avatar');
         if (m.photoUrl) {
           profAvatar.innerHTML = `<img src="${m.photoUrl}" alt="${m.fullName}" class="w-full h-full rounded-2xl object-cover">`;
@@ -1044,9 +1064,9 @@ _Cooldown: 5-10 mins slow walking + static stretching_`,
         document.getElementById('prof-gender').innerText = m.gender || 'MALE';
         document.getElementById('prof-join-date').innerText = formatDateIN(m.createdAt || m.joinDate);
         document.getElementById('prof-plan-name').innerText = sub.plan?.name || 'General Pass';
-        document.getElementById('prof-end-date').innerText = formatDateIN(sub.endDate);
+        document.getElementById('prof-end-date').innerText = formatDateIN(sub.expiryDate || sub.endDate);
 
-        const status = m.status || 'ACTIVE';
+        const status = m.status || sub.status || 'ACTIVE';
         const badge = document.getElementById('prof-status-badge');
         badge.innerText = status;
         badge.className = `px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -1055,17 +1075,19 @@ _Cooldown: 5-10 mins slow walking + static stretching_`,
 
         // WhatsApp trigger in profile banner
         const waBtn = document.getElementById('prof-wa-btn');
-        waBtn.onclick = () => sendExpiryWhatsApp(m.fullName, m.phone, sub.endDate, sub.plan?.name);
+        waBtn.onclick = () => sendExpiryWhatsApp(m.fullName, m.phone, sub.expiryDate || sub.endDate, sub.plan?.name);
 
         // Days remaining
-        if (sub.endDate) {
-          const diffDays = Math.ceil((new Date(sub.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        const expiryDateVal = sub.expiryDate || sub.endDate;
+        if (expiryDateVal) {
+          const diffDays = Math.ceil((new Date(expiryDateVal).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
           document.getElementById('prof-days-remaining').innerText = `${Math.max(0, diffDays)} Days Remaining`;
         }
 
         // Paid & Balance
-        const totalPaid = sub.amountPaid || 0;
-        const balanceDue = sub.balanceDue || Math.max(0, (sub.amountDue || 0) - totalPaid);
+        const totalPaid = payments.reduce((acc, p) => acc + (p.amount !== undefined ? p.amount : (p.amountPaid || 0)), 0) || (sub.amountPaid || 0);
+        const totalDue = sub.amountDue || (sub.originalPrice - (sub.discount || 0)) || 0;
+        const balanceDue = sub.balanceDue !== undefined ? sub.balanceDue : (m.balanceDue !== undefined ? m.balanceDue : Math.max(0, totalDue - totalPaid));
         document.getElementById('prof-total-paid').innerText = formatINR(totalPaid);
         document.getElementById('prof-balance-due').innerText = formatINR(balanceDue);
 
@@ -1073,7 +1095,8 @@ _Cooldown: 5-10 mins slow walking + static stretching_`,
         const dueBtn = document.getElementById('prof-due-btn');
         if (balanceDue > 0 && sub._id) {
           dueBtn.classList.remove('hidden');
-          dueBtn.onclick = () => openDueModal(sub._id, balanceDue);
+          dueBtn.innerHTML = `<i data-lucide="hand-coins" class="w-3.5 h-3.5"></i><span>Collect Due (${formatINR(balanceDue)})</span>`;
+          dueBtn.onclick = () => openDueModal(sub._id, balanceDue, m.fullName);
         } else {
           dueBtn.classList.add('hidden');
         }
@@ -1199,8 +1222,11 @@ _Cooldown: 5-10 mins slow walking + static stretching_`,
     }
 
     // Modal 6: Due Collection Helpers
-    function openDueModal(subId, totalBalance) {
+    function openDueModal(subId, totalBalance, memberName = '') {
       document.getElementById('due-sub-id').value = subId;
+      if (document.getElementById('due-member-name')) {
+        document.getElementById('due-member-name').innerText = memberName ? `Athlete: ${memberName}` : '';
+      }
       document.getElementById('due-total-amount').innerText = formatINR(totalBalance);
       document.getElementById('due-amount').value = totalBalance;
       document.getElementById('due-modal').classList.remove('hidden');
@@ -1213,15 +1239,24 @@ _Cooldown: 5-10 mins slow walking + static stretching_`,
       const subId = document.getElementById('due-sub-id').value;
       const amount = Number(document.getElementById('due-amount').value) || 0;
       const method = document.getElementById('due-method').value;
+      const btn = document.getElementById('due-btn');
+
+      btn.disabled = true;
+      btn.innerText = 'Processing Payment...';
 
       try {
         await API.collectDue({ membershipId: subId, amountPaid: amount, paymentMethod: method });
         showToast('Fee balance collected successfully!');
         closeDueModal();
-        closeProfileModal();
+        if (activeMemberDetail?._id) {
+          viewMemberProfile(activeMemberDetail._id);
+        }
         loadMembers();
       } catch (err) {
         showToast(err.message || 'Collection failed', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Record Payment & Clear Due';
       }
     }
 
