@@ -159,7 +159,7 @@
         <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between hover:border-cyan-300 hover:shadow-md transition-all group cursor-pointer">
           <div>
             <p class="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-cyan-600 transition-colors">Gym Occupancy</p>
-            <h3 class="text-2xl font-black text-cyan-600 mt-1">18</h3>
+            <h3 class="text-2xl font-black text-cyan-600 mt-1", id="stat-live-occ">0</h3>
             <p class="text-[11px] text-slate-500 font-semibold mt-1">Athletes training</p>
           </div>
           <div class="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center shadow-xs group-hover:bg-cyan-100 transition-colors shrink-0">
@@ -402,6 +402,11 @@
           }
           document.getElementById('stat-active-members').innerText = activeMem;
           document.getElementById('stat-pending-dues').innerText = formatINR(dues);
+
+          const occupancy = m.liveOccupancy !== undefined ? m.liveOccupancy : 0;
+          if (document.getElementById('stat-live-occ')) {
+            document.getElementById('stat-live-occ').innerText = occupancy;
+          }
         }
 
         // 2. Member Watchlist: Expired first, Expiring soon next, Active after

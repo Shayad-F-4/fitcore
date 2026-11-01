@@ -89,7 +89,7 @@ const MemberSchema = new Schema<IMember>(
     },
     assignedTrainer: {
       type: Schema.Types.ObjectId,
-      ref: 'Trainer',
+      ref: 'User',
     },
     fitnessGoals: [{ type: String }],
     photoUrl: {
