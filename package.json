@@ -1,20 +1,15 @@
 {
   "name": "fitcore",
   "version": "1.0.0",
-  "description": "FitCore - Premium Gym Management Ecosystem",
+  "description": "FitCore - Sagar Fitness Gym Management System",
   "private": true,
   "type": "module",
   "scripts": {
-    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
-    "dev:server": "npm run dev --prefix server",
-    "dev:client": "npm run dev --prefix client",
-    "dev": "concurrently -n \"SERVER,CLIENT\" -c \"cyan,magenta\" \"npm run dev:server\" \"npm run dev:client\"",
+    "install:all": "npm install && npm install --prefix server",
+    "dev": "npm run dev --prefix server",
     "build": "npm run build --prefix server && node scripts/copy-frontend.js",
-    "build:client": "node scripts/copy-frontend.js",
     "build:server": "npm run build --prefix server",
-    "pipeline:check": "npm run build:client && npm run build:server && npm run test --prefix server",
     "backup": "powershell -ExecutionPolicy Bypass -File ./scripts/backup.ps1",
-    "deploy:prod": "npm run build:client && npx vercel client --prod --yes",
     "seed": "npm run seed --prefix server",
     "test": "npm run test --prefix server"
   },

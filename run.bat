@@ -17,15 +17,15 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [*] Launching Backend API (Port 5000) and Frontend App (Port 5173)...
+echo [*] Launching FitCore Sagar Fitness Gym Server (Port 5000)...
 echo.
 echo --------------------------------------------------------
-echo   Web App URL:  http://localhost:5173
+echo   Web App URL:  http://localhost:5000
 echo   Backend API:  http://localhost:5000/api/health
 echo.
-echo   Default Login:
-echo   Email:    admin@fitcore.com
-echo   Password: password123
+echo   Login Accounts:
+echo   1. shayadfakir2006@gmail.com / password123
+echo   2. admin@sagarfitness.com / password123
 echo --------------------------------------------------------
 echo.
 
