@@ -26,117 +26,117 @@
           <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">Welcome back to Sagar Fitness Gym management console</p>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="loadDashboardData()" class="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-sm transition-all cursor-pointer">
+          <button onclick="loadDashboardData()" class="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-xs transition-all cursor-pointer">
             <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
             <span>Refresh</span>
           </button>
         </div>
       </div>
 
-      <!-- Quick Action Buttons -->
+      <!-- Quick Action Micro-Cards -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <a href="/members.html" class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all group cursor-pointer">
+        <a href="/members.html" class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-md transition-all group cursor-pointer shadow-xs">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
               <i data-lucide="users" class="w-4 h-4"></i>
             </div>
             <div>
               <p class="text-xs font-bold text-slate-900 group-hover:text-emerald-700">All Members</p>
-              <p class="text-[10px] text-slate-500">Manage memberships</p>
+              <p class="text-[10px] text-slate-500">Manage directory</p>
             </div>
           </div>
         </a>
 
-        <a href="/members.html?action=new" class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all group cursor-pointer">
+        <a href="/members.html?action=new" class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all group cursor-pointer shadow-xs">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
               <i data-lucide="user-plus" class="w-4 h-4"></i>
             </div>
             <div>
-              <p class="text-xs font-bold text-slate-900 group-hover:text-blue-700">New Member</p>
-              <p class="text-[10px] text-slate-500">Register admission</p>
+              <p class="text-xs font-bold text-slate-900 group-hover:text-blue-700">New Admission</p>
+              <p class="text-[10px] text-slate-500">Register member</p>
             </div>
           </div>
         </a>
 
-        <a href="/billing.html" class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-rose-300 hover:shadow-md transition-all group cursor-pointer">
+        <a href="/billing.html" class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-rose-300 hover:shadow-md transition-all group cursor-pointer shadow-xs">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
               <i data-lucide="credit-card" class="w-4 h-4"></i>
             </div>
             <div>
               <p class="text-xs font-bold text-slate-900 group-hover:text-rose-700">Collect Due</p>
-              <p class="text-[10px] text-slate-500">Record payments</p>
+              <p class="text-[10px] text-slate-500">Receipts & fees</p>
             </div>
           </div>
         </a>
 
-        <button onclick="scrollToExpiry()" class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-amber-300 hover:shadow-md transition-all group text-left cursor-pointer">
+        <button onclick="scrollToExpiry()" class="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-amber-300 hover:shadow-md transition-all group text-left cursor-pointer shadow-xs">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
               <i data-lucide="message-square" class="w-4 h-4"></i>
             </div>
             <div>
               <p class="text-xs font-bold text-slate-900 group-hover:text-amber-700">WhatsApp Alerts</p>
-              <p class="text-[10px] text-slate-500">Send expiry reminders</p>
+              <p class="text-[10px] text-slate-500">Send reminders</p>
             </div>
           </div>
         </button>
       </div>
 
-      <!-- 4 Summary Stats Cards -->
+      <!-- 4 Summary Stats Cards with Exact Sagar Fitness Colors -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card 1: Today's Revenue -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <!-- Card 1: Today's Revenue (Emerald) -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
             <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Today's Revenue</p>
             <h3 class="text-2xl font-black text-emerald-600 mt-1" id="stat-today-revenue">₹0</h3>
             <p class="text-[11px] text-slate-500 font-semibold mt-1">Daily collection</p>
           </div>
-          <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+          <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-xs">
             <i data-lucide="trending-up" class="w-6 h-6"></i>
           </div>
         </div>
 
-        <!-- Card 2: Active Members -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <!-- Card 2: Active Members (Blue) -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
             <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Active Members</p>
             <h3 class="text-2xl font-black text-blue-600 mt-1" id="stat-active-members">0</h3>
             <p class="text-[11px] text-slate-500 font-semibold mt-1">Enrolled athletes</p>
           </div>
-          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-xs">
             <i data-lucide="users" class="w-6 h-6"></i>
           </div>
         </div>
 
-        <!-- Card 3: Expiry Alerts -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <!-- Card 3: Expiry Alerts (Amber) -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
             <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Expiry Alerts</p>
             <h3 class="text-2xl font-black text-amber-600 mt-1" id="stat-expiring-count">0</h3>
-            <p class="text-[11px] text-slate-500 font-semibold mt-1">Expiring within 7 days</p>
+            <p class="text-[11px] text-slate-500 font-semibold mt-1">Next 7 days</p>
           </div>
-          <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
+          <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-xs">
             <i data-lucide="alert-triangle" class="w-6 h-6"></i>
           </div>
         </div>
 
-        <!-- Card 4: Pending Dues -->
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <!-- Card 4: Pending Dues (Rose) -->
+        <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
             <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Pending Dues</p>
             <h3 class="text-2xl font-black text-rose-600 mt-1" id="stat-pending-dues">₹0</h3>
-            <p class="text-[11px] text-slate-500 font-semibold mt-1">Uncollected balances</p>
+            <p class="text-[11px] text-slate-500 font-semibold mt-1">Uncollected fees</p>
           </div>
-          <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
+          <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-xs">
             <i data-lucide="alert-circle" class="w-6 h-6"></i>
           </div>
         </div>
       </div>
 
       <!-- Expiry Warning Section -->
-      <div id="expiry-warning-section" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div id="expiry-warning-section" class="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
         <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
@@ -144,26 +144,26 @@
             </div>
             <div>
               <h2 class="text-sm font-bold text-slate-900">Upcoming Expiry Reminders</h2>
-              <p class="text-xs text-slate-500">Athletes expiring in the next 7 days</p>
+              <p class="text-xs text-slate-500">Athletes expiring within the next 7 days</p>
             </div>
           </div>
-          <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200" id="expiry-count-badge">0 Alerts</span>
+          <span class="text-xs font-bold px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200" id="expiry-count-badge">0 Alerts</span>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-100">
               <tr>
-                <th class="py-3 px-4">Member</th>
-                <th class="py-3 px-4">Phone</th>
-                <th class="py-3 px-4">Plan</th>
-                <th class="py-3 px-4">Expiry Date</th>
-                <th class="py-3 px-4 text-right">Actions</th>
+                <th class="py-3.5 px-4">Member Name</th>
+                <th class="py-3.5 px-4">Contact Phone</th>
+                <th class="py-3.5 px-4">Package</th>
+                <th class="py-3.5 px-4">Expiry Date</th>
+                <th class="py-3.5 px-4 text-right">Instant WhatsApp Alert</th>
               </tr>
             </thead>
             <tbody id="expiry-table-body" class="divide-y divide-slate-100">
               <tr>
-                <td colspan="5" class="py-8 text-center text-slate-400 font-medium">Loading alerts...</td>
+                <td colspan="5" class="py-8 text-center text-slate-400 font-medium">Checking expiry alerts...</td>
               </tr>
             </tbody>
           </table>
@@ -171,7 +171,7 @@
       </div>
 
       <!-- Recent Transactions Table -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
         <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -182,23 +182,23 @@
               <p class="text-xs text-slate-500">Latest admission fees and membership collections</p>
             </div>
           </div>
-          <a href="/billing.html" class="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline">View All</a>
+          <a href="/billing.html" class="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline">View All Ledger</a>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-100">
               <tr>
-                <th class="py-3 px-4">Date</th>
-                <th class="py-3 px-4">Member</th>
-                <th class="py-3 px-4">Amount</th>
-                <th class="py-3 px-4">Payment Mode</th>
-                <th class="py-3 px-4">Status</th>
+                <th class="py-3.5 px-4">Date</th>
+                <th class="py-3.5 px-4">Athlete Member</th>
+                <th class="py-3.5 px-4">Amount Paid</th>
+                <th class="py-3.5 px-4">Payment Mode</th>
+                <th class="py-3.5 px-4">Status</th>
               </tr>
             </thead>
             <tbody id="recent-payments-body" class="divide-y divide-slate-100">
               <tr>
-                <td colspan="5" class="py-8 text-center text-slate-400 font-medium">Loading recent payments...</td>
+                <td colspan="5" class="py-8 text-center text-slate-400 font-medium">Loading recent transactions...</td>
               </tr>
             </tbody>
           </table>
@@ -225,7 +225,7 @@
 
     async function loadDashboardData() {
       try {
-        // 1. Load Stats
+        // 1. Stats
         const stats = await API.getDashboardStats();
         if (stats) {
           document.getElementById('stat-today-revenue').innerText = formatINR(stats.todayRevenue || 0);
@@ -235,36 +235,32 @@
           document.getElementById('expiry-count-badge').innerText = `${stats.expiringIn7Days || 0} Alerts`;
         }
 
-        // 2. Load Expiring Members
+        // 2. Expiring Members
         const expiring = await API.getExpiringMembers(7);
         const expBody = document.getElementById('expiry-table-body');
         if (!expiring || expiring.length === 0) {
-          expBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400 font-medium">🎉 No members expiring in the next 7 days</td></tr>`;
+          expBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400 font-medium">🎉 No athletes expiring in the next 7 days. All memberships healthy!</td></tr>`;
         } else {
           expBody.innerHTML = expiring.map(sub => {
             const m = sub.member || {};
-            const cleanPhone = (m.phone || '').replace(/\D/g, '');
-            const phoneWithCode = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
-            const msg = encodeURIComponent(`Hello ${m.fullName || 'Member'}, your Sagar Fitness Gym membership is expiring on ${formatDateIN(sub.endDate)}. Please renew on time to continue your workouts! 💪`);
-            const waUrl = `https://wa.me/${phoneWithCode}?text=${msg}`;
-
             return `
               <tr class="hover:bg-slate-50 transition-colors">
-                <td class="py-3 px-4 font-bold text-slate-900">${m.fullName || 'N/A'}</td>
-                <td class="py-3 px-4 text-slate-600 font-mono">${m.phone || 'N/A'}</td>
-                <td class="py-3 px-4 font-semibold text-slate-700">${sub.plan?.name || 'General Plan'}</td>
-                <td class="py-3 px-4 text-amber-700 font-bold">${formatDateIN(sub.endDate)}</td>
-                <td class="py-3 px-4 text-right">
-                  <a href="${waUrl}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs transition-colors border border-emerald-200">
-                    <span>WhatsApp</span>
-                  </a>
+                <td class="py-3.5 px-4 font-bold text-slate-900">${m.fullName || 'N/A'}</td>
+                <td class="py-3.5 px-4 text-slate-600 font-mono">${m.phone || 'N/A'}</td>
+                <td class="py-3.5 px-4 font-semibold text-slate-700">${sub.plan?.name || 'General Pass'}</td>
+                <td class="py-3.5 px-4 text-amber-700 font-bold">${formatDateIN(sub.endDate)}</td>
+                <td class="py-3.5 px-4 text-right">
+                  <button onclick="sendExpiryWhatsApp('${m.fullName}', '${m.phone}', '${sub.endDate}', '${sub.plan?.name || ''}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs transition-colors border border-emerald-200 cursor-pointer shadow-2xs">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+                    <span>Send WhatsApp</span>
+                  </button>
                 </td>
               </tr>
             `;
           }).join('');
         }
 
-        // 3. Load Recent Payments
+        // 3. Recent Transactions
         const payments = await API.getRecentPayments();
         const payBody = document.getElementById('recent-payments-body');
         if (!payments || payments.length === 0) {
@@ -274,13 +270,13 @@
             const m = p.member || {};
             return `
               <tr class="hover:bg-slate-50 transition-colors">
-                <td class="py-3 px-4 text-slate-500 font-medium">${formatDateIN(p.createdAt || p.paymentDate)}</td>
-                <td class="py-3 px-4 font-bold text-slate-900">${m.fullName || 'N/A'}</td>
-                <td class="py-3 px-4 font-bold text-emerald-700">${formatINR(p.amountPaid)}</td>
-                <td class="py-3 px-4 text-slate-600 uppercase font-semibold">${p.paymentMethod || 'CASH'}</td>
-                <td class="py-3 px-4">
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    p.status === 'PAID' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200'
+                <td class="py-3.5 px-4 text-slate-500 font-medium">${formatDateIN(p.createdAt || p.paymentDate)}</td>
+                <td class="py-3.5 px-4 font-bold text-slate-900">${m.fullName || 'N/A'}</td>
+                <td class="py-3.5 px-4 font-bold text-emerald-700">${formatINR(p.amountPaid)}</td>
+                <td class="py-3.5 px-4 text-slate-600 uppercase font-semibold">${p.paymentMethod || 'CASH'}</td>
+                <td class="py-3.5 px-4">
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                    p.status === 'PAID' ? 'badge-active' : 'badge-expiring'
                   }">${p.status || 'PAID'}</span>
                 </td>
               </tr>

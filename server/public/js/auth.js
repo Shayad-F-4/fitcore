@@ -46,3 +46,4 @@ const Auth = {
     window.location.replace('/login.html');
   },
 };
+

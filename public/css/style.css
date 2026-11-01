@@ -1,5 +1,5 @@
-/* FitCore — Sagar Fitness Gym Custom Vanilla CSS */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+/* FitCore — Sagar Fitness Gym Complete Vanilla CSS */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap');
 
 :root {
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -15,7 +15,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Custom Scrollbars */
+/* Custom Smooth Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -31,20 +31,21 @@ body {
   background: #94A3B8;
 }
 
-/* Modal animation */
+/* Modal Animations & Backdrop */
 .modal-backdrop {
-  background-color: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(2px);
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .modal-enter {
-  animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: modalIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes modalIn {
   from {
     opacity: 0;
-    transform: scale(0.96) translateY(8px);
+    transform: scale(0.96) translateY(10px);
   }
   to {
     opacity: 1;
@@ -52,29 +53,7 @@ body {
   }
 }
 
-/* Print styling for receipts */
-@media print {
-  body * {
-    visibility: hidden;
-  }
-  #printable-receipt, #printable-receipt * {
-    visibility: visible;
-  }
-  #printable-receipt {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 20px;
-    background: white;
-  }
-  .no-print {
-    display: none !important;
-  }
-}
-
-/* Utility Badges */
+/* Status Badges Matching Original React App */
 .badge-active {
   background-color: #ECFDF5;
   color: #047857;
@@ -94,4 +73,29 @@ body {
   background-color: #EFF6FF;
   color: #1D4ED8;
   border: 1px solid #BFDBFE;
+}
+
+/* Print Layout for Receipts & Member Passes */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-receipt, #printable-receipt *,
+  #printable-member-pass, #printable-member-pass * {
+    visibility: visible;
+  }
+  #printable-receipt, #printable-member-pass {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 24px;
+    background: white;
+    border: none;
+    box-shadow: none;
+  }
+  .no-print {
+    display: none !important;
+  }
 }

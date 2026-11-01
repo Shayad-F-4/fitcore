@@ -1,4 +1,4 @@
-// FitCore — Sagar Fitness Gym Simple Vanilla API Helper
+// FitCore — Sagar Fitness Gym Simple Vanilla API & Messaging Helpers
 const API_BASE = '/api';
 
 const API = {
@@ -30,7 +30,6 @@ const API = {
 
       if (!response.ok) {
         if (response.status === 401) {
-          // Token expired or invalid
           localStorage.removeItem('fitcore_token');
           localStorage.removeItem('fitcore_user');
           if (!window.location.pathname.includes('login')) {
@@ -118,7 +117,7 @@ const API = {
   },
 
   // Members Endpoints
-  getMembers(search = '', status = '', page = 1, limit = 50) {
+  getMembers(search = '', status = '', page = 1, limit = 100) {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (status && status !== 'ALL') params.append('status', status);
@@ -143,7 +142,7 @@ const API = {
     return this.del(`/members/${id}`);
   },
 
-  // Memberships & Renewals
+  // Memberships, Renewals & Freeze
   renewMembership(data) {
     return this.post('/memberships/renew', data);
   },
@@ -174,25 +173,16 @@ const API = {
   },
 
   // Billing & Payments
-  getPayments(page = 1, limit = 50) {
+  getPayments(page = 1, limit = 100) {
     return this.get(`/payments?page=${page}&limit=${limit}`);
   },
 
   collectDue(data) {
     return this.post('/payments/collect-due', data);
   },
-
-  // Settings
-  getSettings() {
-    return this.get('/settings');
-  },
-
-  updateSettings(data) {
-    return this.put('/settings', data);
-  },
 };
 
-// UI Formatting Helpers
+// Formatting Helpers
 function formatINR(val) {
   const num = Number(val) || 0;
   return new Intl.NumberFormat('en-IN', {
@@ -213,18 +203,53 @@ function formatDateIN(dateVal) {
   });
 }
 
+function cleanIndianPhone(raw) {
+  if (!raw) return '';
+  const digits = String(raw).replace(/\D/g, '');
+  if (digits.length === 10) return `91${digits}`;
+  if (digits.length === 12 && digits.startsWith('91')) return digits;
+  return digits;
+}
+
+// WhatsApp Generator Functions Matching Original React App
+function openWhatsAppMessage(phone, message) {
+  const clean = cleanIndianPhone(phone);
+  if (!clean || clean.length < 10) {
+    alert('Please record a valid 10-digit Indian mobile number for this athlete.');
+    return;
+  }
+  const url = `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function sendExpiryWhatsApp(name, phone, expiryDate, planName = 'Gym Membership') {
+  const msg = `Hi ${name}, your Sagar Fitness Gym membership (${planName}) expires on ${formatDateIN(expiryDate)}. Please renew on time to continue your workouts without interruption. For renewal assistance, contact our front desk. Thank you! 🏋️`;
+  openWhatsAppMessage(phone, msg);
+}
+
+function sendDueWhatsApp(name, phone, dueAmount) {
+  const msg = `Hi ${name}, this is a gentle reminder regarding your outstanding gym fee balance of ${formatINR(dueAmount)} at Sagar Fitness Gym. Please settle your dues at the front desk at your earliest convenience. Thank you!`;
+  openWhatsAppMessage(phone, msg);
+}
+
+function sendWelcomeWhatsApp(name, phone, memberId) {
+  const msg = `Welcome to Sagar Fitness Gym, ${name}! 🏋️🔥\n\nYour gym membership is officially active. Your Member ID is *${memberId}*.\n\nYou can provide your Member ID or phone number at the counter for instant check-in.\n\nLet's crush your fitness goals together!\nSagar Fitness Gym • Pathardi`;
+  openWhatsAppMessage(phone, msg);
+}
+
+// Toast Feedback
 function showToast(message, type = 'success') {
   const existing = document.getElementById('fitcore-toast');
   if (existing) existing.remove();
 
   const toast = document.createElement('div');
   toast.id = 'fitcore-toast';
-  toast.className = `fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl text-sm font-semibold transition-all duration-300 transform translate-y-0 ${
+  toast.className = `fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl text-xs font-bold transition-all duration-300 transform translate-y-0 ${
     type === 'success'
-      ? 'bg-emerald-600 text-white'
+      ? 'bg-emerald-600 text-white shadow-emerald-600/30'
       : type === 'error'
-      ? 'bg-rose-600 text-white'
-      : 'bg-amber-500 text-white'
+      ? 'bg-rose-600 text-white shadow-rose-600/30'
+      : 'bg-amber-500 text-white shadow-amber-500/30'
   }`;
   toast.innerHTML = `
     <span>${message}</span>

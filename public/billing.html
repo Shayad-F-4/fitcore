@@ -22,29 +22,34 @@
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Billing & Receipts Ledger</h1>
-          <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">Track collections, dues and print transaction invoices</p>
+          <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">Track member fee collections, outstanding dues and print invoices</p>
         </div>
       </div>
 
       <!-- Payments Table -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
         <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
-          <h2 class="text-sm font-bold text-slate-900">Payment Transactions</h2>
-          <span class="text-xs text-slate-500 font-semibold" id="billing-count-badge">Loading...</span>
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+              <i data-lucide="receipt" class="w-4 h-4"></i>
+            </div>
+            <h2 class="text-sm font-bold text-slate-900">Payment Transactions</h2>
+          </div>
+          <span class="text-xs text-slate-500 font-semibold px-3 py-1 rounded-full bg-slate-100" id="billing-count-badge">Loading...</span>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-100">
+            <thead class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-100 select-none">
               <tr>
                 <th class="py-3.5 px-4">Receipt #</th>
-                <th class="py-3.5 px-4">Date</th>
-                <th class="py-3.5 px-4">Member</th>
+                <th class="py-3.5 px-4">Payment Date</th>
+                <th class="py-3.5 px-4">Athlete Member</th>
                 <th class="py-3.5 px-4">Amount Paid</th>
-                <th class="py-3.5 px-4">Balance Due</th>
+                <th class="py-3.5 px-4">Balance Remaining</th>
                 <th class="py-3.5 px-4">Payment Mode</th>
                 <th class="py-3.5 px-4">Status</th>
-                <th class="py-3.5 px-4 text-right">Receipt</th>
+                <th class="py-3.5 px-4 text-right">Invoice</th>
               </tr>
             </thead>
             <tbody id="payments-table-body" class="divide-y divide-slate-100">
@@ -63,56 +68,57 @@
 
   <!-- Fee Receipt Modal -->
   <div id="receipt-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 modal-backdrop">
-    <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto modal-enter">
+    <div class="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-2xl p-6 sm:p-7 space-y-4 max-h-[92vh] overflow-y-auto modal-enter">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 no-print">
         <h3 class="text-base font-bold text-slate-900">Fee Payment Receipt</h3>
-        <button type="button" onclick="closeReceiptModal()" class="p-1 text-slate-400 hover:text-slate-600">✕</button>
+        <button type="button" onclick="closeReceiptModal()" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg">✕</button>
       </div>
 
       <!-- Printable Area -->
-      <div id="printable-receipt" class="p-4 border border-slate-200 rounded-xl bg-white space-y-4 text-xs font-mono">
-        <div class="text-center border-b pb-3">
+      <div id="printable-receipt" class="p-5 border border-slate-200 rounded-2xl bg-white space-y-4 text-xs font-mono shadow-xs">
+        <div class="text-center border-b pb-3 space-y-1">
+          <img src="/logo.webp" alt="Sagar Fitness Gym" class="h-9 w-auto mx-auto object-contain mb-1" onerror="this.src='/logo.png'">
           <h2 class="text-base font-black uppercase text-slate-900 tracking-wider">SAGAR FITNESS GYM</h2>
           <p class="text-[11px] text-slate-600">Pathardi, Ahmednagar, Maharashtra, India</p>
           <p class="text-[10px] text-slate-500">Contact: +91 98811 22334 • info@sagarfitness.com</p>
         </div>
 
-        <div class="flex justify-between text-[11px]">
-          <span>Receipt No: <strong id="rec-number" class="text-slate-900"></strong></span>
+        <div class="flex justify-between text-[11px] font-semibold">
+          <span>Receipt: <strong id="rec-number" class="text-blue-700"></strong></span>
           <span>Date: <strong id="rec-date" class="text-slate-900"></strong></span>
         </div>
 
-        <div class="p-2.5 bg-slate-50 rounded-lg space-y-1">
-          <p><strong>Member Name:</strong> <span id="rec-member-name"></span></p>
-          <p><strong>Phone:</strong> <span id="rec-member-phone"></span></p>
-          <p><strong>Plan:</strong> <span id="rec-plan-name"></span></p>
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-slate-700">
+          <p><strong>Athlete Name:</strong> <span id="rec-member-name" class="font-bold text-slate-900"></span></p>
+          <p><strong>Mobile Phone:</strong> <span id="rec-member-phone"></span></p>
+          <p><strong>Package Plan:</strong> <span id="rec-plan-name"></span></p>
         </div>
 
-        <div class="border-t pt-2 space-y-1.5">
-          <div class="flex justify-between font-bold text-slate-900">
+        <div class="border-t pt-2 space-y-2">
+          <div class="flex justify-between font-bold text-sm text-slate-900">
             <span>Amount Paid:</span>
-            <span id="rec-paid" class="text-emerald-700"></span>
+            <span id="rec-paid" class="text-emerald-700 font-black"></span>
           </div>
           <div class="flex justify-between text-slate-600">
             <span>Balance Remaining:</span>
-            <span id="rec-balance"></span>
+            <span id="rec-balance" class="font-bold"></span>
           </div>
           <div class="flex justify-between text-slate-600">
             <span>Payment Mode:</span>
-            <span id="rec-mode" class="uppercase"></span>
+            <span id="rec-mode" class="uppercase font-bold"></span>
           </div>
         </div>
 
-        <div class="border-t pt-3 text-center text-[10px] text-slate-400">
-          <p>Thank you for training with Sagar Fitness Gym!</p>
-          <p>This is a computer-generated fee acknowledgement.</p>
+        <div class="border-t pt-3 text-center text-[10px] text-slate-400 space-y-0.5">
+          <p>Thank you for training at Sagar Fitness Gym!</p>
+          <p>Certified computer-generated fee invoice.</p>
         </div>
       </div>
 
       <div class="flex justify-end gap-2 pt-2 no-print">
-        <button onclick="window.print()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer">
+        <button onclick="window.print()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md">
           <i data-lucide="printer" class="w-3.5 h-3.5"></i>
-          <span>Print Receipt</span>
+          <span>Print Fee Receipt</span>
         </button>
       </div>
     </div>
@@ -133,10 +139,10 @@
       try {
         const res = await API.getPayments();
         paymentsList = Array.isArray(res) ? res : (res.payments || []);
-        document.getElementById('billing-count-badge').innerText = `${paymentsList.length} Entries`;
+        document.getElementById('billing-count-badge').innerText = `${paymentsList.length} Transactions`;
 
         if (paymentsList.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400 font-medium">No payment transactions found</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400 font-medium">No payment transactions found in ledger</td></tr>`;
           return;
         }
 
@@ -157,13 +163,13 @@
               </td>
               <td class="py-3.5 px-4 uppercase font-semibold text-slate-600">${p.paymentMethod || 'CASH'}</td>
               <td class="py-3.5 px-4">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  isPaid ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200'
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                  isPaid ? 'badge-active' : 'badge-expiring'
                 }">${p.status || (isPaid ? 'PAID' : 'PARTIAL')}</span>
               </td>
               <td class="py-3.5 px-4 text-right">
-                <button onclick="viewReceipt('${p._id}')" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] transition-colors cursor-pointer">
-                  Receipt
+                <button onclick="viewReceipt('${p._id}')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer">
+                  Invoice
                 </button>
               </td>
             </tr>
@@ -172,7 +178,7 @@
 
         if (window.lucide) lucide.createIcons();
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-500 font-semibold">Failed to load billing records</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-500 font-semibold">Failed to load billing ledger</td></tr>`;
       }
     }
 
@@ -186,7 +192,7 @@
       document.getElementById('rec-date').innerText = formatDateIN(p.createdAt || p.paymentDate);
       document.getElementById('rec-member-name').innerText = m.fullName || 'N/A';
       document.getElementById('rec-member-phone').innerText = m.phone || 'N/A';
-      document.getElementById('rec-plan-name').innerText = plan.name || 'General Membership';
+      document.getElementById('rec-plan-name').innerText = plan.name || 'General Membership Pass';
       document.getElementById('rec-paid').innerText = formatINR(p.amountPaid);
       document.getElementById('rec-balance').innerText = formatINR(p.balanceRemaining || 0);
       document.getElementById('rec-mode').innerText = p.paymentMethod || 'CASH';
