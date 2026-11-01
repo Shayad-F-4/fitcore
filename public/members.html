@@ -542,7 +542,8 @@
         const select = document.getElementById('reg-plan');
         const renewSelect = document.getElementById('renew-plan');
 
-        const optionsHtml = plansList.map(p => {
+        const activePlans = plansList.filter(p => p.active !== false);
+        const optionsHtml = activePlans.map(p => {
           const days = p.durationDays || p.duration || 30;
           return `
             <option value="${p._id}" data-price="${p.price}" data-duration="${days}">

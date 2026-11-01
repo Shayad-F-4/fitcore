@@ -74,6 +74,14 @@
           <textarea id="plan-desc" rows="3" placeholder="Includes cardio, weights and training regimen..." class="w-full p-3 text-xs border border-slate-300 rounded-xl focus:outline-none focus:border-purple-600"></textarea>
         </div>
 
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Status</label>
+          <select id="plan-status" class="w-full h-10 px-3 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none focus:border-purple-600 font-semibold">
+            <option value="true">Active (Accepting new sign-ups)</option>
+            <option value="false">Inactive (Disabled / Hidden for new sign-ups)</option>
+          </select>
+        </div>
+
         <button type="submit" id="plan-submit-btn" class="w-full h-10 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
           Save Package
         </button>
@@ -103,16 +111,23 @@
           return;
         }
 
-        grid.innerHTML = allPlans.map(p => `
+        grid.innerHTML = allPlans.map(p => {
+          const isActive = p.active !== false;
+          return `
           <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between">
                 <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200">
                   ${p.durationDays || p.duration || 30} DAYS
                 </span>
-                <span class="text-xs font-bold ${p.isActive ? 'text-emerald-600' : 'text-slate-400'}">
-                  ${p.isActive ? '● Active' : '○ Inactive'}
-                </span>
+                <button type="button" onclick="togglePlanStatus('${p._id}', ${isActive})" title="Click to toggle Active/Inactive" class="px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs ${
+                  isActive
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                    : 'bg-slate-100 text-slate-500 border border-slate-300 hover:bg-slate-200'
+                }">
+                  <span class="w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}"></span>
+                  <span>${isActive ? 'Active' : 'Inactive'}</span>
+                </button>
               </div>
 
               <h3 class="text-base font-bold text-slate-900 mt-3">${p.name}</h3>
@@ -124,16 +139,23 @@
               </div>
             </div>
 
-            <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-              <button onclick="openEditPlanModal('${p._id}')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 transition-colors cursor-pointer">
-                Edit
+            <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <button type="button" onclick="togglePlanStatus('${p._id}', ${isActive})" class="text-[11px] font-bold transition-colors cursor-pointer ${
+                isActive ? 'text-amber-600 hover:text-amber-700' : 'text-emerald-600 hover:text-emerald-700'
+              }">
+                ${isActive ? 'Deactivate' : 'Activate'}
               </button>
-              <button onclick="deletePlan('${p._id}')" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-              </button>
+              <div class="flex items-center gap-2">
+                <button onclick="openEditPlanModal('${p._id}')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 transition-colors cursor-pointer">
+                  Edit
+                </button>
+                <button onclick="deletePlan('${p._id}')" title="Delete Plan" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
             </div>
           </div>
-        `).join('');
+        `}).join('');
 
         if (window.lucide) lucide.createIcons();
       } catch (err) {
@@ -148,6 +170,7 @@
       document.getElementById('plan-duration').value = '30';
       document.getElementById('plan-price').value = '';
       document.getElementById('plan-desc').value = '';
+      document.getElementById('plan-status').value = 'true';
       document.getElementById('plan-modal').classList.remove('hidden');
     }
 
@@ -160,11 +183,22 @@
       document.getElementById('plan-duration').value = plan.durationDays || plan.duration || 30;
       document.getElementById('plan-price').value = plan.price;
       document.getElementById('plan-desc').value = plan.description || '';
+      document.getElementById('plan-status').value = String(plan.active !== false);
       document.getElementById('plan-modal').classList.remove('hidden');
     }
 
     function closePlanModal() {
       document.getElementById('plan-modal').classList.add('hidden');
+    }
+
+    async function togglePlanStatus(id, currentActive) {
+      try {
+        await API.togglePlanStatus(id);
+        showToast(`Package successfully ${currentActive ? 'deactivated (set to Inactive)' : 'activated (set to Active)'}!`);
+        loadPlans();
+      } catch (err) {
+        showToast(err.message || 'Failed to update package status', 'error');
+      }
     }
 
     async function handlePlanSubmit(e) {
@@ -178,6 +212,12 @@
       const days = Number(document.getElementById('plan-duration').value);
       const payload = {
         name: document.getElementById('plan-name').value.trim(),
+        durationDays: days,
+        duration: days,
+        price: Number(document.getElementById('plan-price').value),
+        description: document.getElementById('plan-desc').value.trim(),
+        active: document.getElementById('plan-status').value === 'true',
+      };
         durationDays: days,
         duration: days,
         price: Number(document.getElementById('plan-price').value),

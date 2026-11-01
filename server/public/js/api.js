@@ -168,6 +168,10 @@ const API = {
     return this.put(`/plans/${id}`, data);
   },
 
+  togglePlanStatus(id) {
+    return this.request(`/plans/${id}/toggle-status`, { method: 'PATCH' });
+  },
+
   deletePlan(id) {
     return this.del(`/plans/${id}`);
   },
