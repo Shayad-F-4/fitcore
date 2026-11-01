@@ -1,4 +1,5 @@
 {
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -7,10 +8,6 @@
     {
       "source": "/uploads/(.*)",
       "destination": "https://sagar-fitness-backend.onrender.com/uploads/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ]
 }
