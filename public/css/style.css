@@ -102,3 +102,22 @@ body {
     box-shadow: none !important;
   }
 }
+
+/* Mobile Responsiveness Improvements */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  #mobile-nav-container nav {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+  }
+}

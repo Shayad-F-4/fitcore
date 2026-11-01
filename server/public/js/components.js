@@ -201,14 +201,27 @@ document.addEventListener('DOMContentLoaded', () => {
           <span>Home</span>
         </a>
 
-        <a href="/members.html" class="flex flex-col items-center py-1 px-3 rounded-xl text-[10px] font-bold ${
+        <a href="/members.html" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-[10px] font-bold ${
           currentPath.includes('members') ? 'text-emerald-600 font-extrabold' : 'text-slate-500 hover:text-slate-900'
         }">
           <i data-lucide="users" class="w-5 h-5 mb-0.5"></i>
           <span>Members</span>
         </a>
 
-        <a href="/billing.html" class="flex flex-col items-center py-1 px-3 rounded-xl text-[10px] font-bold ${
+        ${
+          isAdmin
+            ? `
+        <a href="/plans.html" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-[10px] font-bold ${
+          currentPath.includes('plans') ? 'text-purple-600 font-extrabold' : 'text-slate-500 hover:text-slate-900'
+        }">
+          <i data-lucide="credit-card" class="w-5 h-5 mb-0.5"></i>
+          <span>Plans</span>
+        </a>
+        `
+            : ''
+        }
+
+        <a href="/billing.html" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-[10px] font-bold ${
           currentPath.includes('billing') ? 'text-rose-600 font-extrabold' : 'text-slate-500 hover:text-slate-900'
         }">
           <i data-lucide="receipt" class="w-5 h-5 mb-0.5"></i>
@@ -218,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ${
           isAdmin
             ? `
-        <a href="/settings.html" class="flex flex-col items-center py-1 px-3 rounded-xl text-[10px] font-bold ${
+        <a href="/settings.html" class="flex flex-col items-center py-1 px-2.5 rounded-xl text-[10px] font-bold ${
           currentPath.includes('settings') ? 'text-indigo-600 font-extrabold' : 'text-slate-500 hover:text-slate-900'
         }">
           <i data-lucide="settings" class="w-5 h-5 mb-0.5"></i>
