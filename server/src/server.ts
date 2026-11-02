@@ -233,11 +233,11 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/expiry', expiryRoutes);
 
 // Static file serving for Vanilla HTML/CSS/JS frontend (Robust root or server lookup)
+// Static file serving for Vanilla HTML/CSS/JS frontend (Single root public folder)
 const getPublicDir = () => {
   const candidates = [
-    path.resolve(process.cwd(), '../public'),
     path.resolve(process.cwd(), 'public'),
-    path.resolve(process.cwd(), 'server/public'),
+    path.resolve(process.cwd(), '../public'),
   ];
   for (const dir of candidates) {
     if (fs.existsSync(dir) && fs.existsSync(path.join(dir, 'index.html'))) {

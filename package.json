@@ -7,7 +7,7 @@
   "scripts": {
     "install:all": "npm install && npm install --prefix server",
     "dev": "npm run dev --prefix server",
-    "build": "npm run build --prefix server && node scripts/copy-frontend.js",
+    "build": "npm run build --prefix server",
     "build:server": "npm run build --prefix server",
     "backup": "powershell -ExecutionPolicy Bypass -File ./scripts/backup.ps1",
     "seed": "npm run seed --prefix server",
