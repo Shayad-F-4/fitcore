@@ -501,8 +501,8 @@
 
       try {
         const res = await API.getAttendanceReports(selectedMonth);
-        const reportData = (res && res.dailySummary !== undefined) ? res : (res?.data || {});
-        const { totalCheckIns, activeDaysCount, avgDailyCheckIns, dailySummary } = reportData;
+        const data = (res && res.dailySummary !== undefined) ? res : (res?.data || {});
+        const { totalCheckIns, activeDaysCount, avgDailyCheckIns, dailySummary } = data;
 
         document.getElementById('report-total-checkins').textContent = totalCheckIns || 0;
         document.getElementById('report-active-days').textContent = activeDaysCount || 0;
