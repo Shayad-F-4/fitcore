@@ -167,6 +167,49 @@ const API = {
     return this.post(`/memberships/${id}/unfreeze`, {});
   },
 
+  // Attendance Endpoints
+  getAttendanceRoster(date = '', search = '') {
+    const q = new URLSearchParams();
+    if (date) q.append('date', date);
+    if (search) q.append('search', search);
+    const qs = q.toString();
+    return this.get('/attendance/roster' + (qs ? '?' + qs : ''));
+  },
+
+  quickMarkAttendance(data) {
+    return this.post('/attendance/quick-mark', data);
+  },
+
+  getTodayAttendance() {
+    return this.get('/attendance/today');
+  },
+
+  getAttendanceRecords(params = {}) {
+    const q = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') q.append(k, v);
+    });
+    const qs = q.toString();
+    return this.get(`/attendance${qs ? '?' + qs : ''}`);
+  },
+
+  getAttendanceReports(month = '') {
+    const qs = month ? `?month=${encodeURIComponent(month)}` : '';
+    return this.get(`/attendance/reports${qs}`);
+  },
+
+  markAttendance(data) {
+    return this.post('/attendance', data);
+  },
+
+  updateAttendance(id, data) {
+    return this.put(`/attendance/${id}`, data);
+  },
+
+  deleteAttendance(id) {
+    return this.del(`/attendance/${id}`);
+  },
+
   // Plans Endpoints
   getPlans() {
     return this.get('/plans');
