@@ -1,4 +1,6 @@
 {
+  "framework": null,
+  "buildCommand": null,
   "outputDirectory": "public",
   "cleanUrls": true,
   "rewrites": [
