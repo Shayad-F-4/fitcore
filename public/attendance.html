@@ -313,31 +313,28 @@
 
       try {
         const res = await API.getAttendanceRoster(selectedDate);
-        if (res.success && res.data) {
-          rosterData = res.data.roster || [];
-          const stats = res.data.stats || { presentCount: 0, absentCount: 0, unmarkedCount: 0, totalActiveMembers: 0, attendanceRate: 0 };
+        const data = (res && res.roster !== undefined) ? res : (res?.data || {});
+        rosterData = data.roster || [];
+        const stats = data.stats || { presentCount: 0, absentCount: 0, unmarkedCount: 0, totalActiveMembers: 0, attendanceRate: 0 };
 
-          // Update KPI cards
-          document.getElementById('stat-present').textContent = stats.presentCount;
-          document.getElementById('stat-absent').textContent = stats.absentCount;
-          document.getElementById('stat-unmarked').textContent = stats.unmarkedCount;
-          document.getElementById('stat-rate').textContent = `${stats.attendanceRate}%`;
-          document.getElementById('stat-total-label').textContent = `Total ${stats.totalActiveMembers} active`;
+        // Update KPI cards
+        document.getElementById('stat-present').textContent = stats.presentCount;
+        document.getElementById('stat-absent').textContent = stats.absentCount;
+        document.getElementById('stat-unmarked').textContent = stats.unmarkedCount;
+        document.getElementById('stat-rate').textContent = `${stats.attendanceRate}%`;
+        document.getElementById('stat-total-label').textContent = `Total ${stats.totalActiveMembers} active`;
 
-          // Update filter badge counts
-          document.getElementById('count-all').textContent = rosterData.length;
-          document.getElementById('count-present').textContent = stats.presentCount;
-          document.getElementById('count-absent').textContent = stats.absentCount;
-          document.getElementById('count-unmarked').textContent = stats.unmarkedCount;
+        // Update filter badge counts
+        document.getElementById('count-all').textContent = rosterData.length;
+        document.getElementById('count-present').textContent = stats.presentCount;
+        document.getElementById('count-absent').textContent = stats.absentCount;
+        document.getElementById('count-unmarked').textContent = stats.unmarkedCount;
 
-          // Date badge
-          const isToday = selectedDate === (new Date(Date.now() + 5.5 * 3600 * 1000)).toISOString().split('T')[0];
-          document.getElementById('date-display-badge').textContent = isToday ? 'Today (' + selectedDate + ')' : selectedDate;
+        // Date badge
+        const isToday = selectedDate === (new Date(Date.now() + 5.5 * 3600 * 1000)).toISOString().split('T')[0];
+        document.getElementById('date-display-badge').textContent = isToday ? 'Today (' + selectedDate + ')' : selectedDate;
 
-          renderRoster();
-        } else {
-          tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-rose-500 font-medium">Failed to load roster</td></tr>`;
-        }
+        renderRoster();
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-rose-500 font-medium">Error: ${err.message || 'Server error'}</td></tr>`;
       }
@@ -476,25 +473,21 @@
     // 1-Click Quick Mark Attendance
     async function quickMark(memberId, status, athleteName) {
       try {
-        const res = await API.quickMarkAttendance({
+        await API.quickMarkAttendance({
           memberId,
           date: selectedDate,
           status,
         });
 
-        if (res.success) {
-          if (status === 'CLEAR') {
-            showToast(`Reset attendance for ${athleteName}`);
-          } else {
-            showToast(`Marked ${status} for ${athleteName}`);
-          }
-          // Reload roster to recalculate counts and update table
-          await loadRoster();
-          // Also refresh monthly report in case current month is affected
-          loadMonthlyReport();
+        if (status === 'CLEAR') {
+          showToast(`Reset attendance for ${athleteName}`);
         } else {
-          showToast(res.message || 'Failed to update attendance', false);
+          showToast(`Marked ${status} for ${athleteName}`);
         }
+        // Reload roster to recalculate counts and update table
+        await loadRoster();
+        // Also refresh monthly report in case current month is affected
+        loadMonthlyReport();
       } catch (err) {
         showToast(err.message || 'Error updating attendance', false);
       }
@@ -508,32 +501,31 @@
 
       try {
         const res = await API.getAttendanceReports(selectedMonth);
-        if (res.success && res.data) {
-          const { totalCheckIns, activeDaysCount, avgDailyCheckIns, dailySummary } = res.data;
+        const reportData = (res && res.dailySummary !== undefined) ? res : (res?.data || {});
+        const { totalCheckIns, activeDaysCount, avgDailyCheckIns, dailySummary } = reportData;
 
-          document.getElementById('report-total-checkins').textContent = totalCheckIns || 0;
-          document.getElementById('report-active-days').textContent = activeDaysCount || 0;
-          document.getElementById('report-avg-daily').textContent = avgDailyCheckIns || 0;
+        document.getElementById('report-total-checkins').textContent = totalCheckIns || 0;
+        document.getElementById('report-active-days').textContent = activeDaysCount || 0;
+        document.getElementById('report-avg-daily').textContent = avgDailyCheckIns || 0;
 
-          if (!dailySummary || dailySummary.length === 0) {
-            breakdownTbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400 text-xs">No records for ${selectedMonth} yet.</td></tr>`;
-            return;
-          }
-
-          breakdownTbody.innerHTML = dailySummary.map(row => {
-            const dateObj = new Date(row.date);
-            const formattedDate = dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', weekday: 'short' });
-
-            return `
-              <tr class="hover:bg-slate-50 transition-colors">
-                <td class="py-2.5 px-3 font-semibold text-slate-800">${formattedDate} (${row.date})</td>
-                <td class="py-2.5 px-3 font-bold text-emerald-600">${row.present}</td>
-                <td class="py-2.5 px-3 font-bold text-rose-600">${row.absent}</td>
-                <td class="py-2.5 px-3 font-bold text-slate-700">${row.total}</td>
-              </tr>
-            `;
-          }).join('');
+        if (!dailySummary || dailySummary.length === 0) {
+          breakdownTbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400 text-xs">No records for ${selectedMonth} yet.</td></tr>`;
+          return;
         }
+
+        breakdownTbody.innerHTML = dailySummary.map(row => {
+          const dateObj = new Date(row.date);
+          const formattedDate = dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', weekday: 'short' });
+
+          return `
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="py-2.5 px-3 font-semibold text-slate-800">${formattedDate} (${row.date})</td>
+              <td class="py-2.5 px-3 font-bold text-emerald-600">${row.present}</td>
+              <td class="py-2.5 px-3 font-bold text-rose-600">${row.absent}</td>
+              <td class="py-2.5 px-3 font-bold text-slate-700">${row.total}</td>
+            </tr>
+          `;
+        }).join('');
       } catch (err) {
         console.error('Error loading report:', err);
       }
