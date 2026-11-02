@@ -675,7 +675,18 @@
 
         if (window.lucide) lucide.createIcons();
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-500 font-semibold">Failed to load members</td></tr>`;
+        console.error('Failed to load members:', err);
+        const isServerWaking = err.message && (err.message.includes('502') || err.message.includes('Failed to fetch'));
+        const hint = isServerWaking
+          ? 'Backend server is waking up from sleep mode (Render free tier). Please wait a few seconds and click Retry.'
+          : (err.message || 'Check your connection or try logging in again.');
+        tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center space-y-2">
+          <p class="text-rose-500 font-semibold text-sm">Failed to load members</p>
+          <p class="text-slate-500 text-xs">${hint}</p>
+          <button onclick="loadMembers()" class="mt-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow cursor-pointer">
+            Retry
+          </button>
+        </td></tr>`;
       }
     }
 

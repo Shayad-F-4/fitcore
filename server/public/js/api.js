@@ -1,5 +1,7 @@
 // FitCore — Sagar Fitness Gym Simple Vanilla API & Messaging Helpers
-const API_BASE = '/api';
+const API_BASE = (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('pages.dev')))
+  ? 'https://sagar-fitness-backend.onrender.com/api'
+  : '/api';
 
 const API = {
   getToken() {
