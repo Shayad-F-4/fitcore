@@ -267,7 +267,8 @@ router.post('/:id/renew', authenticate, async (req: AuthenticatedRequest, res: R
     const newExpiryDate = new Date(baseDate);
     newExpiryDate.setDate(baseDate.getDate() + addDays);
 
-    const paid = Number(amountPaid) || (plan ? plan.price : 0);
+    const planPrice = plan ? (plan.price || 0) : 0;
+    const paid = amountPaid !== undefined ? Number(amountPaid) : planPrice;
 
     membership.renewalHistory.push({
       renewedAt: new Date(),
@@ -278,13 +279,17 @@ router.post('/:id/renew', authenticate, async (req: AuthenticatedRequest, res: R
 
     membership.expiryDate = newExpiryDate;
     membership.status = 'ACTIVE';
-    membership.amountPaid += paid;
+    // Add renewal cost to amountDue and payment to amountPaid so previous pending due remains strictly intact
+    const renewalCost = planPrice > 0 ? planPrice : paid;
+    membership.amountDue = (membership.amountDue || 0) + renewalCost;
+    membership.amountPaid = (membership.amountPaid || 0) + paid;
     await membership.save();
 
     await Member.findByIdAndUpdate(membership.member, { status: 'ACTIVE' });
 
     // Payment receipt for renewal
     const receiptNumber = await generateReceiptNumber();
+    const remainingBalance = Math.max(0, membership.amountDue - membership.amountPaid);
 
     const payment = await Payment.create({
       receiptNumber,
@@ -294,7 +299,7 @@ router.post('/:id/renew', authenticate, async (req: AuthenticatedRequest, res: R
       paymentMethod: paymentMethod || 'CASH',
       status: 'PAID',
       type: 'RENEWAL',
-      balanceRemaining: 0,
+      balanceRemaining: remainingBalance,
       notes: `Membership renewal extended until ${newExpiryDate.toISOString().split('T')[0]}`,
       recordedBy: req.user?.userId || membership.member,
       paymentDate: new Date(),
@@ -400,7 +405,8 @@ router.post('/renew', authenticate, async (req: AuthenticatedRequest, res: Respo
     const newExpiryDate = new Date(baseDate);
     newExpiryDate.setDate(baseDate.getDate() + addDays);
 
-    const paid = Number(amountPaid) || (plan ? plan.price : 0);
+    const planPrice = plan ? (plan.price || 0) : 0;
+    const paid = amountPaid !== undefined ? Number(amountPaid) : planPrice;
 
     membership.renewalHistory.push({
       renewedAt: new Date(),
@@ -411,12 +417,16 @@ router.post('/renew', authenticate, async (req: AuthenticatedRequest, res: Respo
 
     membership.expiryDate = newExpiryDate;
     membership.status = 'ACTIVE';
-    membership.amountPaid += paid;
+    // Add renewal cost to amountDue and payment to amountPaid so previous pending due remains strictly intact
+    const renewalCost = planPrice > 0 ? planPrice : paid;
+    membership.amountDue = (membership.amountDue || 0) + renewalCost;
+    membership.amountPaid = (membership.amountPaid || 0) + paid;
     await membership.save();
 
     await Member.findByIdAndUpdate(membership.member, { status: 'ACTIVE' });
 
     const receiptNumber = await generateReceiptNumber();
+    const remainingBalance = Math.max(0, membership.amountDue - membership.amountPaid);
 
     const payment = await Payment.create({
       receiptNumber,
@@ -426,7 +436,7 @@ router.post('/renew', authenticate, async (req: AuthenticatedRequest, res: Respo
       paymentMethod: paymentMethod || 'CASH',
       status: 'PAID',
       type: 'RENEWAL',
-      balanceRemaining: 0,
+      balanceRemaining: remainingBalance,
       notes: `Membership renewal extended until ${newExpiryDate.toISOString().split('T')[0]}`,
       recordedBy: req.user?.userId || membership.member,
       paymentDate: new Date(),
