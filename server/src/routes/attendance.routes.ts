@@ -504,7 +504,7 @@ router.delete('/:id', authenticate, async (req: AuthenticatedRequest, res: Respo
       userRole: req.user?.role,
       action: 'ATTENDANCE_DELETED',
       entity: 'Attendance',
-      entityId: String(req.params.id),
+      entityId: req.params.id,
       details: { date: record.date, status: record.status },
     });
 
