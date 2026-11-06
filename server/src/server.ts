@@ -31,7 +31,6 @@ import notificationRoutes from './routes/notification.routes.js';
 import followUpRoutes from './routes/followUp.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
 import expiryRoutes from './routes/expiry.routes.js';
-import attendanceRoutes from './routes/attendance.routes.js';
 import { runAutoExpiryReminders } from './services/whatsappService.js';
 
 import rateLimit from 'express-rate-limit';
@@ -232,7 +231,6 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/expiry', expiryRoutes);
-app.use('/api/attendance', attendanceRoutes);
 
 // Static file serving for Vanilla HTML/CSS/JS frontend (Robust root or server lookup)
 // Static file serving for Vanilla HTML/CSS/JS frontend (Single root public folder)
